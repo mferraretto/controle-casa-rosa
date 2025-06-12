@@ -1194,15 +1194,16 @@ function atualizarResumoVendasMensal() {
   const lojaSelecionada = document.getElementById("filtroLojaDashboard")?.value;
 
   // ✅ Função para obter SKU base
-  function obterSkuBase(sku) {
-    const equivalentes = window.skuEquivalentes || {};
-    for (const [base, aliases] of Object.entries(equivalentes)) {
-      if (base === sku || (Array.isArray(aliases) && aliases.includes(sku))) {
-        return base;
-      }
+  window.obterSkuBase = function(sku) {
+  const equivalentes = window.skuEquivalentes || {};
+  for (const [base, aliases] of Object.entries(equivalentes)) {
+    if (base === sku || (Array.isArray(aliases) && aliases.includes(sku))) {
+      return base;
     }
-    return sku;
   }
+  return sku;
+};
+
 
   const resumo = {};
 
@@ -1218,7 +1219,8 @@ function atualizarResumoVendasMensal() {
     if (lojaSelecionada && loja !== lojaSelecionada) return;
 
     const skuOriginal = p.SKU || "Desconhecido";
-    const skuBase = obterSkuBase(skuOriginal);
+    const skuBase = window.obterSkuBase(p.SKU);
+
 
     resumo[skuBase] = (resumo[skuBase] || 0) + 1;
   });
@@ -2771,7 +2773,7 @@ function exportarVendasCSV() {
     const loja = p.Loja || "Loja desconhecida";
     if (lojaSelecionada && loja !== lojaSelecionada) return;
 
-    const skuBase = obterSkuBase(p.SKU);
+const skuBase = window.obterSkuBase(p.SKU);
 resumo[skuBase] = (resumo[skuBase] || 0) + 1;
 
   });
@@ -2823,7 +2825,7 @@ async function exportarVendasPDF() {
     const loja = p.Loja || "Loja desconhecida";
     if (lojaSelecionada && loja !== lojaSelecionada) return;
 
-    const skuBase = obterSkuBase(p.SKU);
+    const skuBase = window.obterSkuBase(p.SKU);
 resumo[skuBase] = (resumo[skuBase] || 0) + 1;
 
   });
