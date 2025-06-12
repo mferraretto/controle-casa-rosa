@@ -860,13 +860,14 @@ body.dark-mode button {
 
   <!-- PDFs de Etiquetas -->
   <div id="etiquetas_pdf" class="tab-content">
-    <h2>📂 PDFs de Etiquetas</h2>
-    <p><strong>Selecionar PDF:</strong><br>
-      <input type="file" id="inputPDFImportados" accept="application/pdf">
-    </p>
-    <button onclick="processarPDFImportados()">📦 Ler e Registrar</button>
-    <ul id="listaPDFs"></ul>
-  </div>
+  <h2>📂 PDFs de Etiquetas</h2>
+  <p><strong>Selecionar PDF:</strong><br>
+<input type="file" id="inputPDF" accept="application/pdf">
+  </p>
+  <button onclick="processarPDF()">📦 Ler e Registrar</button>
+
+  <ul id="listaPDFs"></ul>
+</div>
 
   <!-- Pedidos Enviados -->
   <div id="enviados" class="tab-content">
@@ -2640,8 +2641,20 @@ async function processarPDF() {
       return;
     }
 
-    // 💾 Salva os pedidos no Firestore
-    await Promise.all(pedidosExtraidos.map(p => adicionarPedido(p)));
+// 💾 Verifica se já existem pedidos iguais no Firestore
+const existentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
+const pedidosExistentes = new Set(existentesSnap.docs.map(d => (d.data().Pedido || "").trim()));
+
+// 📦 Filtra apenas os pedidos novos
+const novosFiltrados = pedidosExtraidos.filter(p => !pedidosExistentes.has((p.Pedido || "").trim()));
+
+if (!novosFiltrados.length) {
+  alert("⚠️ Todos os pedidos deste PDF já foram importados.");
+  return;
+}
+
+// 💾 Salva apenas os pedidos novos
+await Promise.all(novosFiltrados.map(p => adicionarPedido(p)));
 
     // 💾 Salva o PDF importado
     const base64 = btoa(String.fromCharCode(...typedArray));
@@ -3856,7 +3869,7 @@ function obterSkuPrincipal(sku) {
 }
 
 </script>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 </body>
 
 
