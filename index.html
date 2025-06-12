@@ -264,6 +264,7 @@ window.deslogarUsuario = function () {
 
     container.appendChild(table);
   });
+  
 </script>
 
 <script>
@@ -291,6 +292,20 @@ window.deslogarUsuario = function () {
     document.getElementById("contadorPedidosPendentes").textContent = pendentesFiltrados.length;
   }
 }
+  // 🔄 Carrega lista de lojas cadastradas no Firestore
+async function carregarLojasRegistradas() {
+  const snap = await getDocs(collection(db, "lojas"));
+  window.lojasRegistradas = snap.docs.map(doc => doc.id);
+}
+carregarLojasRegistradas();
+function identificarLoja(texto) {
+  const lojas = window.lojasRegistradas || [];
+  for (const nome of lojas) {
+    if (texto.includes(nome)) return nome;
+  }
+  return "Loja Desconhecida";
+}
+
 </script>
 
 
@@ -2577,69 +2592,54 @@ async function processarPDF() {
     console.log("🔍 TEXTO LIDO:", fullText);
     const pedidosExtraidos = [];
 
-    if (fullText.includes("*1")) {
-      // 📦 Modo múltiplos pedidos
-      const blocos = fullText.split(/\*1\s*/).filter(b => b.includes("Pedido"));
-      blocos.forEach(bloco => {
-        const pedido = bloco.match(/(\d{15})/)?.[1] || "";
-        const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-       let loja = "Loja desconhecida";
-const linhas = bloco.split("\n").map(l => l.trim());
-for (let i = 0; i < linhas.length; i++) {
-  const l = linhas[i];
-  if (
-    !l.includes("CEP") &&
-    !l.includes("Rua") &&
-    !l.includes("Avenida") &&
-    !l.match(/^BR\d{12,}/) &&
-    !l.match(/^\d{5}-\d{3}$/) &&
-    l.length > 5 &&
-    /^[A-Z]/.test(l)
-  ) {
-    loja = l;
+if (fullText.includes("*1")) {
+  // 📦 Modo múltiplos pedidos
+  const blocos = fullText.split(/\*1\s*/).filter(b => b.includes("Pedido"));
+  blocos.forEach(bloco => {
+    const pedido = bloco.match(/(\d{15})/)?.[1] || "";
+    const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
+    const loja = identificarLoja(bloco); // 🔁 alterado aqui
+    const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
+    const pagamento = pagamentoMatch ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z` : "";
+    const skuMatch = bloco.match(/1\.\s*(.+)/);
+    const sku = skuMatch ? skuMatch[1].trim() : "";
+
+    if (pedido && sku && pagamento) {
+      pedidosExtraidos.push({
+        Pedido: pedido,
+        Loja: loja,
+        SKU: sku,
+        Rastreio: rastreio,
+        dataPagamento: pagamento,
+        status: "pendente"
+      });
+    }
+  });
+
+} else {
+  // 📦 Modo único pedido
+  const pedido = fullText.match(/(\d{15})/)?.[1] || "";
+  const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
+  const pagamentoBr = fullText.match(/(\d{2}\/\d{2}\/\d{4})/)?.[1] || "";
+  const skuMatch = fullText.match(/1\.\s*(.+)/);
+  const sku = skuMatch ? skuMatch[1].trim() : "";
+  const loja = identificarLoja(fullText); // 🔁 também aqui
+
+  if (pedido && sku && pagamentoBr) {
+    const [d, m, a] = pagamentoBr.split("/");
+    const dataPagamento = `${a}-${m}-${d}T00:00:00.000Z`;
+
+    pedidosExtraidos.push({
+      Pedido: pedido,
+      Loja: loja,
+      SKU: sku,
+      Rastreio: rastreio,
+      dataPagamento,
+      status: "pendente"
+    });
   }
 }
 
-        const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
-        const skuMatch = bloco.match(/1\.\s*(.+)/);
-
-        const pagamento = pagamentoMatch ? new Date(pagamentoMatch[1].split("/").reverse().join("-")).toISOString() : "";
-        const sku = skuMatch ? skuMatch[1].trim() : "";
-
-        if (pedido && sku && pagamento) {
-          pedidosExtraidos.push({
-            Pedido: pedido,
-            Loja: loja,
-            SKU: sku,
-            Rastreio: rastreio,
-            dataPagamento: pagamento,
-            status: "pendente"
-          });
-        }
-      });
-
-    } else {
-      // 📦 Modo único pedido
-      const pedido = fullText.match(/(\d{15})/)?.[1] || "";
-      const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-      const pagamentoBr = fullText.match(/(\d{2}\/\d{2}\/\d{4})/)?.[1] || "";
-      const sku = fullText.match(/1\.\s*(.+)/)?.[1] || "";
-      const loja = "Casa Rosa";
-
-      if (pedido && sku && pagamentoBr) {
-        const [d, m, a] = pagamentoBr.split("/");
-        const dataPagamento = `${a}-${m}-${d}T00:00:00.000Z`;
-
-        pedidosExtraidos.push({
-          Pedido: pedido,
-          Loja: loja,
-          SKU: sku.trim(),
-          Rastreio: rastreio,
-          dataPagamento,
-          status: "pendente"
-        });
-      }
-    }
 
     if (!pedidosExtraidos.length) {
       alert("❌ Nenhum pedido válido foi encontrado no PDF.");
