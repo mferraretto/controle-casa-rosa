@@ -2583,7 +2583,15 @@ async function processarPDF() {
       blocos.forEach(bloco => {
         const pedido = bloco.match(/(\d{15})/)?.[1] || "";
         const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-        const loja = bloco.match(/REMETENTE\s+([\s\S]+?)\d{8}/)?.[1]?.trim().split("\n")[0] || "Casa Rosa";
+       let loja = "Loja desconhecida";
+    const linhas = bloco.split("\n").map(l => l.trim());
+    const idxRemetente = linhas.findIndex(l => l.toUpperCase().includes("REMETENTE"));
+    if (idxRemetente > -1) {
+      loja = linhas[idxRemetente + 1] || "";
+      if (loja === "CEP:" || loja.length < 3) {
+        loja = linhas[idxRemetente + 2] || "Loja desconhecida";
+      }
+    }
         const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
         const skuMatch = bloco.match(/1\.\s*(.+)/);
 
