@@ -286,7 +286,7 @@ window.deslogarUsuario = function () {
     !idsEnviados.has((p.Pedido || p.pedidoId || "").toString().trim())
   );
 
-  renderizarTabelaPendentes(pendentesFiltrados);
+renderTabela("tabelaPendentes", pendentesFiltrados);
 
   if (document.getElementById("contadorPedidosPendentes")) {
     document.getElementById("contadorPedidosPendentes").textContent = pendentesFiltrados.length;
@@ -2598,7 +2598,9 @@ if (fullText.includes("*1")) {
   blocos.forEach(bloco => {
     const pedido = bloco.match(/(\d{15})/)?.[1] || "";
     const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-    const loja = identificarLoja(bloco); // 🔁 alterado aqui
+    const lojaDetectada = identificarLoja(bloco);
+const loja = lojaDetectada || "Loja Desconhecida";
+
     const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
     const pagamento = pagamentoMatch ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z` : "";
     const skuMatch = bloco.match(/1\.\s*(.+)/);
@@ -2661,17 +2663,11 @@ if (fullText.includes("*1")) {
     // 💾 Salva apenas os pedidos novos
     await Promise.all(novosFiltrados.map(p => adicionarPedido(p)));
 
-    // 💾 Salva o PDF importado
-    const base64 = btoa(
-      new Uint8Array(typedArray)
-        .reduce((data, byte) => data + String.fromCharCode(byte), "")
-    );
+   await addDoc(collection(db, "pdf_etiquetas"), {
+  nome: file.name,
+  dataImportacao: new Date().toISOString()
+});
 
-    await addDoc(collection(db, "pdf_etiquetas"), {
-      nome: file.name,
-      base64,
-      dataImportacao: new Date().toISOString()
-    });
 
     alert(`✅ ${novosFiltrados.length} etiqueta(s) importada(s) com sucesso.`);
   };
