@@ -2595,56 +2595,54 @@ async function processarPDF() {
     console.log("🔍 TEXTO LIDO:", fullText);
     const pedidosExtraidos = [];
 
-if (fullText.includes("*1")) {
-  // 📦 Modo múltiplos pedidos
-  const blocos = fullText.split(/\*1\s*/).filter(b => b.includes("Pedido"));
-  blocos.forEach(bloco => {
-    const pedido = bloco.match(/(\d{15})/)?.[1] || "";
-    const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-    const lojaDetectada = identificarLoja(bloco);
-const loja = lojaDetectada || "Loja Desconhecida";
+    if (fullText.includes("*1")) {
+      // 📦 Modo múltiplos pedidos
+      const blocos = fullText.split(/\*1\s*/).filter(b => b.includes("Pedido"));
+      blocos.forEach(bloco => {
+const pedido = bloco.match(/\b[A-Z0-9]{13,17}\b/)?.[0] || "";
+        const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
+        const loja = identificarLoja(bloco);
 
-    const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
-    const pagamento = pagamentoMatch ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z` : "";
-    const skuMatch = bloco.match(/1\.\s*(.+)/);
-    const sku = skuMatch ? skuMatch[1].trim() : "";
+        const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
+        const pagamento = pagamentoMatch ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z` : "";
+        const skuMatch = bloco.match(/1\.\s*(.+)/);
+        const sku = skuMatch ? skuMatch[1].trim() : "";
 
-    if (pedido && sku && pagamento) {
-      pedidosExtraidos.push({
-        Pedido: pedido,
-        Loja: loja,
-        SKU: sku,
-        Rastreio: rastreio,
-        dataPagamento: pagamento,
-        status: "pendente"
+        if (pedido && sku && pagamento) {
+          pedidosExtraidos.push({
+            Pedido: pedido,
+            Loja: loja,
+            SKU: sku,
+            Rastreio: rastreio,
+            dataPagamento: pagamento,
+            status: "pendente"
+          });
+        }
       });
+
+    } else {
+      // 📦 Modo único pedido
+      const pedido = fullText.match(/\b[A-Z0-9]{13,17}\b/)?.[0] || "";
+      const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
+      const pagamentoBr = fullText.match(/(\d{2}\/\d{2}\/\d{4})/)?.[1] || "";
+      const skuMatch = fullText.match(/1\.\s*(.+)/);
+      const sku = skuMatch ? skuMatch[1].trim() : "";
+      const loja = identificarLoja(fullText);
+
+      if (pedido && sku && pagamentoBr) {
+        const [d, m, a] = pagamentoBr.split("/");
+        const dataPagamento = `${a}-${m}-${d}T00:00:00.000Z`;
+
+        pedidosExtraidos.push({
+          Pedido: pedido,
+          Loja: loja,
+          SKU: sku,
+          Rastreio: rastreio,
+          dataPagamento,
+          status: "pendente"
+        });
+      }
     }
-  });
-
-} else {
-  // 📦 Modo único pedido
-  const pedido = fullText.match(/(\d{15})/)?.[1] || "";
-  const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-  const pagamentoBr = fullText.match(/(\d{2}\/\d{2}\/\d{4})/)?.[1] || "";
-  const skuMatch = fullText.match(/1\.\s*(.+)/);
-  const sku = skuMatch ? skuMatch[1].trim() : "";
-  const loja = identificarLoja(fullText); // 🔁 também aqui
-
-  if (pedido && sku && pagamentoBr) {
-    const [d, m, a] = pagamentoBr.split("/");
-    const dataPagamento = `${a}-${m}-${d}T00:00:00.000Z`;
-
-    pedidosExtraidos.push({
-      Pedido: pedido,
-      Loja: loja,
-      SKU: sku,
-      Rastreio: rastreio,
-      dataPagamento,
-      status: "pendente"
-    });
-  }
-}
-
 
     if (!pedidosExtraidos.length) {
       alert("❌ Nenhum pedido válido foi encontrado no PDF.");
@@ -2666,17 +2664,17 @@ const loja = lojaDetectada || "Loja Desconhecida";
     // 💾 Salva apenas os pedidos novos
     await Promise.all(novosFiltrados.map(p => adicionarPedido(p)));
 
-   await addDoc(collection(db, "pdf_etiquetas"), {
-  nome: file.name,
-  dataImportacao: new Date().toISOString()
-});
-
+    await addDoc(collection(db, "pdf_etiquetas"), {
+      nome: file.name,
+      dataImportacao: new Date().toISOString()
+    });
 
     alert(`✅ ${novosFiltrados.length} etiqueta(s) importada(s) com sucesso.`);
   };
 
   reader.readAsArrayBuffer(file);
 }
+
 
 
   function considerar(loja) {
