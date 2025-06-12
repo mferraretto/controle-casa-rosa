@@ -285,7 +285,7 @@ window.deslogarUsuario = function () {
     !idsEnviados.has((p.Pedido || p.pedidoId || "").toString().trim())
   );
 
-  renderizarTabelaPendentes(pendentesFiltrados);
+renderTabela("tabelaPendentes", pendentesFiltrados);
 
   if (document.getElementById("contadorPedidosPendentes")) {
     document.getElementById("contadorPedidosPendentes").textContent = pendentesFiltrados.length;
