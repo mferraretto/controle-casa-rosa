@@ -2657,7 +2657,11 @@ if (!novosFiltrados.length) {
 await Promise.all(novosFiltrados.map(p => adicionarPedido(p)));
 
     // 💾 Salva o PDF importado
-    const base64 = btoa(String.fromCharCode(...typedArray));
+    const base64 = btoa(
+  new Uint8Array(typedArray)
+    .reduce((data, byte) => data + String.fromCharCode(byte), "")
+);
+
     await addDoc(collection(db, "pdf_etiquetas"), {
       nome: file.name,
       base64,
@@ -2666,9 +2670,10 @@ await Promise.all(novosFiltrados.map(p => adicionarPedido(p)));
 
     alert(`✅ ${pedidosExtraidos.length} etiqueta(s) importada(s) com sucesso.`);
   };
-
   reader.readAsArrayBuffer(file);
 }
+  
+
   function considerar(loja) {
     return lojasSelecionadas.length === 0 || lojasSelecionadas.includes(loja);
   
