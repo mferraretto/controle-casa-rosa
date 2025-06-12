@@ -297,12 +297,15 @@ async function carregarLojasRegistradas() {
   const snap = await getDocs(collection(db, "lojas"));
   window.lojasRegistradas = snap.docs.map(doc => doc.id);
 }
-carregarLojasRegistradas();
 function identificarLoja(texto) {
   const lojas = window.lojasRegistradas || [];
+  const textoNormalizado = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
   for (const nome of lojas) {
-    if (texto.includes(nome)) return nome;
+    const nomeNormalizado = nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    if (textoNormalizado.includes(nomeNormalizado)) return nome;
   }
+
   return "Loja Desconhecida";
 }
 
