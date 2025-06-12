@@ -2584,14 +2584,22 @@ async function processarPDF() {
         const pedido = bloco.match(/(\d{15})/)?.[1] || "";
         const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
        let loja = "Loja desconhecida";
-    const linhas = bloco.split("\n").map(l => l.trim());
-    const idxRemetente = linhas.findIndex(l => l.toUpperCase().includes("REMETENTE"));
-    if (idxRemetente > -1) {
-      loja = linhas[idxRemetente + 1] || "";
-      if (loja === "CEP:" || loja.length < 3) {
-        loja = linhas[idxRemetente + 2] || "Loja desconhecida";
-      }
-    }
+const linhas = bloco.split("\n").map(l => l.trim());
+for (let i = 0; i < linhas.length; i++) {
+  const l = linhas[i];
+  if (
+    !l.includes("CEP") &&
+    !l.includes("Rua") &&
+    !l.includes("Avenida") &&
+    !l.match(/^BR\d{12,}/) &&
+    !l.match(/^\d{5}-\d{3}$/) &&
+    l.length > 5 &&
+    /^[A-Z]/.test(l)
+  ) {
+    loja = l;
+  }
+}
+
         const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
         const skuMatch = bloco.match(/1\.\s*(.+)/);
 
