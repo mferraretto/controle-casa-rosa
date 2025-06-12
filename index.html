@@ -2581,27 +2581,16 @@ async function processarPDF() {
       // 📦 Modo múltiplos pedidos
       const blocos = fullText.split(/\*1\s*/).filter(b => b.includes("Pedido"));
       blocos.forEach(bloco => {
-        const linhas = bloco.split("\n").map(l => l.trim()).filter(Boolean);
-        let pedido = linhas.find(l => /^[A-Z0-9]{13,}$/.test(l)) || "";
-        const rastreioIndex = linhas.findIndex(l => /^BR\d{12,}/.test(l));
-        let rastreio = "", loja = "", pagamento = "", sku = "";
-
-        if (rastreioIndex > 0) {
-          rastreio = linhas[rastreioIndex];
-          loja = linhas[rastreioIndex + 1] || "";
-          pedido = linhas[rastreioIndex - 3] || pedido;
-        }
-
-        const dataPagMatch = bloco.match(/UPL\w+\s*(\d{2}\/\d{2}\/\d{4})/);
-        if (dataPagMatch) {
-          const [d, m, a] = dataPagMatch[1].split("/");
-          pagamento = `${a}-${m}-${d}T00:00:00.000Z`;
-        }
-
+        const pedido = bloco.match(/(\d{15})/)?.[1] || "";
+        const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
+        const loja = bloco.match(/REMETENTE\s+([\s\S]+?)\d{8}/)?.[1]?.trim().split("\n")[0] || "Casa Rosa";
+        const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
         const skuMatch = bloco.match(/1\.\s*(.+)/);
-        if (skuMatch) sku = skuMatch[1].trim();
 
-        if (pedido && loja && pagamento && sku) {
+        const pagamento = pagamentoMatch ? new Date(pagamentoMatch[1].split("/").reverse().join("-")).toISOString() : "";
+        const sku = skuMatch ? skuMatch[1].trim() : "";
+
+        if (pedido && sku && pagamento) {
           pedidosExtraidos.push({
             Pedido: pedido,
             Loja: loja,
@@ -2615,11 +2604,11 @@ async function processarPDF() {
 
     } else {
       // 📦 Modo único pedido
-      const pedido = fullText.match(/Pedido:\s*([A-Z0-9]+)/)?.[1] || "";
+      const pedido = fullText.match(/(\d{15})/)?.[1] || "";
       const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-      const pagamentoBr = fullText.match(/Deadline:.*?(\d{2}\/\d{2}\/\d{4})/)?.[1] || "";
-      const sku = fullText.match(/#UPL\w+;\s*Deadline:.*?(\b\w+\b)/)?.[1] || "";
-      const loja = "Casa Rosa Bela";
+      const pagamentoBr = fullText.match(/(\d{2}\/\d{2}\/\d{4})/)?.[1] || "";
+      const sku = fullText.match(/1\.\s*(.+)/)?.[1] || "";
+      const loja = "Casa Rosa";
 
       if (pedido && sku && pagamentoBr) {
         const [d, m, a] = pagamentoBr.split("/");
@@ -2628,7 +2617,7 @@ async function processarPDF() {
         pedidosExtraidos.push({
           Pedido: pedido,
           Loja: loja,
-          SKU: sku,
+          SKU: sku.trim(),
           Rastreio: rastreio,
           dataPagamento,
           status: "pendente"
@@ -2641,26 +2630,26 @@ async function processarPDF() {
       return;
     }
 
-// 💾 Verifica se já existem pedidos iguais no Firestore
-const existentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
-const pedidosExistentes = new Set(existentesSnap.docs.map(d => (d.data().Pedido || "").trim()));
+    // 💾 Verifica se já existem pedidos iguais no Firestore
+    const existentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
+    const pedidosExistentes = new Set(existentesSnap.docs.map(d => (d.data().Pedido || "").trim()));
 
-// 📦 Filtra apenas os pedidos novos
-const novosFiltrados = pedidosExtraidos.filter(p => !pedidosExistentes.has((p.Pedido || "").trim()));
+    // 📦 Filtra apenas os pedidos novos
+    const novosFiltrados = pedidosExtraidos.filter(p => !pedidosExistentes.has((p.Pedido || "").trim()));
 
-if (!novosFiltrados.length) {
-  alert("⚠️ Todos os pedidos deste PDF já foram importados.");
-  return;
-}
+    if (!novosFiltrados.length) {
+      alert("⚠️ Todos os pedidos deste PDF já foram importados.");
+      return;
+    }
 
-// 💾 Salva apenas os pedidos novos
-await Promise.all(novosFiltrados.map(p => adicionarPedido(p)));
+    // 💾 Salva apenas os pedidos novos
+    await Promise.all(novosFiltrados.map(p => adicionarPedido(p)));
 
     // 💾 Salva o PDF importado
     const base64 = btoa(
-  new Uint8Array(typedArray)
-    .reduce((data, byte) => data + String.fromCharCode(byte), "")
-);
+      new Uint8Array(typedArray)
+        .reduce((data, byte) => data + String.fromCharCode(byte), "")
+    );
 
     await addDoc(collection(db, "pdf_etiquetas"), {
       nome: file.name,
@@ -2668,11 +2657,12 @@ await Promise.all(novosFiltrados.map(p => adicionarPedido(p)));
       dataImportacao: new Date().toISOString()
     });
 
-    alert(`✅ ${pedidosExtraidos.length} etiqueta(s) importada(s) com sucesso.`);
+    alert(`✅ ${novosFiltrados.length} etiqueta(s) importada(s) com sucesso.`);
   };
+
   reader.readAsArrayBuffer(file);
 }
-  
+
 
   function considerar(loja) {
     return lojasSelecionadas.length === 0 || lojasSelecionadas.includes(loja);
