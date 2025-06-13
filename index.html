@@ -2572,6 +2572,10 @@ renderTabela = function(destinoId, dados) {
 };
 </script>
 <script>
+  function considerar(loja) {
+  return lojasSelecionadas.length === 0 || lojasSelecionadas.includes(loja);
+}
+
 function atualizarDashboardPorData() {
   // 1) Obtenha os pedidos enviados do estado em memória (atualizado pelo onSnapshot)
   const enviados = window.enviadosList || [];
@@ -2605,6 +2609,48 @@ document.getElementById("enviadosHoje").textContent = enviadosHoje;
   document.getElementById("total-hoje").textContent = enviadosHoje.length;
 }
 
+function atualizarDashboardHoje() {
+  let totalHoje = 0;
+  let atrasados = 0;
+  let emRisco = 0;
+  let enviadosHoje = 0;
+
+  const hoje = new Date();
+  const hojeStr = hoje.toISOString().split("T")[0];
+
+  pendentes.forEach(p => {
+    if (p.status !== "novo") return;
+
+    const loja = p.Loja || "";
+    const dataPag = (p.dataPagamento || "").split("T")[0];
+    if (!dataPag || !considerar(loja)) return;
+
+    const dataPagObj = new Date(dataPag);
+    const diasUteis = calcularDiasUteis(dataPagObj, hoje);
+
+    if (dataPag === hojeStr) totalHoje++;
+    if (diasUteis >= 3) atrasados++;
+    else if (diasUteis === 2) emRisco++;
+  });
+
+  enviados.forEach(e => {
+    const loja = e.Loja || "";
+    const dataEnvio = (e.dataEnvio || "").split("T")[0];
+    if (dataEnvio === hojeStr && considerar(loja)) enviadosHoje++;
+  });
+
+  const elTotal = document.getElementById("totalEnviarHoje");
+  if (elTotal) elTotal.textContent = totalHoje;
+
+  const elAtrasados = document.getElementById("atrasadosHoje");
+  if (elAtrasados) elAtrasados.textContent = atrasados;
+
+  const elRisco = document.getElementById("emRiscoHoje");
+  if (elRisco) elRisco.textContent = emRisco;
+
+  const elEnviados = document.getElementById("enviadosHoje");
+  if (elEnviados) elEnviados.textContent = enviadosHoje;
+}
 
 </script>
 <script>
@@ -2634,7 +2680,7 @@ async function processarPDF() {
 
   if (fullText.includes("*1")) {
   // 📦 Modo múltiplos pedidos
-  const blocos = fullText.split(/\*\d+\s+NF:/).filter(b => b.includes("Pedido"));
+const blocos = fullText.split(/\*\d?\s*NF:/).filter(b => b.includes("Pedido"));
   blocos.forEach(bloco => {
     const pedidoMatch = bloco.match(/\b25\d{10,}[A-Z0-9]*\b/); // Corrigido: 25 + 10 dígitos ou mais
     const pedido = pedidoMatch ? pedidoMatch[0] : "";
@@ -2726,46 +2772,6 @@ if (!pedidosExtraidos.length) {
   reader.readAsArrayBuffer(file);
 }
 
-
-
-  function considerar(loja) {
-    return lojasSelecionadas.length === 0 || lojasSelecionadas.includes(loja);
-  
-
-  pendentes.forEach(p => {
-    if (p.status !== "novo") return;
-
-    const loja = p.Loja || "";
-    const dataPag = (p.dataPagamento || "").split("T")[0];
-    if (!dataPag || !considerar(loja)) return;
-
-    const dataPagObj = new Date(dataPag);
-    const diasUteis = calcularDiasUteis(dataPagObj, hoje);
-
-    if (dataPag === hojeStr) totalHoje++;
-    if (diasUteis >= 3) atrasados++;
-    else if (diasUteis === 2) emRisco++;
-  });
-
-  enviados.forEach(e => {
-    const loja = e.Loja || "";
-    const dataEnvio = (e.dataEnvio || "").split("T")[0];
-    if (dataEnvio === hojeStr && considerar(loja)) enviadosHoje++;
-  });
-
- const elTotal = document.getElementById("totalEnviarHoje");
-if (elTotal) elTotal.textContent = totalHoje;
-
-const elAtrasados = document.getElementById("atrasadosHoje");
-if (elAtrasados) elAtrasados.textContent = atrasados;
-
-const elRisco = document.getElementById("emRiscoHoje");
-if (elRisco) elRisco.textContent = emRisco;
-
-const elEnviados = document.getElementById("enviadosHoje");
-if (elEnviados) elEnviados.textContent = enviadosHoje;
-
-}
 
 
 
