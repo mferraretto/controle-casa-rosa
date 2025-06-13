@@ -854,6 +854,26 @@ body.dark-mode button {
       });
     }
   </script>
+ <style>
+@media (max-width: 768px) {
+  input, select, button {
+    width: 100% !important;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+  .card, .tabela-container {
+    width: 100% !important;
+  }
+  #menuLateral {
+    width: 100% !important;
+    position: relative;
+  }
+  .dashboard-card {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+</style> 
 </head>
 <body>
   <h2 style="text-align:center; font-size:1.8rem; color:#dc3545; margin:1rem 0;">
@@ -2691,8 +2711,8 @@ async function processarPDF() {
       .split(/\*\d+\s*NF[: ]/i)
       .filter(b => /Pedido/i.test(b));
     blocos.forEach(bloco => {
-      const pedidoMatch = bloco.match(/\b[0-9A-Z]{10,}\b/);
-      const pedido = pedidoMatch ? pedidoMatch[0] : "";
+      const pedidoMatch = bloco.match(/\b25\d{10,}[A-Z0-9]*\b/); // Corrigido: 25 + 10 dígitos ou mais
+    const pedido = pedidoMatch ? pedidoMatch[0] : "";
 
    const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
       const loja = identificarLoja(bloco);
@@ -2701,13 +2721,20 @@ async function processarPDF() {
         ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z`
         : "";
       const skuMatch = bloco.match(/#([A-Z0-9\-+]+)(?=;|$)/i);
-      const sku = skuMatch ? skuMatch[1].trim() : "";
-      if (pedido && sku && pagamento) {
-        pedidosExtraidos.push({Pedido: pedido, Loja: loja, SKU: sku,
-                               Rastreio: rastreio, dataPagamento: pagamento,
-                               status: "pendente"});
-      }
-    });
+    const sku = skuMatch ? skuMatch[1].trim() : "";
+
+    if (pedido && sku && pagamento) {
+      pedidosExtraidos.push({
+        Pedido: pedido,
+        Loja: loja,
+        SKU: sku,
+        Rastreio: rastreio,
+        dataPagamento: pagamento,
+        status: "pendente"
+      });
+    }
+  });
+
   } else {
     const pedidoMatch = fullText.match(/\b[0-9A-Z]{10,}\b/);
     const pedido = pedidoMatch ? pedidoMatch[0] : "";
@@ -3923,23 +3950,4 @@ function obterSkuPrincipal(sku) {
 
 
 </html>
-<style>
-@media (max-width: 768px) {
-  input, select, button {
-    width: 100% !important;
-    font-size: 1.1rem;
-    margin-bottom: 0.5rem;
-  }
-  .card, .tabela-container {
-    width: 100% !important;
-  }
-  #menuLateral {
-    width: 100% !important;
-    position: relative;
-  }
-  .dashboard-card {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-}
-</style>
+
