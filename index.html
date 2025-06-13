@@ -2634,7 +2634,7 @@ async function processarPDF() {
 
   if (fullText.includes("*1")) {
   // 📦 Modo múltiplos pedidos
-  const blocos = fullText.split(/\*1\s*/).filter(b => b.includes("Pedido"));
+  const blocos = fullText.split(/\*\d+\s+NF:/).filter(b => b.includes("Pedido"));
   blocos.forEach(bloco => {
     const pedidoMatch = bloco.match(/\b25\d{10,}[A-Z0-9]*\b/); // Corrigido: 25 + 10 dígitos ou mais
     const pedido = pedidoMatch ? pedidoMatch[0] : "";
@@ -2649,7 +2649,7 @@ async function processarPDF() {
       : "";
 
     // SKU vem após #
-    const skuMatch = bloco.match(/#([A-Z0-9\-+]+);?/i);
+const skuMatch = bloco.match(/#([A-Z0-9\-+]+)(?=;|$)/i);
     const sku = skuMatch ? skuMatch[1].trim() : "";
 
     if (pedido && sku && pagamento) {
