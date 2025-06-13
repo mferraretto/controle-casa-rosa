@@ -305,7 +305,6 @@ function identificarLoja(texto) {
     for (let i = indexRemetente + 1; i < linhas.length; i++) {
       const linha = linhas[i].trim();
 
-      // Ignora CEPs e campos numéricos/endereço
       if (
         linha === "" ||
         linha.toUpperCase().startsWith("CEP") ||
@@ -314,18 +313,20 @@ function identificarLoja(texto) {
         /^[\d,.:\/\-]+$/.test(linha)
       ) continue;
 
-      // Se encontrar linha com nome padrão, retorna direto
+      // Reconhece nomes das lojas ignorando endereços
       if (
-        linha.toLowerCase().includes("decorações") ||
-        linha.toLowerCase().includes("collore") ||
-        linha.toLowerCase().includes("store")
+        (linha.toLowerCase().includes("decorações") ||
+         linha.toLowerCase().includes("collore") ||
+         linha.toLowerCase().includes("store")) &&
+        !linha.toLowerCase().includes("avenida") &&
+        !linha.toLowerCase().includes("rua")
       ) {
         return linha.trim();
       }
     }
   }
 
-  // Fallback (garantia)
+  // Fallback
   const match = texto.match(/(Casa Rosa Decorações|Collore Na Web|DAC Store)/i);
   return match ? match[1] : "Loja Desconhecida";
 }
