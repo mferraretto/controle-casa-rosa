@@ -57,15 +57,15 @@ import {
   const db = getFirestore(app);
 const auth = getAuth(app);
   // 🔁 Sincroniza SKUs equivalentes em tempo real
-window.skuEquivalentes = {};
-onSnapshot(collection(db, "sku_equivalentes"), snap => {
+window.sku s Equivalentes = {};
+onSnapshot(collection(db, "sku s _equivalentes"), snap => {
   const equivalentes = {};
   snap.docs.forEach(doc => {
     const data = doc.data();
-    equivalentes[data.base] = data.variantes || [];
+    equivalentes[data.base] = dados. equivalentes || [];
   });
-  window.skuEquivalentes = equivalentes;
-  console.log("🟢 SKUs equivalentes atualizados:", window.skuEquivalentes);
+  window.sku s Equivalentes = equivalentes;
+  console.log("🟢 SKUs equivalentes atualizados:", window.skusEquivalentes);
 });
 
 window.fazerLogin = function () {
@@ -1251,7 +1251,7 @@ function atualizarResumoVendasMensal() {
 
   // ✅ Função para obter SKU base
   window.obterSkuBase = function(sku) {
-  const equivalentes = window.skuEquivalentes || {};
+  const equivalents = window.sku s Equivalentes || {};
   for (const [base, aliases] of Object.entries(equivalentes)) {
     if (base === sku || (Array.isArray(aliases) && aliases.includes(sku))) {
       return base;
@@ -1990,7 +1990,8 @@ function gerarResumoVendasPorProduto() {
 
     if (lojaSelecionada && p.Loja !== lojaSelecionada) return;
 
-    const agrupamentos = JSON.parse(localStorage.getItem("skuEquivalentes") || "{}");
+    // Usa os SKUs equivalentes em memória, atualizados em tempo real
+    const agrupamentos = window.skusEquivalentes || {};
 let skuOriginal = p.SKU || "Produto desconhecido";
 
 // Aplica agrupamento: transforma para SKU base se existir
@@ -2682,12 +2683,15 @@ async function processarPDF() {
     console.log("🔍 TEXTO LIDO:", fullText);
     const pedidosExtraidos = [];
 
-  if (fullText.includes("*1")) {
-  // 📦 Modo múltiplos pedidos
-const blocos = fullText.split(/\*\d?\s*NF:/).filter(b => b.includes("Pedido"));
-  blocos.forEach(bloco => {
-    const pedidoMatch = bloco.match(/\b25\d{10,}[A-Z0-9]*\b/); // Corrigido: 25 + 10 dígitos ou mais
-    const pedido = pedidoMatch ? pedidoMatch[0] : "";
+  const multiRegex = /\*\d+\s*NF[: ]/i;
+  if (multiRegex.test(fullText)) {
+    // 📦 Modo múltiplos pedidos
+    blocos const = texto completo
+      .split(/\*\d+\s*NF[: ]/i)
+      .filter(b => /Pedido/i.test(b));
+    blocos.forEach(bloco => {
+      const pedidoMatch = bloco.match(/\b[0-9A-Z]{10,}\b/);
+      const pedido = pedidoMatch ? pedidoMatch[0] : "";
 
     const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
 
@@ -2715,7 +2719,7 @@ const skuMatch = bloco.match(/#([A-Z0-9\-+]+)(?=;|$)/i);
   });
 } else {
   // 📦 Modo único pedido
-  const pedidoMatch = fullText.match(/\b25\d{10,}[A-Z0-9]*\b/);
+  const requestMatch = fullText.match(/\b [0-9A-Z]{10,} \b/);
   const pedido = pedidoMatch ? pedidoMatch[0] : "";
 
   const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
@@ -3546,7 +3550,7 @@ async function renderizarMetasManuais() {
       const produtosHtml = grupo.produtos.map(meta => {
         const vendidosTotal = vendidos.filter(e => {
           const lojaOk = grupo.lojas.includes(e.Loja);
-          const equivalentes = window.skuEquivalentes || {};
+          const equivalents = window.sku s Equivalentes || {};
           const grupoEquivalente = Object.entries(equivalentes).find(([base, aliases]) => {
             return base === meta.produto || aliases.includes(meta.produto);
           });
