@@ -2571,10 +2571,13 @@ renderTabela = function(destinoId, dados) {
   }
 };
 </script>
-<script>
+  <script>
   function considerar(loja) {
   return lojasSelecionadas.length === 0 || lojasSelecionadas.includes(loja);
 }
+    </script>
+<script>
+  
 
 function atualizarDashboardPorData() {
   // 1) Obtenha os pedidos enviados do estado em memória (atualizado pelo onSnapshot)
@@ -2608,7 +2611,8 @@ document.getElementById("enviadosHoje").textContent = enviadosHoje;
   // 5) Atualiza o elemento com o total de hoje
   document.getElementById("total-hoje").textContent = enviadosHoje.length;
 }
-
+</script>
+<script>
 function atualizarDashboardHoje() {
   let totalHoje = 0;
   let atrasados = 0;
