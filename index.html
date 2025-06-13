@@ -89,7 +89,9 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById("sistema").style.display = "block";
     
     // 🔁 Carrega os SKUs equivalentes do Firestore assim que o usuário estiver logado
-    carregarSkusEquivalentes(); 
+    carregarSkusEquivalentes();
+    // 🏪 Carrega lista de lojas registradas para identificar remetente corretamente
+    carregarLojasRegistradas(); 
   } else {
     document.getElementById("login").style.display = "flex";
     document.getElementById("sistema").style.display = "none";
