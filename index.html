@@ -305,27 +305,31 @@ function identificarLoja(texto) {
     for (let i = indexRemetente + 1; i < linhas.length; i++) {
       const linha = linhas[i].trim();
 
+      // Ignora linhas irrelevantes
       if (
         linha === "" ||
         linha.toUpperCase().startsWith("CEP") ||
-        /^\d{5}-?\d{3}$/.test(linha) ||
-        /^\d{1,6}$/.test(linha) ||
-        /^[\d,.:\/\-]+$/.test(linha)
+        /^\d{5}-?\d{3}$/.test(linha) ||         // CEP
+        /^\d{1,6}$/.test(linha) ||              // Número
+        /^[\d,.:\/\-]+$/.test(linha) ||         // Endereços numéricos
+        linha.toLowerCase().includes("avenida") ||
+        linha.toLowerCase().includes("rua") ||
+        linha.toLowerCase().includes("bairro") ||
+        linha.toLowerCase().includes("bloco")
       ) continue;
 
+      // Provável nome da loja
       if (
-        (linha.toLowerCase().includes("decorações") ||
-         linha.toLowerCase().includes("collore") ||
-         linha.toLowerCase().includes("store")) &&
-        !linha.toLowerCase().includes("avenida") &&
-        !linha.toLowerCase().includes("rua")
+        linha.length > 3 &&
+        !linha.match(/^\d/) && // não começa com número
+        !linha.includes("@")   // ignora emails
       ) {
-        return linha.trim();
+        return linha;
       }
     }
   }
 
-  // 🔍 Tenta identificar loja via nomes registrados no Firestore
+  // 🔍 Tentativa baseada em Firestore
   if (window.lojasRegistradas && Array.isArray(window.lojasRegistradas)) {
     for (const loja of window.lojasRegistradas) {
       if (texto.toLowerCase().includes(loja.toLowerCase())) {
@@ -334,10 +338,11 @@ function identificarLoja(texto) {
     }
   }
 
-  // Fallback
+  // Fallback manual
   const match = texto.match(/(Casa Rosa Decorações|Collore Na Web|DAC Store)/i);
   return match ? match[1] : "Loja Desconhecida";
 }
+
 
 
 
@@ -2631,16 +2636,20 @@ async function processarPDF() {
   // 📦 Modo múltiplos pedidos
   const blocos = fullText.split(/\*1\s*/).filter(b => b.includes("Pedido"));
   blocos.forEach(bloco => {
-const pedidoMatch = bloco.match(/\b25\d{10,}[A-Z0-9]*\b/);
-const pedido = pedidoMatch ? pedidoMatch[0] : "";
+    const pedidoMatch = bloco.match(/\b25\d{10,}[A-Z0-9]*\b/); // Corrigido: 25 + 10 dígitos ou mais
+    const pedido = pedidoMatch ? pedidoMatch[0] : "";
+
     const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
+
     const loja = identificarLoja(bloco);
 
     const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
-    const pagamento = pagamentoMatch ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z` : "";
+    const pagamento = pagamentoMatch
+      ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z`
+      : "";
 
-    // SKU vem sempre após "1." ou "#"
-const skuMatch = bloco.match(/#([A-Z0-9\-+]+);?/i);
+    // SKU vem após #
+    const skuMatch = bloco.match(/#([A-Z0-9\-+]+);?/i);
     const sku = skuMatch ? skuMatch[1].trim() : "";
 
     if (pedido && sku && pagamento) {
@@ -2656,12 +2665,17 @@ const skuMatch = bloco.match(/#([A-Z0-9\-+]+);?/i);
   });
 } else {
   // 📦 Modo único pedido
-  const pedido = fullText.match(/\b(25\d{11,})\b/)?.[1] || "";
-  const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-  const pagamentoMatch = fullText.match(/(\d{2}\/\d{2}\/\d{4})/);
-  const pagamento = pagamentoMatch ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z` : "";
+  const pedidoMatch = fullText.match(/\b25\d{10,}[A-Z0-9]*\b/);
+  const pedido = pedidoMatch ? pedidoMatch[0] : "";
 
-  const skuMatch = fullText.match(/(?:1\.\s*|#)([A-Z0-9\-+]+)/i);
+  const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
+
+  const pagamentoMatch = fullText.match(/(\d{2}\/\d{2}\/\d{4})/);
+  const pagamento = pagamentoMatch
+    ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z`
+    : "";
+
+  const skuMatch = fullText.match(/#([A-Z0-9\-+]+);?/i);
   const sku = skuMatch ? skuMatch[1].trim() : "";
 
   const loja = identificarLoja(fullText);
@@ -2677,6 +2691,7 @@ const skuMatch = bloco.match(/#([A-Z0-9\-+]+);?/i);
     });
   }
 }
+
 
 if (!pedidosExtraidos.length) {
   alert("❌ Nenhum pedido válido foi encontrado no PDF.");
