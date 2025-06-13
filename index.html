@@ -2685,42 +2685,31 @@ async function processarPDF() {
 
   const multiRegex = /\*\d+\s*NF[: ]/i;
   if (multiRegex.test(fullText)) {
-    // 📦 Modo múltiplos pedidos
-    blocos const = texto completo
+    const blocos = fullText
       .split(/\*\d+\s*NF[: ]/i)
       .filter(b => /Pedido/i.test(b));
     blocos.forEach(bloco => {
       const pedidoMatch = bloco.match(/\b[0-9A-Z]{10,}\b/);
       const pedido = pedidoMatch ? pedidoMatch[0] : "";
 
-    const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-
-    const loja = identificarLoja(bloco);
-
-    const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
-    const pagamento = pagamentoMatch
-      ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z`
-      : "";
-
-    // SKU vem após #
-const skuMatch = bloco.match(/#([A-Z0-9\-+]+)(?=;|$)/i);
-    const sku = skuMatch ? skuMatch[1].trim() : "";
-
-    if (pedido && sku && pagamento) {
-      pedidosExtraidos.push({
-        Pedido: pedido,
-        Loja: loja,
-        SKU: sku,
-        Rastreio: rastreio,
-        dataPagamento: pagamento,
-        status: "pendente"
-      });
-    }
-  });
-} else {
-  // 📦 Modo único pedido
-  const requestMatch = fullText.match(/\b [0-9A-Z]{10,} \b/);
-  const pedido = pedidoMatch ? pedidoMatch[0] : "";
+   const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
+      const loja = identificarLoja(bloco);
+      const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
+      const pagamento = pagamentoMatch
+        ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z`
+        : "";
+      const skuMatch = bloco.match(/#([A-Z0-9\-+]+)(?=;|$)/i);
+      const sku = skuMatch ? skuMatch[1].trim() : "";
+      if (pedido && sku && pagamento) {
+        pedidosExtraidos.push({Pedido: pedido, Loja: loja, SKU: sku,
+                               Rastreio: rastreio, dataPagamento: pagamento,
+                               status: "pendente"});
+      }
+    });
+  } 
+  else {
+    const pedidoMatch = fullText.match(/\b[0-9A-Z]{10,}\b/);
+    const pedido = pedidoMatch ? pedidoMatch[0] : "";
 
   const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
 
