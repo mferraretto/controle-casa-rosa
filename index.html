@@ -313,7 +313,6 @@ function identificarLoja(texto) {
         /^[\d,.:\/\-]+$/.test(linha)
       ) continue;
 
-      // Reconhece nomes das lojas ignorando endereços
       if (
         (linha.toLowerCase().includes("decorações") ||
          linha.toLowerCase().includes("collore") ||
@@ -322,6 +321,15 @@ function identificarLoja(texto) {
         !linha.toLowerCase().includes("rua")
       ) {
         return linha.trim();
+      }
+    }
+  }
+
+  // 🔍 Tenta identificar loja via nomes registrados no Firestore
+  if (window.lojasRegistradas && Array.isArray(window.lojasRegistradas)) {
+    for (const loja of window.lojasRegistradas) {
+      if (texto.toLowerCase().includes(loja.toLowerCase())) {
+        return loja;
       }
     }
   }
@@ -2623,7 +2631,7 @@ async function processarPDF() {
   // 📦 Modo múltiplos pedidos
   const blocos = fullText.split(/\*1\s*/).filter(b => b.includes("Pedido"));
   blocos.forEach(bloco => {
-const pedidoMatch = bloco.match(/\b25\d{11,}[A-Z0-9]*\b/);
+const pedidoMatch = bloco.match(/\b25\d{10,}[A-Z0-9]*\b/);
 const pedido = pedidoMatch ? pedidoMatch[0] : "";
     const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
     const loja = identificarLoja(bloco);
@@ -2632,7 +2640,7 @@ const pedido = pedidoMatch ? pedidoMatch[0] : "";
     const pagamento = pagamentoMatch ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z` : "";
 
     // SKU vem sempre após "1." ou "#"
-    const skuMatch = bloco.match(/(?:1\.\s*|#)([A-Z0-9\-+]+)/i);
+const skuMatch = bloco.match(/#([A-Z0-9\-+]+);?/i);
     const sku = skuMatch ? skuMatch[1].trim() : "";
 
     if (pedido && sku && pagamento) {
