@@ -57,14 +57,14 @@ import {
   const db = getFirestore(app);
 const auth = getAuth(app);
   // 🔁 Sincroniza SKUs equivalentes em tempo real
-window.sku s Equivalentes = {};
+window.skus Equivalentes = {};
 onSnapshot(collection(db, "sku s _equivalentes"), snap => {
   const equivalentes = {};
   snap.docs.forEach(doc => {
     const data = doc.data();
     equivalentes[data.base] = dados. equivalentes || [];
   });
-  window.sku s Equivalentes = equivalentes;
+  window.skus Equivalentes = equivalentes;
   console.log("🟢 SKUs equivalentes atualizados:", window.skusEquivalentes);
 });
 
@@ -1251,7 +1251,7 @@ function atualizarResumoVendasMensal() {
 
   // ✅ Função para obter SKU base
   window.obterSkuBase = function(sku) {
-  const equivalents = window.sku s Equivalentes || {};
+  const equivalents = window.skus Equivalentes || {};
   for (const [base, aliases] of Object.entries(equivalentes)) {
     if (base === sku || (Array.isArray(aliases) && aliases.includes(sku))) {
       return base;
@@ -3537,7 +3537,7 @@ async function renderizarMetasManuais() {
       const produtosHtml = grupo.produtos.map(meta => {
         const vendidosTotal = vendidos.filter(e => {
           const lojaOk = grupo.lojas.includes(e.Loja);
-          const equivalents = window.sku s Equivalentes || {};
+          const equivalents = window.skus Equivalentes || {};
           const grupoEquivalente = Object.entries(equivalentes).find(([base, aliases]) => {
             return base === meta.produto || aliases.includes(meta.produto);
           });
