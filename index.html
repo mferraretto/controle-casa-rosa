@@ -298,16 +298,42 @@ async function carregarLojasRegistradas() {
   window.lojasRegistradas = snap.docs.map(doc => doc.id);
 }
 function identificarLoja(texto) {
-  const lojas = window.lojasRegistradas || [];
-  const textoNormalizado = texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  const linhas = texto.split('\n');
+  const indexRemetente = linhas.findIndex(l => l.trim().toUpperCase() === "REMETENTE");
 
-  for (const nome of lojas) {
-    const nomeNormalizado = nome.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    if (textoNormalizado.includes(nomeNormalizado)) return nome;
+  if (indexRemetente >= 0) {
+    const possiveisLinhas = [];
+
+    for (let i = indexRemetente + 1; i < linhas.length; i++) {
+      const linha = linhas[i].trim();
+
+      // Ignora CEPs, números puros, linhas em branco e linhas de endereço
+      if (
+        linha === "" ||
+        linha.toUpperCase().startsWith("CEP") ||
+        /^\d{5}-?\d{3}$/.test(linha) || // CEPs
+        /^\d{1,6}$/.test(linha) ||      // Números puros
+        /^[\d,.:\/\-]+$/.test(linha) || // Endereço puro
+        linha.length < 3                // Linhas curtas demais
+      ) {
+        continue;
+      }
+
+      // Se for linha de nome, adiciona
+      possiveisLinhas.push(linha);
+
+      // Se encontrar uma linha longa e textual, considera que é o nome completo
+      if (linha.length >= 5 && !linha.match(/\d/)) break;
+    }
+
+    if (possiveisLinhas.length) {
+      return possiveisLinhas.join(" ").trim();
+    }
   }
 
   return "Loja Desconhecida";
 }
+
 
 </script>
 
@@ -2595,59 +2621,65 @@ async function processarPDF() {
     console.log("🔍 TEXTO LIDO:", fullText);
     const pedidosExtraidos = [];
 
-    if (fullText.includes("*1")) {
-      // 📦 Modo múltiplos pedidos
-      const blocos = fullText.split(/\*1\s*/).filter(b => b.includes("Pedido"));
-      blocos.forEach(bloco => {
-const pedido = bloco.match(/\b[A-Z0-9]{13,17}\b/)?.[0] || "";
-        const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-        const loja = identificarLoja(bloco);
+   if (fullText.includes("*1")) {
+  // 📦 Modo múltiplos pedidos
+  const blocos = fullText.split(/\*1\s*/).filter(b => b.includes("Pedido"));
+  blocos.forEach(bloco => {
+    const pedidoMatch = bloco.match(/\b25\d{11,13}\b/);
+    const pedido = pedidoMatch ? pedidoMatch[0] : "";
 
-        const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
-        const pagamento = pagamentoMatch ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z` : "";
-        const skuMatch = bloco.match(/1\.\s*(.+)/);
-        const sku = skuMatch ? skuMatch[1].trim() : "";
+    const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
+    const loja = identificarLoja(bloco);
 
-        if (pedido && sku && pagamento) {
-          pedidosExtraidos.push({
-            Pedido: pedido,
-            Loja: loja,
-            SKU: sku,
-            Rastreio: rastreio,
-            dataPagamento: pagamento,
-            status: "pendente"
-          });
-        }
+    const pagamentoMatch = bloco.match(/(\d{2}\/\d{2}\/\d{4})/);
+    const pagamento = pagamentoMatch ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z` : "";
+
+    const skuMatch = bloco.match(/1\.\s*(.+)/);
+    const sku = skuMatch ? skuMatch[1].trim() : "";
+
+    if (pedido && sku && pagamento) {
+      pedidosExtraidos.push({
+        Pedido: pedido,
+        Loja: loja,
+        SKU: sku,
+        Rastreio: rastreio,
+        dataPagamento: pagamento,
+        status: "pendente"
       });
-
-    } else {
-      // 📦 Modo único pedido
-      const pedido = fullText.match(/\b[A-Z0-9]{13,17}\b/)?.[0] || "";
-      const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
-      const pagamentoBr = fullText.match(/(\d{2}\/\d{2}\/\d{4})/)?.[1] || "";
-      const skuMatch = fullText.match(/1\.\s*(.+)/);
-      const sku = skuMatch ? skuMatch[1].trim() : "";
-      const loja = identificarLoja(fullText);
-
-      if (pedido && sku && pagamentoBr) {
-        const [d, m, a] = pagamentoBr.split("/");
-        const dataPagamento = `${a}-${m}-${d}T00:00:00.000Z`;
-
-        pedidosExtraidos.push({
-          Pedido: pedido,
-          Loja: loja,
-          SKU: sku,
-          Rastreio: rastreio,
-          dataPagamento,
-          status: "pendente"
-        });
-      }
     }
+  });
 
-    if (!pedidosExtraidos.length) {
-      alert("❌ Nenhum pedido válido foi encontrado no PDF.");
-      return;
-    }
+} else {
+  // 📦 Modo único pedido
+  const pedidoMatch = fullText.match(/\b25\d{11,13}\b/);
+  const pedido = pedidoMatch ? pedidoMatch[0] : "";
+
+  const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
+  const pagamentoBr = fullText.match(/(\d{2}\/\d{2}\/\d{4})/)?.[1] || "";
+  const skuMatch = fullText.match(/1\.\s*(.+)/);
+  const sku = skuMatch ? skuMatch[1].trim() : "";
+  const loja = identificarLoja(fullText);
+
+  if (pedido && sku && pagamentoBr) {
+    const [d, m, a] = pagamentoBr.split("/");
+    const dataPagamento = `${a}-${m}-${d}T00:00:00.000Z`;
+
+    pedidosExtraidos.push({
+      Pedido: pedido,
+      Loja: loja,
+      SKU: sku,
+      Rastreio: rastreio,
+      dataPagamento,
+      status: "pendente"
+    });
+  }
+}
+
+if (!pedidosExtraidos.length) {
+  alert("❌ Nenhum pedido válido foi encontrado no PDF.");
+  return;
+}
+
 
     // 💾 Verifica se já existem pedidos iguais no Firestore
     const existentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
