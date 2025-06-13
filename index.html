@@ -62,7 +62,7 @@ onSnapshot(collection(db, "skus_equivalentes"), snap => {
   const equivalentes = {};
   snap.docs.forEach(doc => {
     const data = doc.data();
-    equivalentes[data.base] = dados.equivalentes || [];
+    equivalentes[data.base] = data.equivalentes || [];
   });
   window.skusEquivalentes = equivalentes;
   console.log("🟢 SKUs equivalentes atualizados:", window.skusEquivalentes);
