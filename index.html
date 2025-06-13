@@ -2711,8 +2711,9 @@ async function processarPDF() {
       .split(/\*\d+\s*NF[: ]/i)
       .filter(b => /Pedido/i.test(b));
     blocos.forEach(bloco => {
-      const pedidoMatch = bloco.match(/\b25\d{10,}[A-Z0-9]*\b/); // Corrigido: 25 + 10 dígitos ou mais
-    const pedido = pedidoMatch ? pedidoMatch[0] : "";
+     // Ancorado na palavra-chave "Pedido" para evitar falsos positivos
+      const pedidoMatch = bloco.match(/Pedido[:\s]*([A-Z0-9]{10,})/i);
+      const pedido = pedidoMatch ? pedidoMatch[1] : "";
 
    const rastreio = bloco.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
       const loja = identificarLoja(bloco);
@@ -2720,8 +2721,9 @@ async function processarPDF() {
       const pagamento = pagamentoMatch
         ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z`
         : "";
-      const skuMatch = bloco.match(/#([A-Z0-9\-+]+)(?=;|$)/i);
-    const sku = skuMatch ? skuMatch[1].trim() : "";
+     // SKU informado após o texto "SKU:" ou semelhante
+      const skuMatch = bloco.match(/SKU[:\s]*#?([A-Z0-9\-+]+)/i);
+      const sku = skuMatch ? skuMatch[1].trim() : "";
 
     if (pedido && sku && pagamento) {
       pedidosExtraidos.push({
@@ -2736,8 +2738,9 @@ async function processarPDF() {
   });
 
   } else {
-    const pedidoMatch = fullText.match(/\b[0-9A-Z]{10,}\b/);
-    const pedido = pedidoMatch ? pedidoMatch[0] : "";
+    // Procura a informação de pedido precedida da palavra "Pedido"
+    const pedidoMatch = fullText.match(/Pedido[:\s]*([A-Z0-9]{10,})/i);
+    const pedido = pedidoMatch ? pedidoMatch[1] : "";
   const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
 
   const pagamentoMatch = fullText.match(/(\d{2}\/\d{2}\/\d{4})/);
@@ -2745,7 +2748,7 @@ async function processarPDF() {
     ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z`
     : "";
 
-  const skuMatch = fullText.match(/#([A-Z0-9\-+]+);?/i);
+ const skuMatch = fullText.match(/SKU[:\s]*#?([A-Z0-9\-+]+)/i);
   const sku = skuMatch ? skuMatch[1].trim() : "";
 
   const loja = identificarLoja(fullText);
