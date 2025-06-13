@@ -396,7 +396,7 @@ function identificarLoja(texto) {
   }
 let metasPorLoja = JSON.parse(localStorage.getItem("metasPorLoja") || "{}");
 
-let metasPorLoja = JSON.parse(localStorage.getItem("metasPorLoja") || "{}");
+
 
 function renderizarTabelaMetas() {
   const lojas = [...new Set((window.enviadosList || []).map(p => p.Loja).filter(Boolean))];
@@ -3799,20 +3799,7 @@ function fazerLogin() {
     });
 }
 
-onAuthStateChanged(auth, (user) => {
-  if (user) {
-    // Login ok
-    document.getElementById("login").style.display = "none";
-    document.getElementById("sistema").style.display = "block";
 
-    // 🔁 Carrega os SKUs Equivalentes do Firestore e sincroniza para todos os usuários
-    carregarSkusEquivalentes();
-  } else {
-    // Mostra login
-    document.getElementById("login").style.display = "flex";
-    document.getElementById("sistema").style.display = "none";
-  }
-});
 
 function deslogarUsuario() {
   signOut(auth).then(() => location.reload());
