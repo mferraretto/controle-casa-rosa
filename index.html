@@ -1054,6 +1054,10 @@ body.dark-mode button {
       <input type="date" id="filtroDataDashboard" onchange="atualizarDashboardPorDataLoja()" />
     </label>
     <label>
+      📊 Mês:
+      <input type="month" id="filtroMesDashboard" onchange="atualizarDashboardPorDataLoja()" />
+    </label>
+    <label>
       <input type="checkbox" id="filtroMesInteiroDashboard" onchange="atualizarDashboardPorDataLoja()" />
       🔄 Considerar mês inteiro
     </label>
@@ -1555,7 +1559,8 @@ function atualizarDashboardPorDataLoja() {
   const dataSelecionadaStr = document.getElementById("filtroDataDashboard").value;
   const considerarMes = document.getElementById("filtroMesInteiroDashboard").checked;
   const lojaSelecionada = document.getElementById("filtroLojaDashboard").value;
-
+ const mesSelecionadoStr = document.getElementById("filtroMesDashboard")?.value;
+  const [anoDash, mesDash] = mesSelecionadoStr ? mesSelecionadoStr.split("-").map(Number) : [];
   const dataSelecionada = dataSelecionadaStr ? new Date(dataSelecionadaStr) : null;
   const ano = dataSelecionada ? dataSelecionada.getFullYear() : null;
   const mes = dataSelecionada ? dataSelecionada.getMonth() + 1 : null;
@@ -1572,7 +1577,9 @@ function atualizarDashboardPorDataLoja() {
     if (isNaN(pag)) return;
 
     if (lojaSelecionada && loja !== lojaSelecionada) return;
-    if (dataSelecionada) {
+    if (mesSelecionadoStr) {
+      if (pag.getFullYear() !== anoDash || (pag.getMonth() + 1) !== mesDash) return;
+    } else if (dataSelecionada) {
       if (considerarMes) {
         if (pag.getFullYear() !== ano || (pag.getMonth() + 1) !== mes) return;
       } else {
@@ -1598,7 +1605,9 @@ function atualizarDashboardPorDataLoja() {
     if (isNaN(envio) || isNaN(pag)) return;
 
     if (lojaSelecionada && loja !== lojaSelecionada) return;
-    if (dataSelecionada) {
+    if (mesSelecionadoStr) {
+      if (envio.getFullYear() !== anoDash || (envio.getMonth() + 1) !== mesDash) return;
+    } else if (dataSelecionada) {
       if (considerarMes) {
         if (envio.getFullYear() !== ano || (envio.getMonth() + 1) !== mes) return;
       } else {
@@ -2247,6 +2256,8 @@ document.getElementById("filtroLojaDashboard").addEventListener("change", atuali
   document.getElementById("filtroMesInteiroDashboard").addEventListener("change", atualizarResumoPedidosAEviar);
   document.getElementById("filtroDataDashboard").addEventListener("change", atualizarDashboardPorDataLoja);
   document.getElementById("filtroMesInteiroDashboard").addEventListener("change", atualizarDashboardPorDataLoja);
+   const mesDash = document.getElementById("filtroMesDashboard");
+  if (mesDash) mesDash.addEventListener("change", atualizarDashboardPorDataLoja); 
   });
 function preencherFiltroProdutosDashboard() {
   const enviados = window.enviadosList || [];
