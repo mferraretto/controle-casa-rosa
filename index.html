@@ -1563,7 +1563,7 @@ function atualizarDashboardPorDataLoja() {
   let totalEnviar = 0, totalEnviados = 0, totalAtrasados = 0, totalRisco = 0, enviadosComAtraso = 0;
 
   // 👉 Cálculo para pendentes
-(window.enviadosList || []).forEach(e => {
+ pendentes.forEach(e => {
     const loja = (e.Loja || "").trim();
     const pagStr = e.dataPagamento?.split("T")[0];
     if (!pagStr) return;
