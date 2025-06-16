@@ -3857,7 +3857,65 @@ async function atualizarCardsMetas() {
 
 // Atualiza automaticamente
 setTimeout(atualizarCardsMetas, 1000);
+window.salvarSkuEquivalente = async function (event) {
+  event.preventDefault();
 
+  const base = document.getElementById("skuBase").value.trim().toUpperCase();
+  const equivalentes = document.getElementById("skusEquivalentes").value
+    .split(",")
+    .map(s => s.trim().toUpperCase())
+    .filter(Boolean);
+
+  if (!base || equivalentes.length === 0) return;
+
+  // 🔍 Verifica se já existe esse agrupamento no Firebase
+  const snap = await getDocs(collection(db, "skus_equivalentes"));
+  const existente = snap.docs.find(doc => doc.data().base === base);
+
+  if (existente) {
+    // Atualiza se já existir
+    await updateDoc(doc(db, "skus_equivalentes", existente.id), { equivalentes });
+  } else {
+    // Cria novo agrupamento
+    await addDoc(collection(db, "skus_equivalentes"), { base, equivalentes });
+  }
+
+  document.getElementById("formSkus").reset();
+  carregarSkusEquivalentes(); // Recarrega e sincroniza
+};
+
+function listarSkusEquivalentes() {
+  const tbody = document.querySelector("#tabelaSkus tbody");
+  tbody.innerHTML = "";
+
+  const dados = window.skusEquivalentes || {};
+  Object.entries(dados).forEach(([base, equivalentes]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${base}</td>
+      <td>${equivalentes.join(", ")}</td>
+      <td><button onclick="excluirSkuEquivalente('${base}')">🗑️ Excluir</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+async function excluirSkuEquivalente(base) {
+  try {
+    const snap = await getDocs(collection(db, "skus_equivalentes"));
+    snap.forEach(docItem => {
+      if (docItem.data().base === base) {
+        deleteDoc(doc(db, "skus_equivalentes", docItem.id));
+      }
+    });
+
+    await registrarLog("Excluiu agrupamento de SKU", { skuBase: base });
+
+    await carregarSkusEquivalentes(); // Recarrega os dados sincronizados
+  } catch (e) {
+    console.error("Erro ao excluir SKU:", e);
+    alert("Erro ao excluir agrupamento.");
+  }
+}
 
 async function excluirMeta(id) {
   if (!confirm("Deseja realmente excluir esta meta?")) return;
