@@ -2112,22 +2112,22 @@ function atualizarResumoPedidosAEviar() {
   );
 
 (window.enviadosList || []).forEach(e => {
-    const dataPag = p.dataPagamento ? new Date(p.dataPagamento) : null;
-    if (!dataPag) return;
+  const dataPag = e.dataPagamento ? new Date(e.dataPagamento) : null;
+  if (!dataPag) return;
 
-    const diasUteis = calcularDiasUteis(dataPag, hoje);
-    total++;
-    if (diasUteis >= 2) atrasados++;
-    else if (diasUteis === 1) risco++;
-  });
+  const diasUteis = calcularDiasUteis(dataPag, hoje);
+  total++;
+  if (diasUteis >= 2) atrasados++;
+  else if (diasUteis === 1) risco++;
+});
 
-  enviadosHoje = enviadosHojeSet.size;
+enviadosHoje = enviadosHojeSet.size;
 
-  // Atualiza os cards no DOM
-  document.getElementById("resumo-total-enviar").textContent = total;
-  document.getElementById("resumo-atrasados").textContent = atrasados;
-  document.getElementById("resumo-risco").textContent = risco;
-  document.getElementById("resumo-enviados-hoje").textContent = enviadosHoje;
+// Atualiza os cards no DOM
+document.getElementById("resumo-total-enviar").textContent = total;
+document.getElementById("resumo-atrasados").textContent = atrasados;
+document.getElementById("resumo-risco").textContent = risco;
+document.getElementById("resumo-enviados-hoje").textContent = enviadosHoje;
 }
 
 function exportarPedidosAEnviar() {
