@@ -4042,21 +4042,22 @@ function renderizarTabelaSkus() {
 }
   async function carregarProdutos() {
   const snap = await getDocs(collection(db, "produtos"));
-  const tbody = document.querySelector("#tabelaProdutos tbody");
-  if (!tbody) return;
-  tbody.innerHTML = "";
-  snap.forEach(docItem => {
-    const data = docItem.data();
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${data.nome}</td>
-      <td>${data.sobraIdeal}</td>
-      <td>${data.valor ?? ''}</td>
-      <td><button onclick="excluirProduto('${docItem.id}')">🗑️</button></td>
-    `;
-    tbody.appendChild(tr);
-  });
-}
+    const tbody = document.querySelector("#tabelaProdutos tbody");
+    if (!tbody) return;
+    tbody.innerHTML = "";
+    snap.forEach(docItem => {
+      const data = docItem.data();
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${data.nome}</td>
+        <td>${data.sobraIdeal}</td>
+        <td>${data.valor ?? ''}</td>
+        <td><button onclick="excluirProduto('${docItem.id}')">🗑️</button></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+  window.carregarProdutos = carregarProdutos;
 
 
 async function salvarProduto(event) {
@@ -4070,6 +4071,7 @@ async function salvarProduto(event) {
   document.getElementById("formProduto").reset();
   carregarProdutos();
 }
+window.salvarProduto = salvarProduto;
 
 async function excluirProduto(id) {
   if (!confirm("Excluir produto?")) return;
@@ -4077,6 +4079,8 @@ async function excluirProduto(id) {
   await registrarLog("Excluiu Produto", { id });
   carregarProdutos();
 }
+window.excluirProduto = excluirProduto;
+
 function obterSkuPrincipal(sku) {
   const equivalentes = window.skusEquivalentes || {};
   for (const base in equivalentes) {
