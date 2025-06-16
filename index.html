@@ -899,6 +899,9 @@ body.dark-mode button {
 <div class="tab" onclick="abrirAba('aba-skus-equivalentes'); listarSkusEquivalentes();">
   <i class="fas fa-code-branch"></i> SKUs Equivalentes
 </div>
+    <div class="tab" onclick="abrirAba('aba-produtos'); carregarProdutos();">
+  <i class="fas fa-box"></i> Produtos
+</div>
 <div class="tab" onclick="abrirAba('aba-logs'); carregarLogs();">
   <i class="fas fa-clipboard-list"></i> Logs
 </div>
@@ -1249,6 +1252,25 @@ body.dark-mode button {
 </div>
 <div id="tabela-vendas-metas" style="margin-top:1rem;"></div>
 </div>
+<div id="aba-produtos" class="tab-content" style="display:none; padding:1rem;">
+  <h2>📦 Cadastro de Produtos</h2>
+  <form id="formProduto" onsubmit="salvarProduto(event)" style="margin-bottom:1rem;">
+    <label>Nome do Produto:</label><br />
+    <input type="text" id="nomeProduto" required style="width:200px; margin-bottom:0.5rem;" /><br />
+    <label>Sobra Ideal:</label><br />
+    <input type="number" id="sobraIdeal" required style="width:120px;" min="0" /><br />
+    <button type="submit" style="margin-top:0.5rem;">➕ Salvar</button>
+  </form>
+  <h3>Produtos Salvos</h3>
+  <div style="overflow-x:auto;">
+    <table border="1" cellpadding="5" id="tabelaProdutos" style="border-collapse:collapse; width:100%;">
+      <thead>
+        <tr style="background:#f0f0f0;"><th>Produto</th><th>Sobra Ideal</th><th>Ações</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>  
 <div id="aba-logs" class="tab-content" style="display:none; padding:2rem;">
   <h2>🕵️ Registro de Ações</h2>
   <div id="tabelaLogs" style="margin-top:1rem;"></div>
@@ -1277,7 +1299,8 @@ gerarRelatorioDetalhado();
 } else if (id === "aba-metas") {
     preencherFiltroLojaMetas();
     atualizarRelatorioMetas();
-  }
+  } else if (id === "aba-produtos") {
+    carregarProdutos();
 
 }
   // Retorna o primeiro campo definido em obj dentre a lista de keys
@@ -4029,6 +4052,40 @@ function renderizarTabelaSkus() {
     `;
     tabela.appendChild(linha);
   });
+}
+  async function carregarProdutos() {
+  const snap = await getDocs(collection(db, "produtos"));
+  const tbody = document.querySelector("#tabelaProdutos tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  snap.forEach(docItem => {
+    const data = docItem.data();
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${data.nome}</td>
+      <td>${data.sobraIdeal}</td>
+      <td><button onclick="excluirProduto('${docItem.id}')">🗑️</button></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function salvarProduto(event) {
+  event.preventDefault();
+  const nome = document.getElementById("nomeProduto").value.trim();
+  const sobra = parseInt(document.getElementById("sobraIdeal").value);
+  if (!nome || isNaN(sobra)) return;
+  await addDoc(collection(db, "produtos"), { nome, sobraIdeal: sobra });
+  await registrarLog("Adicionou Produto", { nome });
+  document.getElementById("formProduto").reset();
+  carregarProdutos();
+}
+
+async function excluirProduto(id) {
+  if (!confirm("Excluir produto?")) return;
+  await deleteDoc(doc(db, "produtos", id));
+  await registrarLog("Excluiu Produto", { id });
+  carregarProdutos();
 }
 function obterSkuPrincipal(sku) {
   const equivalentes = window.skusEquivalentes || {};
