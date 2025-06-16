@@ -887,7 +887,7 @@ body.dark-mode button {
 <div class="tab" onclick="abrirAba('aba-logs'); carregarLogs();">
   <i class="fas fa-clipboard-list"></i> Logs
 </div>
-</div>
+
 
 
   </div>
@@ -3934,24 +3934,7 @@ async function editarMeta(id, valorAtual) {
   }
 }
 
-function fazerLogin() {
-  const email = document.getElementById("emailLogin").value;
-  const senha = document.getElementById("senhaLogin").value;
 
-  signInWithEmailAndPassword(auth, email, senha)
-    .then(userCredential => {
-      document.getElementById("erroLogin").textContent = "";
-    })
-    .catch(error => {
-      document.getElementById("erroLogin").textContent = "Email ou senha inválidos.";
-    });
-}
-
-
-
-function deslogarUsuario() {
-  signOut(auth).then(() => location.reload());
-}
 async function registrarLog(acao, detalhes = {}) {
   const user = auth.currentUser;
   if (!user) return;
