@@ -2237,7 +2237,11 @@ if (tabEnviar) {
     atualizarDashboardPendentes();
   });
 }
-
+document.getElementById("filtroLojaDashboard").addEventListener("change", atualizarDashboardPorData);
+  document.getElementById("filtroDataDashboard").addEventListener("change", atualizarDashboardPorData);
+  document.getElementById("filtroMesInteiroDashboard").addEventListener("change", atualizarResumoPedidosAEviar);
+  document.getElementById("filtroDataDashboard").addEventListener("change", atualizarDashboardPorDataLoja);
+  document.getElementById("filtroMesInteiroDashboard").addEventListener("change", atualizarDashboardPorDataLoja);
   });
 function preencherFiltroProdutosDashboard() {
   const enviados = window.enviadosList || [];
@@ -3240,11 +3244,6 @@ async function verificarEDeduplicarPedidos() {
   alert(`✅ ${aExcluir.length} pedidos duplicados foram removidos (internos e entre abas).`);
   location.reload();
 
-document.getElementById("filtroLojaDashboard").addEventListener("change", atualizarDashboardPorData);
-document.getElementById("filtroDataDashboard").addEventListener("change", atualizarDashboardPorData);
-document.getElementById("filtroMesInteiroDashboard").addEventListener("change", atualizarResumoPedidosAEviar);
-document.getElementById("filtroDataDashboard").addEventListener("change", atualizarDashboardPorDataLoja);
-document.getElementById("filtroMesInteiroDashboard").addEventListener("change", atualizarDashboardPorDataLoja);
 }
 $(document).ready(function () {
   $('#filtroProdutoDashboard').select2({
