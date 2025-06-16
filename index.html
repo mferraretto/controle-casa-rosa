@@ -84,19 +84,16 @@ window.fazerLogin = function () {
 };
 
 onAuthStateChanged(auth, (user) => {
-  if (user) {
-    document.getElementById("login").style.display = "none";
-    document.getElementById("sistema").style.display = "block";
-    
-    // 🔁 Carrega os SKUs equivalentes do Firestore assim que o usuário estiver logado
-    carregarSkusEquivalentes();
-    // 🏪 Carrega lista de lojas registradas para identificar remetente corretamente
-    carregarLojasRegistradas(); 
-  } else {
-    document.getElementById("login").style.display = "flex";
-    document.getElementById("sistema").style.display = "none";
-  }
-});
+    if (user) {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("sistema").style.display = "block";
+      carregarSkusEquivalentes();
+      carregarLojasRegistradas();
+    } else {
+      document.getElementById("login").style.display = "flex";
+      document.getElementById("sistema").style.display = "none";
+    }
+  });
 
 window.deslogarUsuario = function () {
   signOut(auth).then(() => location.reload());
@@ -1262,28 +1259,28 @@ body.dark-mode button {
   <script>
   // Alterna abas do sistema
   function abrirAba(id) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  document.querySelector('.tab[onclick*="' + id + '"]').classList.add('active');
-  document.getElementById(id).classList.add('active');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.querySelector('.tab[onclick*="' + id + '"]').classList.add('active');
+    document.getElementById(id).classList.add('active');
 
-  if (id === "dashboard") {
-  atualizarDashboardPorDataLoja();  // Atualiza todos os cards com os filtros
-  atualizarResumoVendasMensal();
-  preencherFiltroLojaDashboard();
-  gerarResumoVendasPorProduto();
-preencherFiltroProdutosDashboard();
-renderizarGraficoVendasPorDia();
-renderizarGraficoTopComparativo();
-renderizarGraficoTempoEnvio();
-gerarRelatorioDetalhado();
-} else if (id === "aba-metas") {
-    preencherFiltroLojaMetas();
-    atualizarRelatorioMetas();
-  } else if (id === "aba-produtos") {
-    carregarProdutos();
-
-}
+    if (id === "dashboard") {
+      atualizarDashboardPorDataLoja();
+      atualizarResumoVendasMensal();
+      preencherFiltroLojaDashboard();
+      gerarResumoVendasPorProduto();
+      preencherFiltroProdutosDashboard();
+      renderizarGraficoVendasPorDia();
+      renderizarGraficoTopComparativo();
+      renderizarGraficoTempoEnvio();
+      gerarRelatorioDetalhado();
+    } else if (id === "aba-metas") {
+      preencherFiltroLojaMetas();
+      atualizarRelatorioMetas();
+    } else if (id === "aba-produtos") {
+      carregarProdutos();
+    }
+  }
   // Retorna o primeiro campo definido em obj dentre a lista de keys
   function normalizarCampo(obj, campos) {
     for (const campo of campos) {
