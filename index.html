@@ -141,7 +141,8 @@ window.deslogarUsuario = function () {
   window.canceladosList = [];
   window.pdfsList = [];
   window.historicoList = [];
-
+// Informações dos produtos (nome -> dados)
+  window.produtosMap = {};
   // Listener "Pedidos Importados"
   const pedidosRef = collection(db, "pedidos_pendentes");
   const pedidosQuery = query(pedidosRef, orderBy("dataPagamento"));
@@ -2238,7 +2239,7 @@ function exportarCanceladosCSV() {
 atualizarDashboardPorDataLoja();
     preencherFiltroLojaDashboard();
 preencherFiltroLojaMetas();
-
+    carregarProdutos();
     atualizarRelatorioMetas();
     // Ajusta o filtro de data da aba “Importados” para hoje
     const hoje = new Date().toISOString().split("T")[0];
@@ -3748,10 +3749,12 @@ function atualizarRelatorioMetas() {
   }
 
   let html = `<div style="overflow-x:auto;"><table border="1" cellspacing="0" cellpadding="5" style="width:100%; border-collapse:collapse;">`;
-  html += '<thead><tr><th>Loja</th><th>Produto</th><th>Quantidade</th></tr></thead><tbody>';
+  html += '<thead><tr><th>Loja</th><th>Produto</th><th>Quantidade</th><th>Valor Esperado</th></tr></thead><tbody>';
   Object.entries(resumo).forEach(([loja, produtos]) => {
     Object.entries(produtos).forEach(([produto, qtd]) => {
-      html += `<tr><td>${loja}</td><td>${produto}</td><td style="text-align:right;">${qtd}</td></tr>`;
+       const sobra = window.produtosMap && window.produtosMap[produto] ? parseFloat(window.produtosMap[produto].sobraIdeal) : 0;
+      const valorEsperado = sobra * qtd;
+      html += `<tr><td>${loja}</td><td>${produto}</td><td style="text-align:right;">${qtd}</td><td style="text-align:right;">${valorEsperado}</td></tr>`;
     });
   });
   html += '</tbody></table></div>';
@@ -4041,20 +4044,23 @@ function renderizarTabelaSkus() {
   });
 }
   async function carregarProdutos() {
-  const snap = await getDocs(collection(db, "produtos"));
+    const snap = await getDocs(collection(db, "produtos"));
     const tbody = document.querySelector("#tabelaProdutos tbody");
-    if (!tbody) return;
-    tbody.innerHTML = "";
+   window.produtosMap = {};
+    if (tbody) tbody.innerHTML = "";
     snap.forEach(docItem => {
       const data = docItem.data();
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${data.nome}</td>
-        <td>${data.sobraIdeal}</td>
-        <td>${data.valor ?? ''}</td>
-        <td><button onclick="excluirProduto('${docItem.id}')">🗑️</button></td>
-      `;
-      tbody.appendChild(tr);
+      window.produtosMap[data.nome] = data;
+      if (tbody) {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${data.nome}</td>
+          <td>${data.sobraIdeal}</td>
+          <td>${data.valor ?? ''}</td>
+          <td><button onclick="excluirProduto('${docItem.id}')">🗑️</button></td>
+        `;
+        tbody.appendChild(tr);
+      }
     });
   }
   window.carregarProdutos = carregarProdutos;
