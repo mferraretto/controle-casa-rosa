@@ -354,7 +354,6 @@ function identificarLoja(texto) {
 <script>
   // Renderização da tabela de “Novos a Enviar”
   function renderizarTabelaPendentes(lista) {
-  console.warn("⚠️ Função renderizarTabelaPendentes ainda não implementada.");
 
     const container = document.getElementById("tabelaPendentes");
     if (!container) return;
@@ -1569,7 +1568,7 @@ function atualizarDashboardPorDataLoja() {
   let totalEnviar = 0, totalEnviados = 0, totalAtrasados = 0, totalRisco = 0, enviadosComAtraso = 0;
 
   // 👉 Cálculo para pendentes
-  pendentes.forEach(p => {
+(window.enviadosList || []).forEach(e => {
     const loja = (p.Loja || "").trim();
     const pagStr = p.dataPagamento?.split("T")[0];
     if (!pagStr) return;
@@ -1971,7 +1970,7 @@ const pendentes = pendentesBase.filter(p => {
   const totalAEnviar = pendentes.length;
   let atrasados = 0, quaseAtrasando = 0;
 
-  pendentes.forEach(p => {
+(window.enviadosList || []).forEach(e => {
     const pagStr = p.dataPagamento?.split("T")[0];
     if (!pagStr) return;
     const dataPag = new Date(pagStr);
@@ -2116,7 +2115,7 @@ function atualizarResumoPedidosAEviar() {
       .map(p => (p.pedidoId || p.Pedido || "").toString().trim())
   );
 
-  pendentes.forEach(p => {
+(window.enviadosList || []).forEach(e => {
     const dataPag = p.dataPagamento ? new Date(p.dataPagamento) : null;
     if (!dataPag) return;
 
@@ -2532,7 +2531,7 @@ function gerarGraficoStatus(pendentes, enviados) {
   let enviadosHoje = 0;
 
   // Processa pendentes
-  pendentes.forEach(p => {
+(window.enviadosList || []).forEach(e => {
     const pagamento = normalizarCampo(p, ["Pagamento", "Impressão da Etiqueta"]).split(" ")[0];
     if (!pagamento) return;
     const dataPag = new Date(pagamento.split("T")[0] || pagamento);
@@ -2629,8 +2628,11 @@ renderTabela = function(destinoId, dados) {
 </script>
   <script>
   function considerar(loja) {
-  return lojasSelecionadas.length === 0 || lojasSelecionadas.includes(loja);
-}
+ const lojasSelecionadas = Array.from(
+      document.getElementById('filtroMultiloja').selectedOptions
+    ).map(opt => opt.value);
+    return lojasSelecionadas.length === 0 || lojasSelecionadas.includes(loja);
+  }
     </script>
 <script>
   
@@ -2678,7 +2680,7 @@ function atualizarDashboardHoje() {
   const hoje = new Date();
   const hojeStr = hoje.toISOString().split("T")[0];
 
-  pendentes.forEach(p => {
+ (window.importadosList || []).forEach(p => {
     if (p.status !== "novo") return;
 
     const loja = p.Loja || "";
