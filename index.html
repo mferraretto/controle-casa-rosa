@@ -1937,7 +1937,12 @@ function calcularDashboard() {
   const enviados      = window.enviadosList   || [];
   const hoje          = new Date();
   hoje.setHours(0, 0, 0, 0);
-
+  
+// Filtros selecionados
+  const mesSelecionado  = document.getElementById("filtroMesDashboard")?.value;
+  const lojaSelecionada = document.getElementById("filtroLojaDashboard")?.value;
+  const [anoSel, mesSel] = mesSelecionado?.split("-").map(Number) || [];
+  
   function diasUteisEntre(dataInicial, dataFinal) {
     let count = 0;
     const current = new Date(dataInicial);
@@ -1965,8 +1970,9 @@ const pendentes = pendentesBase.filter(p => {
   const totalAEnviar = pendentes.length;
   let atrasados = 0, quaseAtrasando = 0;
 
-(window.enviadosList || []).forEach(e => {
-    const pagStr = e.dataPagamento?.split("T")[0];
+// Calcula atrasos considerando apenas os pendentes filtrados
+  pendentes.forEach(p => {
+    const pagStr = p.dataPagamento?.split("T")[0];
     if (!pagStr) return;
     const dataPag = new Date(pagStr);
     const uteis   = diasUteisEntre(dataPag, hoje);
@@ -1982,9 +1988,7 @@ const pendentes = pendentesBase.filter(p => {
   }).length;
 
   // Aplica filtros de mês e loja (se houver)
-  const mesSelecionado = document.getElementById("filtroMesDashboard")?.value;
-  const lojaSelecionada = document.getElementById("filtroLojaDashboard")?.value;
-  const [anoSel, mesSel] = mesSelecionado?.split("-").map(Number) || [];
+ 
 
   const enviadosFiltradosNoMes = enviados.filter(p => {
     if (!p.dataEnvio) return false;
@@ -2533,8 +2537,8 @@ function gerarGraficoStatus(pendentes, enviados) {
   let enviadosHoje = 0;
 
   // Processa pendentes
-(window.enviadosList || []).forEach(e => {
-    const pagamento = normalizarCampo(e, ["Pagamento", "Impressão da Etiqueta"]).split(" ")[0];
+ pendentes.forEach(p => {
+    const pagamento = normalizarCampo(p, ["Pagamento", "Impressão da Etiqueta"]).split(" ")[0];
     if (!pagamento) return;
     const dataPag = new Date(pagamento.split("T")[0] || pagamento);
     const uteis = calcularDiasUteis(dataPag, hoje);
