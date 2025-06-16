@@ -2721,7 +2721,7 @@ async function processarPDF() {
       const pagamento = pagamentoMatch
         ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z`
         : "";
-     // SKU informado após o texto "SKU:" ou semelhante
+       // SKU informado após o texto "SKU:" ou semelhante
       const skuMatch = bloco.match(/SKU[:\s]*#?([A-Z0-9\-+]+)/i);
       const sku = skuMatch ? skuMatch[1].trim() : "";
 
@@ -2738,7 +2738,7 @@ async function processarPDF() {
   });
 
   } else {
-    // Procura a informação de pedido precedida da palavra "Pedido"
+   // Procura a informação de pedido precedida da palavra "Pedido"
     const pedidoMatch = fullText.match(/Pedido[:\s]*([A-Z0-9]{10,})/i);
     const pedido = pedidoMatch ? pedidoMatch[1] : "";
   const rastreio = fullText.match(/(BR\d{12,}[A-Z]?)/)?.[1] || "";
@@ -2748,7 +2748,7 @@ async function processarPDF() {
     ? `${pagamentoMatch[1].split("/").reverse().join("-")}T00:00:00.000Z`
     : "";
 
- const skuMatch = fullText.match(/SKU[:\s]*#?([A-Z0-9\-+]+)/i);
+  const skuMatch = fullText.match(/SKU[:\s]*#?([A-Z0-9\-+]+)/i);
   const sku = skuMatch ? skuMatch[1].trim() : "";
 
   const loja = identificarLoja(fullText);
