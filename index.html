@@ -893,7 +893,7 @@ body.dark-mode button {
 <div class="tab" onclick="abrirAba('a_enviar')"><i class="fas fa-clock"></i> A Enviar</div>
 <div class="tab" onclick="abrirAba('cancelados')"><i class="fas fa-ban"></i> Cancelados</div>
 <div class="tab" onclick="abrirAba('etiquetas_pdf')"><i class="fas fa-file-pdf"></i> Etiquetas</div>
-<div class="tab" onclick="abrirAba('aba-metas'); preencherLojasInputMeta(); renderizarMetasManuais();">
+<div class="tab" onclick="abrirAba('aba-metas'); preencherLojasInputMeta(); preencherFiltroLojaMetas(); atualizarRelatorioMetas(); renderizarMetasManuais();">
   <i class="fas fa-bullseye"></i> Metas Diárias
 </div>
 <div class="tab" onclick="abrirAba('aba-skus-equivalentes'); listarSkusEquivalentes();">
@@ -1230,6 +1230,24 @@ body.dark-mode button {
   <div id="containerMetasCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;"></div>
 <h2 style="margin:2rem 0 1rem;">📊 Acompanhamento de Metas</h2>
 <div id="container-cards-metas" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1rem; gap:1rem;"></div>
+  <h2 style="margin:2rem 0 1rem;">📈 Vendas por Loja</h2>
+<div class="filtros-dashboard">
+  <label>
+    📅 Data:
+    <input type="date" id="filtroDataMetas" onchange="atualizarRelatorioMetas()" />
+  </label>
+  <label>
+    <input type="checkbox" id="filtroMesInteiroMetas" onchange="atualizarRelatorioMetas()" />
+    🔄 Considerar mês inteiro
+  </label>
+  <label>
+    🏪 Loja:
+    <select id="filtroLojaMetas" onchange="atualizarRelatorioMetas()">
+      <option value="">Todas</option>
+    </select>
+  </label>
+</div>
+<div id="tabela-vendas-metas" style="margin-top:1rem;"></div>
 </div>
 <div id="aba-logs" class="tab-content" style="display:none; padding:2rem;">
   <h2>🕵️ Registro de Ações</h2>
@@ -1256,7 +1274,10 @@ renderizarGraficoVendasPorDia();
 renderizarGraficoTopComparativo();
 renderizarGraficoTempoEnvio();
 gerarRelatorioDetalhado();
-}
+} else if (id === "aba-metas") {
+    preencherFiltroLojaMetas();
+    atualizarRelatorioMetas();
+  }
 
 }
   // Retorna o primeiro campo definido em obj dentre a lista de keys
@@ -2193,7 +2214,9 @@ function exportarCanceladosCSV() {
     atualizarResumoVendasMensal();
 atualizarDashboardPorDataLoja();
     preencherFiltroLojaDashboard();
+preencherFiltroLojaMetas();
 
+    atualizarRelatorioMetas();
     // Ajusta o filtro de data da aba “Importados” para hoje
     const hoje = new Date().toISOString().split("T")[0];
     const inputFiltroData = document.getElementById("filtroData");
@@ -3656,6 +3679,56 @@ function preencherLojasInputMeta() {
   const lojas = [...new Set((window.enviadosList || []).map(p => p.Loja).filter(Boolean))].sort();
   const select = document.getElementById("inputLojasMeta");
   select.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
+}
+  function preencherFiltroLojaMetas() {
+  const lojas = [...new Set((window.enviadosList || []).map(p => p.Loja).filter(Boolean))].sort();
+  const select = document.getElementById("filtroLojaMetas");
+  if (!select) return;
+  select.innerHTML = '<option value="">Todas</option>' + lojas.map(l => `<option value="${l}">${l}</option>`).join('');
+}
+
+function atualizarRelatorioMetas() {
+  const enviados = window.enviadosList || [];
+  const dataSel = document.getElementById('filtroDataMetas')?.value;
+  const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
+  const lojaSel = document.getElementById('filtroLojaMetas')?.value;
+
+  const resumo = {};
+  enviados.forEach(p => {
+    if (!p.dataEnvio) return;
+    const envioStr = p.dataEnvio.split('T')[0];
+    if (dataSel) {
+      if (considerarMes) {
+        const [anoSel, mesSel] = dataSel.split('-').map(Number);
+        const [ano, mes] = envioStr.split('-').map(Number);
+        if (ano !== anoSel || mes !== mesSel) return;
+      } else if (envioStr !== dataSel) {
+        return;
+      }
+    }
+    const loja = p.Loja || 'Loja desconhecida';
+    if (lojaSel && loja !== lojaSel) return;
+    const produto = window.obterSkuBase ? window.obterSkuBase(p.SKU) : (p.SKU || 'Produto desconhecido');
+    if (!resumo[loja]) resumo[loja] = {};
+    resumo[loja][produto] = (resumo[loja][produto] || 0) + 1;
+  });
+
+  const container = document.getElementById('tabela-vendas-metas');
+  container.innerHTML = '';
+  if (!Object.keys(resumo).length) {
+    container.innerHTML = "<div style='color:#888;'>Nenhuma venda encontrada.</div>";
+    return;
+  }
+
+  let html = `<div style="overflow-x:auto;"><table border="1" cellspacing="0" cellpadding="5" style="width:100%; border-collapse:collapse;">`;
+  html += '<thead><tr><th>Loja</th><th>Produto</th><th>Quantidade</th></tr></thead><tbody>';
+  Object.entries(resumo).forEach(([loja, produtos]) => {
+    Object.entries(produtos).forEach(([produto, qtd]) => {
+      html += `<tr><td>${loja}</td><td>${produto}</td><td style="text-align:right;">${qtd}</td></tr>`;
+    });
+  });
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
 }
 function calcularProjecaoMeta(valorMeta, vendidos, diasDoMes, hoje) {
   const mediaDiaria = vendidos / hoje;
