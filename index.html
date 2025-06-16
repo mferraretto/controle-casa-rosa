@@ -884,7 +884,9 @@ body.dark-mode button {
 <div class="tab" onclick="abrirAba('aba-logs'); carregarLogs();">
   <i class="fas fa-clipboard-list"></i> Logs
 </div>
-
+<div class="tab" onclick="abrirAba('aba-admin'); preencherFiltroLojaMetas(); atualizarRelatorioMetas(); carregarProdutos(); atualizarCardsMetas();">
+  <i class="fas fa-user-shield"></i> Administrador
+</div>
 
 
   </div>
@@ -1214,26 +1216,6 @@ body.dark-mode button {
 
   <h3>📋 Metas Cadastradas</h3>
   <div id="containerMetasCards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;"></div>
-<h2 style="margin:2rem 0 1rem;">📊 Acompanhamento de Metas</h2>
-<div id="container-cards-metas" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1rem; gap:1rem;"></div>
-  <h2 style="margin:2rem 0 1rem;">📈 Vendas por Loja</h2>
-<div class="filtros-dashboard">
-  <label>
-    📅 Data:
-    <input type="date" id="filtroDataMetas" onchange="atualizarRelatorioMetas()" />
-  </label>
-  <label>
-    <input type="checkbox" id="filtroMesInteiroMetas" onchange="atualizarRelatorioMetas()" />
-    🔄 Considerar mês inteiro
-  </label>
-  <label>
-    🏪 Loja:
-    <select id="filtroLojaMetas" onchange="atualizarRelatorioMetas()">
-      <option value="">Todas</option>
-    </select>
-  </label>
-</div>
-<div id="tabela-vendas-metas" style="margin-top:1rem;"></div>
 </div>
   
 <div id="aba-produtos" class="tab-content" style="padding:1rem;">
@@ -1247,6 +1229,33 @@ body.dark-mode button {
     <input type="number" id="valorProduto" required style="width:120px;" min="0" step="0.01" /><br />
     <button type="submit" style="margin-top:0.5rem;">➕ Salvar</button>
   </form>
+  </div>
+<div id="aba-logs" class="tab-content" style="padding:2rem;">
+  <h2>🕵️ Registro de Ações</h2>
+  <div id="tabelaLogs" style="margin-top:1rem;"></div>
+</div>
+
+<div id="aba-admin" class="tab-content" style="padding:1rem;">
+  <h2 style="margin:2rem 0 1rem;">📊 Acompanhamento de Metas</h2>
+  <div id="container-cards-metas" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:1rem;"></div>
+  <h2 style="margin:2rem 0 1rem;">📈 Vendas por Loja</h2>
+  <div class="filtros-dashboard">
+    <label>
+      📅 Data:
+      <input type="date" id="filtroDataMetas" onchange="atualizarRelatorioMetas()" />
+    </label>
+    <label>
+      <input type="checkbox" id="filtroMesInteiroMetas" onchange="atualizarRelatorioMetas()" />
+      🔄 Considerar mês inteiro
+    </label>
+    <label>
+      🏪 Loja:
+      <select id="filtroLojaMetas" onchange="atualizarRelatorioMetas()">
+        <option value="">Todas</option>
+      </select>
+    </label>
+  </div>
+  <div id="tabela-vendas-metas" style="margin-top:1rem;"></div>
   <h3>Produtos Salvos</h3>
   <div style="overflow-x:auto;">
     <table border="1" cellpadding="5" id="tabelaProdutos" style="border-collapse:collapse; width:100%;">
@@ -1257,10 +1266,7 @@ body.dark-mode button {
     </table>
   </div>
 </div>
-<div id="aba-logs" class="tab-content" style="padding:2rem;">
-  <h2>🕵️ Registro de Ações</h2>
-  <div id="tabelaLogs" style="margin-top:1rem;"></div>
-</div>
+
 
 
   <script>
@@ -1286,6 +1292,11 @@ body.dark-mode button {
       atualizarRelatorioMetas();
     } else if (id === "aba-produtos") {
       carregarProdutos();
+       } else if (id === "aba-admin") {
+      preencherFiltroLojaMetas();
+      atualizarRelatorioMetas();
+      carregarProdutos();
+      atualizarCardsMetas();
     }
   }
   // Retorna o primeiro campo definido em obj dentre a lista de keys
