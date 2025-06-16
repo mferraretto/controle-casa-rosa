@@ -3906,6 +3906,27 @@ await registrarLog("Excluiu Meta", { metaId: id });
     alert("Erro ao excluir meta.");
   }
 }
+async function editarMeta(id, valorAtual) {
+  const novoValorStr = prompt("Novo valor da meta:", valorAtual);
+  if (novoValorStr === null) return;
+
+  const novoValor = parseInt(novoValorStr);
+  if (isNaN(novoValor) || novoValor <= 0) {
+    alert("Valor inválido.");
+    return;
+  }
+
+  try {
+    await updateDoc(doc(db, "metas_mensais", id), { valor: novoValor });
+    await registrarLog("Editou Meta", { metaId: id, valor: novoValor });
+    renderizarMetasManuais();
+    atualizarCardsMetas();
+    alert("Meta atualizada com sucesso.");
+  } catch (e) {
+    console.error("Erro ao editar meta:", e);
+    alert("Erro ao editar meta.");
+  }
+}
 
 function fazerLogin() {
   const email = document.getElementById("emailLogin").value;
