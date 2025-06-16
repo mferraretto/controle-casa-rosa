@@ -56,7 +56,7 @@ import {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 const auth = getAuth(app);
-    const ADMIN_EMAILS = matheus.ferraretto94@gmail.com; // mantenha esta lista atualizada para futuros administradores
+    const ADMIN_EMAILS = ['matheus.ferraretto94@gmail.com']; // mantenha esta lista atualizada para futuros administradores
   window.auth = auth;
   // 🔁 Sincroniza SKUs equivalentes em tempo real
 window.skusEquivalentes = {};
