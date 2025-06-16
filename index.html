@@ -87,7 +87,7 @@ window.fazerLogin = function () {
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
-      window.usuarioAdmin = ADMIN_EMAILS.includes(user.email);
+        window.usuarioAdmin = ADMIN_EMAILS.includes(user.email);
       document.getElementById("login").style.display = "none";
       document.getElementById("sistema").style.display = "block";
        if (!window.usuarioAdmin) {
