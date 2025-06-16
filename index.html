@@ -1565,8 +1565,8 @@ function atualizarDashboardPorDataLoja() {
 
   // 👉 Cálculo para pendentes
 (window.enviadosList || []).forEach(e => {
-    const loja = (p.Loja || "").trim();
-    const pagStr = p.dataPagamento?.split("T")[0];
+    const loja = (e.Loja || "").trim();
+    const pagStr = e.dataPagamento?.split("T")[0];
     if (!pagStr) return;
 
     const pag = new Date(pagStr);
@@ -1967,7 +1967,7 @@ const pendentes = pendentesBase.filter(p => {
   let atrasados = 0, quaseAtrasando = 0;
 
 (window.enviadosList || []).forEach(e => {
-    const pagStr = p.dataPagamento?.split("T")[0];
+    const pagStr = e.dataPagamento?.split("T")[0];
     if (!pagStr) return;
     const dataPag = new Date(pagStr);
     const uteis   = diasUteisEntre(dataPag, hoje);
@@ -2528,7 +2528,7 @@ function gerarGraficoStatus(pendentes, enviados) {
 
   // Processa pendentes
 (window.enviadosList || []).forEach(e => {
-    const pagamento = normalizarCampo(p, ["Pagamento", "Impressão da Etiqueta"]).split(" ")[0];
+    const pagamento = normalizarCampo(e, ["Pagamento", "Impressão da Etiqueta"]).split(" ")[0];
     if (!pagamento) return;
     const dataPag = new Date(pagamento.split("T")[0] || pagamento);
     const uteis = calcularDiasUteis(dataPag, hoje);
