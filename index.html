@@ -582,7 +582,7 @@ function removerMeta(loja) {
     background-color: #dee2e6;
   }
 
-  .tab.ativa {
+  .tab.active {
     background-color: #dc3545;
     color: white;
     font-weight: 600;
@@ -1234,27 +1234,26 @@ body.dark-mode button {
 </div>
 <div id="tabela-vendas-metas" style="margin-top:1rem;"></div>
 </div>
-<div id="aba-produtos" class="tab-content" style="padding:1rem;">
+  
+<div id="aba-produtos" class="tab-content" style="display:none; padding:1rem;">
   <h2>📦 Cadastro de Produtos</h2>
   <form id="formProduto" onsubmit="salvarProduto(event)" style="margin-bottom:1rem;">
     <label>Nome do Produto:</label><br />
     <input type="text" id="nomeProduto" required style="width:200px; margin-bottom:0.5rem;" /><br />
     <label>Sobra Ideal:</label><br />
     <input type="number" id="sobraIdeal" required style="width:120px;" min="0" /><br />
-   <label>Valor:</label><br />
-    <input type="number" id="valorProduto" required style="width:120px;" min="0" step="0.01" /><br />
     <button type="submit" style="margin-top:0.5rem;">➕ Salvar</button>
   </form>
   <h3>Produtos Salvos</h3>
   <div style="overflow-x:auto;">
     <table border="1" cellpadding="5" id="tabelaProdutos" style="border-collapse:collapse; width:100%;">
       <thead>
-          <tr style="background:#f0f0f0;"><th>Produto</th><th>Sobra Ideal</th><th>Valor</th><th>Ações</th></tr>
+        <tr style="background:#f0f0f0;"><th>Produto</th><th>Sobra Ideal</th><th>Ações</th></tr>
       </thead>
       <tbody></tbody>
     </table>
   </div>
-</div>  
+</div>
 <div id="aba-logs" class="tab-content" style="padding:2rem;">
   <h2>🕵️ Registro de Ações</h2>
   <div id="tabelaLogs" style="margin-top:1rem;"></div>
