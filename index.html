@@ -3765,7 +3765,8 @@ function atualizarRelatorioMetas() {
     Object.entries(produtos).forEach(([produto, qtd]) => {
        const sobra = window.produtosMap && window.produtosMap[produto] ? parseFloat(window.produtosMap[produto].sobraIdeal) : 0;
       const valorEsperado = sobra * qtd;
-      html += `<tr><td>${loja}</td><td>${produto}</td><td style="text-align:right;">${qtd}</td><td style="text-align:right;">${valorEsperado}</td></tr>`;
+const valorFormatado = valorEsperado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      html += `<tr><td>${loja}</td><td>${produto}</td><td style="text-align:right;">${qtd}</td><td style="text-align:right;">${valorFormatado}</td></tr>`;
     });
   });
   html += '</tbody></table></div>';
