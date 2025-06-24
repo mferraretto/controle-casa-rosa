@@ -287,33 +287,41 @@ const existeNosEnviados = enviados.some(env => {
   return (id || '').toString().trim().toLowerCase().replace(/^0+/, '');
 }
   async function carregarPendentesFirebase() {
-  const snapshot = await getDocs(collection(db, "pedidos_pendentes"));
-  const pendentes = [];
-  snapshot.forEach(doc => {
-    pendentes.push({ id: doc.id, ...doc.data() });
-  });
+  try {
+    const snapshot = await getDocs(collection(db, "pedidos_pendentes"));
+    const pendentes = [];
+    snapshot.forEach(doc => {
+      pendentes.push({ id: doc.id, ...doc.data() });
+    });
 
-  // 🔁 Atualize esta parte abaixo
-  const enviados = window.enviadosList || [];
-  const idsEnviados = new Set(
-    enviados.map(e =>
-      (e.Pedido || e.pedidoId || "").toString().trim()
-    )
-  );
-  const pendentesFiltrados = pendentes.filter(p =>
-    !idsEnviados.has((p.Pedido || p.pedidoId || "").toString().trim())
-  );
+    // ... resto da função ...
+    const enviados = window.enviadosList || [];
+    const idsEnviados = new Set(
+      enviados.map(e =>
+        (e.Pedido || e.pedidoId || "").toString().trim()
+      )
+    );
+    const pendentesFiltrados = pendentes.filter(p =>
+      !idsEnviados.has((p.Pedido || p.pedidoId || "").toString().trim())
+    );
 
-renderTabela("tabelaPendentes", pendentesFiltrados);
+    renderTabela("tabelaPendentes", pendentesFiltrados);
 
-  if (document.getElementById("contadorPedidosPendentes")) {
-    document.getElementById("contadorPedidosPendentes").textContent = pendentesFiltrados.length;
+    if (document.getElementById("contadorPedidosPendentes")) {
+      document.getElementById("contadorPedidosPendentes").textContent = pendentesFiltrados.length;
+    }
+  } catch (e) {
+    alert("Erro ao carregar pedidos pendentes: " + (e.message || e));
   }
 }
   // 🔄 Carrega lista de lojas cadastradas no Firestore
 async function carregarLojasRegistradas() {
-  const snap = await getDocs(collection(db, "lojas"));
-  window.lojasRegistradas = snap.docs.map(doc => doc.id);
+  try {
+    const snap = await getDocs(collection(db, "lojas"));
+    window.lojasRegistradas = snap.docs.map(doc => doc.id);
+  } catch (e) {
+    alert("Erro ao carregar lojas registradas: " + (e.message || e));
+  }
 }
 function identificarLoja(texto) {
   const linhas = texto.split('\n');
@@ -398,16 +406,16 @@ function identificarLoja(texto) {
         : "";
       const rastreio = p.Rastreio || "";
       
-      html += `
-        <tr>
-          <td>${pedido}</td>
-          <td>${loja}</td>
-          <td>${produto}</td>
-          <td>${pagamento}</td>
-          <td>${rastreio}</td>
-          <td><button class="danger" onclick="cancelarPedido('${p.id}')">❌ Cancelar</button></td>
-        </tr>
-      `;
+     html += `
+  <tr>
+    <td>${escapeHTML(pedido)}</td>
+    <td>${escapeHTML(loja)}</td>
+    <td>${escapeHTML(produto)}</td>
+    <td>${escapeHTML(pagamento)}</td>
+    <td>${escapeHTML(rastreio)}</td>
+    <td><button class="danger" onclick="cancelarPedido('${escapeHTML(p.id)}')">❌ Cancelar</button></td>
+  </tr>
+`;
     });
 
     html += "</tbody></table></div>";
@@ -429,14 +437,14 @@ function renderizarTabelaMetas() {
     const meta = metasPorLoja[loja] || "";
     const linha = document.createElement("tr");
     linha.innerHTML = `
-      <td style="padding:0.5rem;">${loja}</td>
-      <td style="padding:0.5rem;">
-        <input type="number" min="0" value="${meta}" data-loja="${loja}" style="width:100px;" />
-      </td>
-      <td style="padding:0.5rem;">
-        <button onclick="removerMeta('${loja}')">❌ Remover</button>
-      </td>
-    `;
+  <td style="padding:0.5rem;">${escapeHTML(loja)}</td>
+  <td style="padding:0.5rem;">
+    <input type="number" min="0" value="${escapeHTML(meta)}" data-loja="${escapeHTML(loja)}" style="width:100px;" />
+  </td>
+  <td style="padding:0.5rem;">
+    <button onclick="removerMeta('${escapeHTML(loja)}')">❌ Remover</button>
+  </td>
+`;
     tbody.appendChild(linha);
   });
 }
@@ -494,16 +502,16 @@ function removerMeta(loja) {
     const envio    = p.dataEnvio ? new Date(p.dataEnvio).toLocaleDateString() : "-";
 
     html += `
-      <tr>
-        <td>${pedido}</td>
-        <td>${loja}</td>
-        <td>${produto}</td>
-        <td>${rastreio}</td>
-        <td>${pag}</td>
-        <td>${envio}</td>
-        <td><button class="danger" onclick="cancelarPedido('${p.id}')">❌ Cancelar</button></td>
-      </tr>
-    `;
+  <tr>
+    <td>${escapeHTML(pedido)}</td>
+    <td>${escapeHTML(loja)}</td>
+    <td>${escapeHTML(produto)}</td>
+    <td>${escapeHTML(rastreio)}</td>
+    <td>${escapeHTML(pag)}</td>
+    <td>${escapeHTML(envio)}</td>
+    <td><button class="danger" onclick="cancelarPedido('${escapeHTML(p.id)}')">❌ Cancelar</button></td>
+  </tr>
+`;
   });
 
   html += `</tbody></table></div>`;
@@ -518,9 +526,9 @@ function removerMeta(loja) {
     lista.forEach(p => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
-        <td>${p.Loja || ""}</td>
-        <td>${p.motivo || ""}</td>
-      `;
+  <td>${escapeHTML(p.Loja || "")}</td>
+  <td>${escapeHTML(p.motivo || "")}</td>
+`;
       tbody.appendChild(tr);
     });
   }
