@@ -71,8 +71,6 @@ onSnapshot(collection(db, "skus_equivalentes"), snap => {
   console.log("🟢 SKUs equivalentes atualizados:", AppCasaRosa.skusEquivalentes);
 });
 
-window.AppCasaRosa = window.AppCasaRosa || {};
-
 window.AppCasaRosa.fazerLogin = function () {
   const email = document.getElementById("emailLogin")?.value.trim();
   const senha = document.getElementById("senhaLogin")?.value;
