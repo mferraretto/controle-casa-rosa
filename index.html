@@ -911,7 +911,7 @@ body.dark-mode button {
 <div class="tab" onclick="abrirAba('etiquetas_pdf')"><i class="fas fa-file-pdf"></i> Etiquetas</div>
 <div class="tab" onclick="abrirAba('aba-metas'); AppCasaRosa.preencherLojasInputMeta(); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.renderizarMetasManuais();">  <i class="fas fa-bullseye"></i> Metas Diárias
 </div>
-<div class="tab" onclick="openAba('aba-skus-equivalents'); AppCasaRosa. loadSkusEquivalents();">
+<div class="tab" onclick="abrirAba('aba-skus-equivalents'); AppCasaRosa.loadSkusEquivalents();">
   <i class="fas fa-code-branch"></i> SKUs Equivalentes
 </div>
  <div class="tab" onclick="abrirAba('aba-produtos'); AppCasaRosa.carregarProdutos();">  <i class="fas fa-box"></i> Produtos
@@ -927,7 +927,7 @@ body.dark-mode button {
   <h2>🔐 Login</h2>
   <input type="email" id="emailLogin" placeholder="Email" style="padding:0.5rem;" />
   <input type="password" id="senhaLogin" placeholder="Senha" style="padding:0.5rem;" />
-  <button onclick="AppCasaRosa.fazerLogin()" style="padding:0.5rem;">Entrar</button>
+<button onclick="AppCasaRosa.fazerLogin()" style="padding:0.5rem;">Entrar</button>
   <div id="erroLogin" style="color:red;"></div>
 </div>
 <div id="sistema" style="display:none;">
