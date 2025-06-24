@@ -168,7 +168,7 @@ onSnapshot(collection(db, "pedidos_enviados"), (snapshot) => {
 });
 
 // Função para atualizar todas as views relacionadas a "enviados"
-function atualizarTabelasEViewsEnviados() {
+window.AppCasaRosa.atualizarTabelasEViewsEnviados = function() {
   if (typeof AppCasaRosa.renderizarTabelaEnviados === "function") {
     AppCasaRosa.renderizarTabelaEnviados(AppCasaRosa.enviadosList);
   }
@@ -211,25 +211,7 @@ onSnapshot(pdfsRef, snap => {
 // ... suas variáveis globais e AppCasaRosa = { ... }
 
 // Função para atualizar todas as views relacionadas a "enviados"
-function atualizarTabelasEViewsEnviados() {
-  if (typeof AppCasaRosa.renderizarTabelaEnviados === "function") {
-    AppCasaRosa.renderizarTabelaEnviados(AppCasaRosa.enviadosList);
-  }
-  if (typeof AppCasaRosa.renderizarTabelaMetas === "function") {
-    AppCasaRosa.renderizarTabelaMetas();
-  }
-  if (typeof preencherFiltroLojaDashboard === "function") preencherFiltroLojaDashboard();
-  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
-}
 
-
-// Listener "Pedidos Pendentes"
-onSnapshot(pedidosQuery, snapshot => {
-  AppCasaRosa.importadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  if (typeof aplicarFiltroPedidos === "function") aplicarFiltroPedidos();
-  if (typeof preencherFiltroLojaDashboard === "function") preencherFiltroLojaDashboard();
-  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
-});
 // Função de escape HTML
 AppCasaRosa.escapeHTML = function(str) {
   return (str || "").replace(/[&<>"']/g, function (c) {
@@ -261,7 +243,8 @@ AppCasaRosa.escapeHTML = function(str) {
 </script>
 
 <script>
- AppCasaRosa.normalizarId = function(id) {
+  window.AppCasaRosa = window.AppCasaRosa || {};
+ window.AppCasaRosa.normalizarId = function(id) {
   return (id || '').toString().trim().toLowerCase().replace(/^0+/, '');
 };
   // Função genérica de renderização de tabela
@@ -367,6 +350,7 @@ AppCasaRosa.identificarLoja = function(texto) {
 
 
 <script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
   // Renderização da tabela de “Novos a Enviar”
  AppCasaRosa.renderizarTabelaPendentes = function(lista) {
   const container = document.getElementById("tabelaPendentes");
@@ -465,6 +449,7 @@ AppCasaRosa.removerMeta = function(loja) {
 
 
 <script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
  AppCasaRosa.renderizarTabelaEnviados = function(lista) {
   const container = document.getElementById("tabela-enviados");
   if (!container) return;
@@ -864,6 +849,7 @@ body.dark-mode button {
 
   <link rel="manifest" href="manifest.json">
   <script>
+    window.AppCasaRosa = window.AppCasaRosa || {};
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('service-worker.js').then(() => {
         console.log("✅ Service Worker registrado com sucesso");
@@ -1301,6 +1287,7 @@ body.dark-mode button {
 
 
   <script>
+    window.AppCasaRosa = window.AppCasaRosa || {};
   // Alterna abas do sistema
   function abrirAba(id) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -2581,6 +2568,7 @@ function atualizarResumoCancelados() {
   
 </script>
 <script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
 
 function atualizarFiltroLoja() {
   // 1) Reúna todos os pedidos em memória (importados + enviados , se houver)
@@ -2621,6 +2609,7 @@ function atualizarFiltroLoja() {
 }
 </script>
 <script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
 function gerarGraficoStatus(pendentes, enviados) {
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
@@ -2679,6 +2668,7 @@ function gerarGraficoStatus(pendentes, enviados) {
 }
 </script>
 <script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
   // 1) Função de dias úteis permanece igual
 function diasUteisEntre(dataInicial, dataFinal) {
   let count = 0;
@@ -2692,6 +2682,7 @@ function diasUteisEntre(dataInicial, dataFinal) {
 }
 </script>
 <script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
 // 2) Nova função gerarLembrete usando os arrays em memória
 // 3) Atualiza a chamada para incluir gerarLembrete (e usar os estados em memória)
 const originalAtualizar = atualizarTabelas;
@@ -2726,13 +2717,14 @@ renderTabela = function(destinoId, dados) {
 };
 </script>
   <script>
+    window.AppCasaRosa = window.AppCasaRosa || {};
   function considerar(loja) {
  const lojasSelecionadas = Array.from(selectLoja.selectedOptions).map(opt => opt.value);
 const lojaOk = !lojasSelecionadas.length || lojasSelecionadas.includes(loja);
   }
     </script>
 <script>
-  
+  window.AppCasaRosa = window.AppCasaRosa || {};
 
 function atualizarDashboardPorData() {
   // 1) Obtenha os pedidos enviados do estado em memória (atualizado pelo onSnapshot)
@@ -2768,6 +2760,7 @@ document.getElementById("enviadosHoje").textContent = enviadosHoje;
 }
 </script>
 <script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
 function atualizarDashboardHoje() {
   let totalHoje = 0;
   let atrasados = 0;
@@ -2813,6 +2806,7 @@ function atualizarDashboardHoje() {
 
 </script>
 <script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
 async function processarPDF() {
   const input = document.getElementById('inputPDF');
   if (!input.files.length) {
@@ -2958,6 +2952,7 @@ function baixarPDF(index) {
 }
 </script>
 <script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
 // Converte um Blob (ou ArrayBuffer) em string base64
 function blobToBase64(blob) {
   return new Promise(resolve => {
@@ -3300,6 +3295,7 @@ document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]")
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
   $(document).ready(function() {
     $('#filtroMultiloja').select2({
       placeholder: 'Selecione lojas',
