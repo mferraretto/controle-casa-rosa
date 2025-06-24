@@ -878,7 +878,7 @@ body.dark-mode button {
 </div>
 <div class="tab" onclick="abrirAba('aba-logs'); AppCasaRosa. carregarLogs();">  <i class="fas fa-clipboard-list"></i> Logs
 </div>
-<div class="tab" onclick="abrirAba('aba-admin'); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.carregarProdutos(); AppCasaRosa.atualizarCardsMetas();">  <i class="fas fa-user-shield"></i> Administrador
+<div class="tab" onclick="abrirAba('aba-admin'); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.carregarProdutos(); AppCasaRosa.();">  <i class="fas fa-user-shield"></i> Administrador
 </div>
 
 
@@ -3842,7 +3842,8 @@ AppCasaRosa.calcularAtrasoMeta = function(metaDiaria, vendidos, diaHoje) {
   const atraso = idealHoje - vendidos;
   return atraso > 0 ? atraso : 0;
 };
-AppCasaRosa.atualizarCardsMetas = async function() {
+  window.AppCasaRosa = window.AppCasaRosa || {};
+window.AppCasaRosa.atualizarCardsMetas = async function() {
   const container = document.getElementById("container-cards-metas");
   container.innerHTML = "<div>Carregando...</div>";
 
