@@ -22,60 +22,64 @@
  <!-- Firebase App (core) + Firestore (modular v9+) -->
  <!-- Firebase App (core) + Firestore (modular v9+) -->
 <script type="module">
-const AppCasaRosa = (window.AppCasaRosa = window.AppCasaRosa || {});
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-  import {
-    getFirestore,
-    collection,
-    addDoc,
-    onSnapshot,
-    query,
-    orderBy,
-    updateDoc,
-    deleteDoc,
-    doc,
-    getDoc,
-    getDocs
-  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+window.AppCasaRosa = window.AppCasaRosa || {};
+
+// IMPORTS
+import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
 import {
-    getAuth,
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged
-  } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  updateDoc,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-  // Configuração do Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyDanvDxs2RDaMNc7zARyyyUt0rLqes95H0",
-    authDomain: "painelpedidos-v2.firebaseapp.com",
-    projectId: "painelpedidos-v2",
-    storageBucket: "painelpedidos-v2.appspot.com",
-    messagingSenderId: "135497440608",
-    appId: "1:135497440608:web:093e8fc4264257d5065205"
-  };
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyDanvDxs2RDaMNc7zARyyyUt0rLqes95H0",
+  authDomain: "painelpedidos-v2.firebaseapp.com",
+  projectId: "painelpedidos-v2",
+  storageBucket: "painelpedidos-v2.appspot.com",
+  messagingSenderId: "135497440608",
+  appId: "1:135497440608:web:093e8fc4264257d5065205"
+};
 
-  // Inicializa o Firebase e Firestore
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
- const auth = getAuth(app);
+// Inicializa Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
 
-  // Disponibiliza instância e helpers globalmente para scripts não-modulares
-  Object.assign(window, {
-    db,
-    collection,
-    addDoc,
-    onSnapshot,
-    query,
-    orderBy,
-    updateDoc,
-    deleteDoc,
-    doc,
-    getDoc,
-    getDocs,
-  });
-  AppCasaRosa.auth = auth;
-  // 🔁 Sincroniza SKUs equivalentes em tempo real
-AppCasaRosa.skusEquivalentes = {};
+// Disponibilize TUDO no objeto global AppCasaRosa
+window.AppCasaRosa.db = db;
+window.AppCasaRosa.auth = auth;
+window.AppCasaRosa.collection = collection;
+window.AppCasaRosa.addDoc = addDoc;
+window.AppCasaRosa.onSnapshot = onSnapshot;
+window.AppCasaRosa.query = query;
+window.AppCasaRosa.orderBy = orderBy;
+window.AppCasaRosa.updateDoc = updateDoc;
+window.AppCasaRosa.deleteDoc = deleteDoc;
+window.AppCasaRosa.doc = doc;
+window.AppCasaRosa.getDoc = getDoc;
+window.AppCasaRosa.getDocs = getDocs;
+window.AppCasaRosa.signInWithEmailAndPassword = signInWithEmailAndPassword;
+window.AppCasaRosa.signOut = signOut;
+window.AppCasaRosa.onAuthStateChanged = onAuthStateChanged;
+
+// Exemplo de sincronização de SKUs equivalentes
+window.AppCasaRosa.skusEquivalentes = {};
 onSnapshot(collection(db, "skus_equivalentes"), snap => {
   const equivalentes = {};
   snap.docs.forEach(doc => {
@@ -84,10 +88,9 @@ onSnapshot(collection(db, "skus_equivalentes"), snap => {
       equivalentes[data.base] = data.equivalentes || [];
     }
   });
-  AppCasaRosa.skusEquivalentes = equivalentes;
-  console.log("🟢 SKUs equivalentes atualizados:", AppCasaRosa.skusEquivalentes);
+  window.AppCasaRosa.skusEquivalentes = equivalentes;
+  console.log("🟢 SKUs equivalentes atualizados:", equivalentes);
 });
-
 window.AppCasaRosa.fazerLogin = function () {
   const email = document.getElementById("emailLogin")?.value.trim();
   const senha = document.getElementById("senhaLogin")?.value;
