@@ -63,27 +63,36 @@ onSnapshot(collection(db, "skus_equivalentes"), snap => {
   const equivalentes = {};
   snap.docs.forEach(doc => {
     const data = doc.data();
-    equivalentes[data.base] = data.equivalentes || [];
+    if (data.base) {
+      equivalentes[data.base] = data.equivalentes || [];
+    }
   });
   AppCasaRosa.skusEquivalentes = equivalentes;
   console.log("🟢 SKUs equivalentes atualizados:", AppCasaRosa.skusEquivalentes);
 });
 
 AppCasaRosa.fazerLogin = function () {
-  const email = document.getElementById("emailLogin").value;
+  const email = document.getElementById("emailLogin").value.trim();
   const senha = document.getElementById("senhaLogin").value;
+  const erroElem = document.getElementById("erroLogin");
+
+  if (!email || !senha) {
+    erroElem.textContent = "Preencha e-mail e senha.";
+    return;
+  }
 
   signInWithEmailAndPassword(auth, email, senha)
     .then(userCredential => {
       console.log("Login realizado:", userCredential.user.email);
-      document.getElementById("erroLogin").textContent = "";
+      erroElem.textContent = "";
+      // Aqui você pode redirecionar ou atualizar o UI, se necessário
     })
     .catch(error => {
       console.error("Erro de login:", error);
-      document.getElementById("erroLogin").textContent = "Email ou senha inválidos.";
+      erroElem.textContent = "Email ou senha inválidos.";
+      document.getElementById("senhaLogin").value = "";
     });
 };
-
 onAuthStateChanged(auth, (user) => {
     if (user) {
       document.getElementById("login").style.display = "none";
@@ -2264,18 +2273,18 @@ function exportarCanceladosCSV() {
 
   // Preenche o <select> de lojas no Dashboard usando dados em memória
   function preencherFiltroLojaDashboard() {
-    const enviados  = AppCasaRosa.enviadosList   || [];
-    const pendentes = AppCasaRosa.importadosList  || [];
-    const lojas = [...enviados, ...pendentes]
-      .map(p => p.Loja)
-      .filter(Boolean);
-    const lojasUnicas = [...new Set(lojas)].sort();
-    const select = document.getElementById("filtroLojaDashboard");
-    if (!select) return;
-    select.innerHTML =
-      '<option value="">Todas</option>' +
-      lojasUnicas.map(loja => `<option value="${loja}">${loja}</option>`).join('');
-  }
+  const enviados  = AppCasaRosa.enviadosList   || [];
+  const pendentes = AppCasaRosa.importadosList || [];
+  const lojas = [...enviados, ...pendentes]
+    .map(p => (p.Loja || "").trim().toLowerCase())
+    .filter(Boolean);
+  const lojasUnicas = [...new Set(lojas)].sort();
+  const select = document.getElementById("filtroLojaDashboard");
+  if (!select) return;
+  select.innerHTML =
+    '<option value="">Todas</option>' +
+    lojasUnicas.map(loja => `<option value="${loja}">${loja.charAt(0).toUpperCase() + loja.slice(1)}</option>`).join('');
+}
 
   // Dispara ao carregar a página
   document.addEventListener("DOMContentLoaded", () => {
