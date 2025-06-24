@@ -20,7 +20,7 @@
  <!-- Firebase App (core) + Firestore (modular v9+) -->
 <!-- Firebase App (core) + Firestore (modular v9+) -->
 <script type="module">
-  AppCasaRosa.AppCasaRosa = AppCasaRosa.AppCasaRosa || {};
+  window.AppCasaRosa = window.AppCasaRosa || {};
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
   import {
     getFirestore,
@@ -189,7 +189,7 @@ AppCasaRosa.removerPendentesJaEnviados = removerPendentesJaEnviados;
     atualizarResumoPedidosAEviar();
   });
   
-function escapeHTML(str) {
+AppCasaRosa.escapeHTML = function(str) {
   return (str || "").replace(/[&<>"']/g, function (c) {
     return ({
       '&': '&amp;',
@@ -199,98 +199,101 @@ function escapeHTML(str) {
       "'": '&#39;'
     })[c];
   });
-}
+};
   // Atualizar pedido específico
-  async function atualizarPedido(id, dados) {
+  AppCasaRosa.atualizarPedido = async function(id, dados) {
   try {
     const ref = doc(db, "pedidos_pendentes", id);
     await updateDoc(ref, dados);
   } catch (e) {
     alert("Erro ao atualizar pedido: " + (e.message || e));
   }
-}
-  // Sincronizar pendentes automaticamente com enviados
-  onSnapshot(collection(db, "pedidos_enviados"), async (snapshot) => {
-    const enviados = [];
-    snapshot.forEach(doc => enviados.push(doc.data()));
+};
 
-    const pendentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
-    const promises = [];
+// Sincronizar pendentes automaticamente com enviados
+onSnapshot(collection(db, "pedidos_enviados"), async (snapshot) => {
+  const enviados = [];
+  snapshot.forEach(doc => enviados.push(doc.data()));
 
-    pendentesSnap.forEach(docPendente => {
-      const idPendente = normalizarId(docPendente.data().Pedido || docPendente.data().pedidoId);
-const existeNosEnviados = enviados.some(env => {
-  const idEnviado = normalizarId(env.Pedido || env.pedidoId);
-  return idEnviado === idPendente;
+  const pendentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
+  const promises = [];
+
+  pendentesSnap.forEach(docPendente => {
+    const idPendente = normalizarId(docPendente.data().Pedido || docPendente.data().pedidoId);
+    const existeNosEnviados = enviados.some(env => {
+      const idEnviado = normalizarId(env.Pedido || env.pedidoId);
+      return idEnviado === idPendente;
+    });
+
+    if (existeNosEnviados) {
+      promises.push(deleteDoc(doc(db, "pedidos_pendentes", docPendente.id)));
+    }
+  });
+
+  if (promises.length > 0) {
+    await Promise.all(promises);
+    console.log("✅ Pedidos removidos da aba 'Novos a Enviar' por estarem em 'Pedidos Enviados'");
+    if (typeof AppCasaRosa.carregarPendentesFirebase === "function") {
+      AppCasaRosa.carregarPendentesFirebase();
+    } else if (typeof carregarPendentesFirebase === "function") {
+      carregarPendentesFirebase();
+    }
+  }
 });
 
-      if (existeNosEnviados) {
-        promises.push(deleteDoc(doc(db, "pedidos_pendentes", docPendente.id)));
-      }
-    });
+// Renderizar tabela de enviados
+onSnapshot(collection(db, "pedidos_enviados"), snapshot => {
+  const container = document.getElementById("tabela-enviados");
+  container.innerHTML = "";
 
-    if (promises.length > 0) {
-      await Promise.all(promises);
-      console.log("✅ Pedidos removidos da aba 'Novos a Enviar' por estarem em 'Pedidos Enviados'");
-      if (typeof carregarPendentesFirebase === "function") {
-        carregarPendentesFirebase();
-      }
-    }
-  });
+  if (snapshot.empty) {
+    container.innerHTML = "<p>Nenhum pedido enviado encontrado.</p>";
+    return;
+  }
 
-  // Renderizar tabela de enviados
-  onSnapshot(collection(db, "pedidos_enviados"), snapshot => {
-    const container = document.getElementById("tabela-enviados");
-    container.innerHTML = "";
+  const table = document.createElement("table");
+  table.innerHTML = `
+    <thead>
+      <tr>
+        <th>Loja</th>
+        <th>Pedido</th>
+        <th>Produto (SKU)</th>
+        <th>Rastreio</th>
+        <th>Pagamento</th>
+        <th>Envio</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  `;
 
-    if (snapshot.empty) {
-      container.innerHTML = "<p>Nenhum pedido enviado encontrado.</p>";
-      return;
-    }
+  const tbody = table.querySelector("tbody");
 
-    const table = document.createElement("table");
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>Loja</th>
-          <th>Pedido</th>
-          <th>Produto (SKU)</th>
-          <th>Rastreio</th>
-          <th>Pagamento</th>
-          <th>Envio</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
+  snapshot.forEach(doc => {
+    const p = doc.data();
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Loja || "-") : escapeHTML(p.Loja || "-")}</td>
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.pedidoId || "-") : escapeHTML(p.pedidoId || "-")}</td>
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.SKU || "-") : escapeHTML(p.SKU || "-")}</td>
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Rastreio || "-") : escapeHTML(p.Rastreio || "-")}</td>
+      <td>${p.dataPagamento ? (AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(new Date(p.dataPagamento).toLocaleDateString()) : escapeHTML(new Date(p.dataPagamento).toLocaleDateString())) : "-"}</td>
+      <td>${p.dataEnvio ? (AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(new Date(p.dataEnvio).toLocaleDateString()) : escapeHTML(new Date(p.dataEnvio).toLocaleDateString())) : "-"}</td>
     `;
 
-    const tbody = table.querySelector("tbody");
-
-    snapshot.forEach(doc => {
-      const p = doc.data();
-      const tr = document.createElement("tr");
-
-     tr.innerHTML = `
-  <td>${escapeHTML(p.Loja || "-")}</td>
-  <td>${escapeHTML(p.pedidoId || "-")}</td>
-  <td>${escapeHTML(p.SKU || "-")}</td>
-  <td>${escapeHTML(p.Rastreio || "-")}</td>
-  <td>${p.dataPagamento ? escapeHTML(new Date(p.dataPagamento).toLocaleDateString()) : "-"}</td>
-  <td>${p.dataEnvio ? escapeHTML(new Date(p.dataEnvio).toLocaleDateString()) : "-"}</td>
-`;
-
-      tbody.appendChild(tr);
-    });
-
-    container.appendChild(table);
+    tbody.appendChild(tr);
   });
+
+  container.appendChild(table);
+});
   
 </script>
 
 <script>
-  function normalizarId(id) {
+ AppCasaRosa.normalizarId = function(id) {
   return (id || '').toString().trim().toLowerCase().replace(/^0+/, '');
-}
-  async function carregarPendentesFirebase() {
+};
+ AppCasaRosa.carregarPendentesFirebase = async function() {
   try {
     const snapshot = await getDocs(collection(db, "pedidos_pendentes"));
     const pendentes = [];
@@ -309,25 +312,39 @@ const existeNosEnviados = enviados.some(env => {
       !idsEnviados.has((p.Pedido || p.pedidoId || "").toString().trim())
     );
 
-    renderTabela("tabelaPendentes", pendentesFiltrados);
+    if (typeof AppCasaRosa.renderTabela === "function") {
+      AppCasaRosa.renderTabela("tabelaPendentes", pendentesFiltrados);
+    } else if (typeof renderTabela === "function") {
+      renderTabela("tabelaPendentes", pendentesFiltrados);
+    }
 
-    if (document.getElementById("contadorPedidosPendentes")) {
-      document.getElementById("contadorPedidosPendentes").textContent = pendentesFiltrados.length;
+    const contador = document.getElementById("contadorPedidosPendentes");
+    if (contador) {
+      contador.textContent = pendentesFiltrados.length;
     }
   } catch (e) {
     alert("Erro ao carregar pedidos pendentes: " + (e.message || e));
   }
-}
-  // 🔄 Carrega lista de lojas cadastradas no Firestore
-async function carregarLojasRegistradas() {
+};
+
+AppCasaRosa.carregarLojasRegistradas = async function() {
   try {
     const snap = await getDocs(collection(db, "lojas"));
     AppCasaRosa.lojasRegistradas = snap.docs.map(doc => doc.id);
   } catch (e) {
     alert("Erro ao carregar lojas registradas: " + (e.message || e));
   }
-}
-function identificarLoja(texto) {
+};
+  // 🔄 Carrega lista de lojas cadastradas no Firestore
+AppCasaRosa.carregarLojasRegistradas = async function() {
+  try {
+    const snap = await getDocs(collection(db, "lojas"));
+    AppCasaRosa.lojasRegistradas = snap.docs.map(doc => doc.id);
+  } catch (e) {
+    alert("Erro ao carregar lojas registradas: " + (e.message || e));
+  }
+};
+AppCasaRosa.identificarLoja = function(texto) {
   const linhas = texto.split('\n');
   const indexRemetente = linhas.findIndex(l => l.trim().toUpperCase() === "REMETENTE");
 
@@ -371,8 +388,7 @@ function identificarLoja(texto) {
   // Fallback manual
   const match = texto.match(/(Casa Rosa Decorações|Collore Na Web|DAC Store)/i);
   return match ? match[1] : "Loja Desconhecida";
-}
-
+};
 
 
 
@@ -381,78 +397,75 @@ function identificarLoja(texto) {
 
 <script>
   // Renderização da tabela de “Novos a Enviar”
-  function renderizarTabelaPendentes(lista) {
+ AppCasaRosa.renderizarTabelaPendentes = function(lista) {
+  const container = document.getElementById("tabelaPendentes");
+  if (!container) return;
 
-    const container = document.getElementById("tabelaPendentes");
-    if (!container) return;
+  let html = `
+    <div style="overflow-x:auto;"><table>
+      <thead>
+        <tr>
+          <th>Pedido</th>
+          <th>Loja</th>
+          <th>Produto</th>
+          <th>Pagamento</th>
+          <th>Rastreio</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
 
-    let html = `
-      <div style="overflow-x:auto;"><table>
-        <thead>
-          <tr>
-            <th>Pedido</th>
-            <th>Loja</th>
-            <th>Produto</th>
-            <th>Pagamento</th>
-            <th>Rastreio</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
-        <tbody>
-    `;
+  lista.forEach(p => {
+    const pedido   = p.Pedido || p.pedidoId || "";
+    const loja     = p.Loja || "";
+    const produto  = p.SKU || "";
+    const pagamento = p.dataPagamento
+      ? new Date(p.dataPagamento).toLocaleString()
+      : "";
+    const rastreio = p.Rastreio || "";
 
-    lista.forEach(p => {
-      const pedido   = p.Pedido || p.pedidoId || "";
-      const loja     = p.Loja || "";
-      const produto  = p.SKU || "";
-      const pagamento = p.dataPagamento
-        ? new Date(p.dataPagamento).toLocaleString()
-        : "";
-      const rastreio = p.Rastreio || "";
-      
-     html += `
-  <tr>
-    <td>${escapeHTML(pedido)}</td>
-    <td>${escapeHTML(loja)}</td>
-    <td>${escapeHTML(produto)}</td>
-    <td>${escapeHTML(pagamento)}</td>
-    <td>${escapeHTML(rastreio)}</td>
-    <td><button class="danger" onclick="cancelarPedido('${escapeHTML(p.id)}')">❌ Cancelar</button></td>
-  </tr>
+    html += `
+<tr>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : escapeHTML(pedido)}</td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pagamento) : escapeHTML(pagamento)}</td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : escapeHTML(rastreio)}</td>
+  <td><button class="danger" onclick="AppCasaRosa.cancelarPedido ? AppCasaRosa.cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}') : cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')">❌ Cancelar</button></td>
+</tr>
 `;
-    });
+  });
 
-    html += "</tbody></table></div>";
-    container.innerHTML = html;
+  html += "</tbody></table></div>";
+  container.innerHTML = html;
 
-    // Remova esta linha se não houver a função:
-    // atualizarTabelas();
-  }
-let metasPorLoja = JSON.parse(localStorage.getItem("metasPorLoja") || "{}");
-
+  // Remova ou adapte a chamada para atualizarTabelas conforme sua necessidade:
+  // if (typeof AppCasaRosa.atualizarTabelas === "function") AppCasaRosa.atualizarTabelas();
+};
 
 
-function renderizarTabelaMetas() {
+
+AppCasaRosa.renderizarTabelaMetas = function() {
   const lojas = [...new Set((AppCasaRosa.enviadosList || []).map(p => p.Loja).filter(Boolean))];
   const tbody = document.querySelector("#tabela-metas tbody");
   tbody.innerHTML = "";
 
   lojas.forEach(loja => {
-    const meta = metasPorLoja[loja] || "";
+    const meta = (window.metasPorLoja && window.metasPorLoja[loja]) || "";
     const linha = document.createElement("tr");
     linha.innerHTML = `
-  <td style="padding:0.5rem;">${escapeHTML(loja)}</td>
-  <td style="padding:0.5rem;">
-    <input type="number" min="0" value="${escapeHTML(meta)}" data-loja="${escapeHTML(loja)}" style="width:100px;" />
-  </td>
-  <td style="padding:0.5rem;">
-    <button onclick="AppCasaRosa.removerMeta('${escapeHTML(loja)}')">❌ Remover</button>
-  </td>
-`;
+      <td style="padding:0.5rem;">${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>
+      <td style="padding:0.5rem;">
+        <input type="number" min="0" value="${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(meta) : escapeHTML(meta)}" data-loja="${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}" style="width:100px;" />
+      </td>
+      <td style="padding:0.5rem;">
+        <button onclick="AppCasaRosa.removerMeta('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}')">❌ Remover</button>
+      </td>
+    `;
     tbody.appendChild(linha);
   });
-}
-
+};
 function salvarMetas() {
   const inputs = document.querySelectorAll("#tabela-metas input[data-loja]");
   inputs.forEach(input => {
@@ -466,18 +479,22 @@ function salvarMetas() {
   alert("🎯 Metas salvas com sucesso!");
 }
 
-function removerMeta(loja) {
+AppCasaRosa.removerMeta = function(loja) {
   delete metasPorLoja[loja];
   localStorage.setItem("metasPorLoja", JSON.stringify(metasPorLoja));
-  renderizarTabelaMetas();
-}
+  if (typeof AppCasaRosa.renderizarTabelaMetas === "function") {
+    AppCasaRosa.renderizarTabelaMetas();
+  } else if (typeof renderizarTabelaMetas === "function") {
+    renderizarTabelaMetas();
+  }
+};
 
 
 </script>
 
 
 <script>
-  function renderizarTabelaEnviados(lista) {
+ AppCasaRosa.renderizarTabelaEnviados = function(lista) {
   const container = document.getElementById("tabela-enviados");
   if (!container) return;
 
@@ -507,55 +524,72 @@ function removerMeta(loja) {
 
     html += `
   <tr>
-    <td>${escapeHTML(pedido)}</td>
-    <td>${escapeHTML(loja)}</td>
-    <td>${escapeHTML(produto)}</td>
-    <td>${escapeHTML(rastreio)}</td>
-    <td>${escapeHTML(pag)}</td>
-    <td>${escapeHTML(envio)}</td>
-    <td><button class="danger" onclick="cancelarPedido('${escapeHTML(p.id)}')">❌ Cancelar</button></td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : escapeHTML(pedido)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : escapeHTML(rastreio)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pag) : escapeHTML(pag)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(envio) : escapeHTML(envio)}</td>
+    <td>
+      <button class="danger" onclick="AppCasaRosa.cancelarPedido ? AppCasaRosa.cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}') : cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')">❌ Cancelar</button>
+    </td>
   </tr>
 `;
   });
 
   html += `</tbody></table></div>`;
   container.innerHTML = html;
-}
+};
 
 
   // Renderização da tabela de “Cancelados”
-  function renderizarTabelaCancelados(lista) {
-    const tbody = document.querySelector("#tabela-cancelados tbody");
-    tbody.innerHTML = "";
-    lista.forEach(p => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-  <td>${escapeHTML(p.Loja || "")}</td>
-  <td>${escapeHTML(p.motivo || "")}</td>
-`;
-      tbody.appendChild(tr);
-    });
-  }
+ AppCasaRosa.renderizarTabelaCancelados = function(lista) {
+  const tbody = document.querySelector("#tabela-cancelados tbody");
+  tbody.innerHTML = "";
+  lista.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Loja || "") : escapeHTML(p.Loja || "")}</td>
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.motivo || "") : escapeHTML(p.motivo || "")}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+};
 
-  // Marca um pedido como “enviado” no Firestore
-  AppCasaRosa.marcarEnviado = id => {
+// Marca um pedido como “enviado” no Firestore
+AppCasaRosa.marcarEnviado = function(id) {
+  if (typeof AppCasaRosa.atualizarPedido === "function") {
+    AppCasaRosa.atualizarPedido(id, {
+      status: "enviado",
+      dataEnvio: new Date().toISOString()
+    });
+  } else if (typeof atualizarPedido === "function") {
     atualizarPedido(id, {
       status: "enviado",
       dataEnvio: new Date().toISOString()
     });
-  };
+  }
+};
 
-  // Cancela um pedido: atualiza status e registra em coleção “pedidos_cancelados”
-  AppCasaRosa.cancelarPedido = async id => {
+// Cancela um pedido: atualiza status e registra em coleção “pedidos_cancelados”
+AppCasaRosa.cancelarPedido = async function(id) {
   try {
     const motivo = prompt("Digite o motivo do cancelamento:");
     if (!motivo) return;
     // 1) Atualiza o próprio pedido
-    await atualizarPedido(id, {
-      status: "cancelado",
-      motivo,
-      dataCancelamento: new Date().toISOString()
-    });
+    if (typeof AppCasaRosa.atualizarPedido === "function") {
+      await AppCasaRosa.atualizarPedido(id, {
+        status: "cancelado",
+        motivo,
+        dataCancelamento: new Date().toISOString()
+      });
+    } else if (typeof atualizarPedido === "function") {
+      await atualizarPedido(id, {
+        status: "cancelado",
+        motivo,
+        dataCancelamento: new Date().toISOString()
+      });
+    }
     // 2) Registra em coleção específica de cancelados
     await addDoc(
       collection(db, "pedidos_cancelados"),
@@ -994,12 +1028,12 @@ body.dark-mode button {
 <select id="filtroLoja"></select>
 
   <div style="flex-basis: 100%;">
-    <button onclick="AppCasaRosa.document.getElementById('filtroMultiloja').selectedIndex = -1;
-                     document.getElementById('filtroMultiproduto').selectedIndex = -1;
-                     atualizarDashboardPendentes();"
-            style="background:#6c757d;color:white;padding:0.4rem 1rem;border:none;border-radius:6px;cursor:pointer;">
-      🔄 Limpar Filtros
-    </button>
+    <button onclick="
+    document.getElementById('filtroMultiloja').selectedIndex = -1;
+    document.getElementById('filtroMultiproduto').selectedIndex = -1;
+    AppCasaRosa.atualizarDashboardPendentes();">
+    🔄 Limpar Filtros
+</button>
   </div>
 </div>
 <hr style="border: none; height: 1px; background: #dee2e6; margin: 1.5rem 0;">
@@ -3172,7 +3206,8 @@ async function apagarTudo() {
   alert("✅ Todos os dados foram apagados!");
   location.reload(); // Atualiza a página para limpar os dados carregados
 }
-function atualizarDashboardPendentes() {
+// Encapsule a função dentro do namespace
+AppCasaRosa.atualizarDashboardPendentes = function() {
   const pendentes = AppCasaRosa.importadosList || [];
   const enviados  = AppCasaRosa.enviadosList   || [];
   const hoje = new Date();
@@ -3204,7 +3239,10 @@ function atualizarDashboardPendentes() {
     const dataPag = new Date(p.dataPagamento);
     if (isNaN(dataPag)) return false;
 
-    const uteis = calcularDiasUteis(dataPag, hoje);
+    // Encapsule também calcularDiasUteis se for sua!
+    const uteis = AppCasaRosa.calcularDiasUteis
+      ? AppCasaRosa.calcularDiasUteis(dataPag, hoje)
+      : calcularDiasUteis(dataPag, hoje); // fallback para global se necessário
 
     total++;
     if (uteis >= 2) atraso++;
@@ -3234,18 +3272,27 @@ function atualizarDashboardPendentes() {
   document.getElementById("resumo-enviados-hoje").textContent = enviadosHoje;
 
   // Atualiza a tabela
-  renderTabela("tabelaPendentes", pendentesFiltrados);
-}
-// Preenche o filtro múltiplo ao abrir a aba
-document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]").addEventListener("click", () => {
+  if (AppCasaRosa.renderTabela) {
+    AppCasaRosa.renderTabela("tabelaPendentes", pendentesFiltrados);
+  } else {
+    renderTabela("tabelaPendentes", pendentesFiltrados); // fallback se não encapsulou renderTabela ainda
+  }
+};
+
+// Também encapsule o event listener (opcional, mas recomendado):
+AppCasaRosa.inicializarFiltroMultiloja = function() {
   const pendentes = AppCasaRosa.importadosList || [];
   const lojas = [...new Set(pendentes.map(p => p.Loja).filter(Boolean))].sort();
 
   const select = document.getElementById("filtroMultiloja");
   select.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
 
-  atualizarDashboardPendentes();
-});
+  AppCasaRosa.atualizarDashboardPendentes();
+};
+
+// Registre o evento usando o namespace
+document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]")
+  .addEventListener("click", AppCasaRosa.inicializarFiltroMultiloja);
 
 </script>
 <!-- Select2 (estilo moderno para múltiplos selects) -->
@@ -3322,7 +3369,7 @@ $(document).ready(function () {
 });
 let graficoVendasPorDia; // manter referência global
 
-function renderizarGraficoVendasPorDia() {
+AppCasaRosa.renderizarGraficoVendasPorDia = function() {
   const enviados = AppCasaRosa.enviadosList || [];
   const dataSelecionada = document.getElementById("filtroDataDashboard")?.value;
   const considerarMesInteiro = document.getElementById("filtroMesInteiroDashboard")?.checked;
@@ -3351,9 +3398,9 @@ function renderizarGraficoVendasPorDia() {
 
   const ctx = document.getElementById("graficoVendasPorDia").getContext("2d");
 
-  if (graficoVendasPorDia) graficoVendasPorDia.destroy();
+  if (AppCasaRosa.graficoVendasPorDia) AppCasaRosa.graficoVendasPorDia.destroy();
 
-  graficoVendasPorDia = new Chart(ctx, {
+  AppCasaRosa.graficoVendasPorDia = new Chart(ctx, {
     type: "line",
     data: {
       labels,
@@ -3382,10 +3429,12 @@ function renderizarGraficoVendasPorDia() {
       }
     }
   });
-}
-let graficoTopProdutos;
+};
 
-function renderizarGraficoTopComparativo() {
+// Exemplo para o outro gráfico, caso queira encapsular também:
+AppCasaRosa.graficoTopProdutos = null;
+
+AppCasaRosa.renderizarGraficoTopComparativo = function() {
   const enviados = AppCasaRosa.enviadosList || [];
   const tipo = document.getElementById("tipoComparativo")?.value || "produtos";
   const dataSelecionada = document.getElementById("filtroDataDashboard")?.value;
@@ -3418,9 +3467,9 @@ function renderizarGraficoTopComparativo() {
 
   const ctx = document.getElementById("graficoTopProdutos").getContext("2d");
 
-  if (graficoTopProdutos) graficoTopProdutos.destroy();
+  if (AppCasaRosa.graficoTopProdutos) AppCasaRosa.graficoTopProdutos.destroy();
 
-  graficoTopProdutos = new Chart(ctx, {
+  AppCasaRosa.graficoTopProdutos = new Chart(ctx, {
     type: "bar",
     data: {
       labels,
@@ -3449,10 +3498,13 @@ function renderizarGraficoTopComparativo() {
       }
     }
   });
-}
-let graficoTempoEnvio;
+};
 
-function renderizarGraficoTempoEnvio() {
+// Também encapsule as variáveis de gráfico global, se necessário:
+AppCasaRosa.graficoTopProdutos = null;
+AppCasaRosa.graficoTempoEnvio = null;
+
+AppCasaRosa.renderizarGraficoTempoEnvio = function() {
   const enviados = AppCasaRosa.enviadosList || [];
   const dataSelecionada = document.getElementById("filtroDataDashboard")?.value;
   const considerarMesInteiro = document.getElementById("filtroMesInteiroDashboard")?.checked;
@@ -3475,9 +3527,12 @@ function renderizarGraficoTempoEnvio() {
     const loja = p.Loja || "Loja desconhecida";
     if (lojaSelecionada && loja !== lojaSelecionada) return;
 
-    const dias = calcularDiasUteis(dataPag, dataEnvio);
-    if (!tempos[loja]) tempos[loja] = [];
+    // Use encapsulado, se já estiver em AppCasaRosa
+    const dias = AppCasaRosa.calcularDiasUteis 
+      ? AppCasaRosa.calcularDiasUteis(dataPag, dataEnvio)
+      : calcularDiasUteis(dataPag, dataEnvio);
 
+    if (!tempos[loja]) tempos[loja] = [];
     tempos[loja].push(dias);
   });
 
@@ -3491,9 +3546,9 @@ function renderizarGraficoTempoEnvio() {
 
   const ctx = document.getElementById("graficoTempoEnvio").getContext("2d");
 
-  if (graficoTempoEnvio) graficoTempoEnvio.destroy();
+  if (AppCasaRosa.graficoTempoEnvio) AppCasaRosa.graficoTempoEnvio.destroy();
 
-  graficoTempoEnvio = new Chart(ctx, {
+  AppCasaRosa.graficoTempoEnvio = new Chart(ctx, {
     type: "bar",
     data: {
       labels,
@@ -3523,8 +3578,12 @@ function renderizarGraficoTempoEnvio() {
       }
     }
   });
-}
-function alternarTema() {
+};
+
+// Inicialize a referência do gráfico no namespace, se ainda não existir:
+AppCasaRosa.graficoTempoEnvio = null;
+// Encapsule a função no namespace
+AppCasaRosa.alternarTema = function() {
   const body = document.body;
   const botao = document.getElementById("btnTema");
 
@@ -3537,9 +3596,9 @@ function alternarTema() {
     botao.textContent = "🌙 Modo Escuro";
     localStorage.setItem("tema", "claro");
   }
-}
+};
 
-// Ao carregar, aplica o tema salvo
+// Ao carregar, aplica o tema salvo (pode ser colocado fora ou dentro do namespace)
 document.addEventListener("DOMContentLoaded", () => {
   const temaSalvo = localStorage.getItem("tema");
   const body = document.body;
@@ -3550,7 +3609,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (botao) botao.textContent = "🌞 Modo Claro";
   }
 });
-function gerarRelatorioDetalhado() {
+AppCasaRosa.gerarRelatorioDetalhado = function() {
   const enviados = AppCasaRosa.enviadosList || [];
   const dataSelecionada = document.getElementById("filtroDataDashboard")?.value;
   const considerarMesInteiro = document.getElementById("filtroMesInteiroDashboard")?.checked;
@@ -3606,9 +3665,8 @@ function gerarRelatorioDetalhado() {
 
   html += `</tbody></table></div>`;
   container.innerHTML = html;
-}
-
-async function adicionarMetaManual(event) {
+};
+AppCasaRosa.adicionarMetaManual = async function(event) {
   event.preventDefault();
   const lojasSelecionadas = Array.from(document.getElementById('inputLojasMeta').selectedOptions).map(opt => opt.value);
   const produto = document.getElementById('inputProdutoMeta').value.trim();
@@ -3631,10 +3689,10 @@ async function adicionarMetaManual(event) {
   alert("✅ Meta adicionada com sucesso!");
   document.getElementById('inputProdutoMeta').value = "";
   document.getElementById('inputValorMeta').value = "";
-  renderizarMetasManuais();
-}
+  AppCasaRosa.renderizarMetasManuais();
+};
 
-async function renderizarMetasManuais() {
+AppCasaRosa.renderizarMetasManuais = async function() {
   const container = document.getElementById("containerMetasCards");
   container.innerHTML = "<p style='color:#888;'>Carregando metas...</p>";
 
@@ -3739,26 +3797,26 @@ async function renderizarMetasManuais() {
     container.innerHTML = "<p style='color:red;'>Erro ao carregar metas.</p>";
     console.error(e);
   }
-}
-async function removerMetaManual(id) {
+};
+AppCasaRosa.removerMetaManual = async function(id) {
   if (!confirm("Deseja remover esta meta?")) return;
   await deleteDoc(doc(db, "metas_mensais", id));
-  renderizarMetasManuais();
-}
+  AppCasaRosa.renderizarMetasManuais();
+};
 
-function preencherLojasInputMeta() {
+AppCasaRosa.preencherLojasInputMeta = function() {
   const lojas = [...new Set((AppCasaRosa.enviadosList || []).map(p => p.Loja).filter(Boolean))].sort();
   const select = document.getElementById("inputLojasMeta");
   select.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
-}
-  function preencherFiltroLojaMetas() {
+};
+ AppCasaRosa.preencherFiltroLojaMetas = function() {
   const lojas = [...new Set((AppCasaRosa.enviadosList || []).map(p => p.Loja).filter(Boolean))].sort();
   const select = document.getElementById("filtroLojaMetas");
   if (!select) return;
   select.innerHTML = '<option value="">Todas</option>' + lojas.map(l => `<option value="${l}">${l}</option>`).join('');
-}
+};
 
-function atualizarRelatorioMetas() {
+AppCasaRosa.atualizarRelatorioMetas = function() {
   const enviados = AppCasaRosa.enviadosList || [];
   const dataSel = document.getElementById('filtroDataMetas')?.value;
   const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
@@ -3795,27 +3853,27 @@ function atualizarRelatorioMetas() {
   html += '<thead><tr><th>Loja</th><th>Produto</th><th>Quantidade</th><th>Valor Esperado</th></tr></thead><tbody>';
   Object.entries(resumo).forEach(([loja, produtos]) => {
     Object.entries(produtos).forEach(([produto, qtd]) => {
-       const sobra = AppCasaRosa.produtosMap && AppCasaRosa.produtosMap[produto] ? parseFloat(AppCasaRosa.produtosMap[produto].sobraIdeal) : 0;
+      const sobra = AppCasaRosa.produtosMap && AppCasaRosa.produtosMap[produto] ? parseFloat(AppCasaRosa.produtosMap[produto].sobraIdeal) : 0;
       const valorEsperado = sobra * qtd;
-const valorFormatado = valorEsperado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+      const valorFormatado = valorEsperado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
       html += `<tr><td>${loja}</td><td>${produto}</td><td style="text-align:right;">${qtd}</td><td style="text-align:right;">${valorFormatado}</td></tr>`;
     });
   });
   html += '</tbody></table></div>';
   container.innerHTML = html;
-}
-function calcularProjecaoMeta(valorMeta, vendidos, diasDoMes, hoje) {
+};
+AppCasaRosa.calcularProjecaoMeta = function(valorMeta, vendidos, diasDoMes, hoje) {
   const mediaDiaria = vendidos / hoje;
   const estimadoFinal = Math.round(mediaDiaria * diasDoMes);
   return estimadoFinal;
-}
+};
 
-function calcularAtrasoMeta(metaDiaria, vendidos, diaHoje) {
+AppCasaRosa.calcularAtrasoMeta = function(metaDiaria, vendidos, diaHoje) {
   const idealHoje = metaDiaria * diaHoje;
   const atraso = idealHoje - vendidos;
   return atraso > 0 ? atraso : 0;
-}
-async function atualizarCardsMetas() {
+};
+AppCasaRosa.atualizarCardsMetas = async function() {
   const container = document.getElementById("container-cards-metas");
   container.innerHTML = "<div>Carregando...</div>";
 
@@ -3834,7 +3892,7 @@ async function atualizarCardsMetas() {
     if (isNaN(dt)) return;
     const mes = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
     const loja = p.Loja || p.loja || "";
-    const sku = obterSkuPrincipal(p.SKU || "Desconhecido");
+    const sku = AppCasaRosa.obterSkuPrincipal ? AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido") : (p.SKU || "Desconhecido");
     const chave = `${mes}__${loja}__${sku}`;
     progresso[chave] = (progresso[chave] || 0) + 1;
   });
@@ -3896,13 +3954,11 @@ async function atualizarCardsMetas() {
         <button onclick="AppCasaRosa.editarMeta('${meta.id}', ${meta.valor})" style="margin-right: 0.5rem;">✏️ Editar</button>
         <button onclick="AppCasaRosa.excluirMeta('${meta.id}')">🗑️ Excluir</button>
       </div>
-</div>
     `;
 
     container.appendChild(card);
   });
-}
-
+};
 
 // Atualiza automaticamente
 setTimeout(atualizarCardsMetas, 1000);
@@ -3933,7 +3989,7 @@ AppCasaRosa.salvarSkuEquivalente = async function (event) {
   carregarSkusEquivalentes(); // Recarrega e sincroniza
 };
 
-function listarSkusEquivalentes() {
+AppCasaRosa.listarSkusEquivalentes = function() {
   const tbody = document.querySelector("#tabelaSkus tbody");
   tbody.innerHTML = "";
 
@@ -3947,8 +4003,8 @@ function listarSkusEquivalentes() {
     `;
     tbody.appendChild(tr);
   });
-}
-async function excluirSkuEquivalente(base) {
+};
+AppCasaRosa.excluirSkuEquivalente = async function(base) {
   try {
     const snap = await getDocs(collection(db, "skus_equivalentes"));
     snap.forEach(docItem => {
@@ -3957,30 +4013,44 @@ async function excluirSkuEquivalente(base) {
       }
     });
 
-    await registrarLog("Excluiu agrupamento de SKU", { skuBase: base });
+    await AppCasaRosa.registrarLog
+      ? AppCasaRosa.registrarLog("Excluiu agrupamento de SKU", { skuBase: base })
+      : registrarLog("Excluiu agrupamento de SKU", { skuBase: base });
 
-    await carregarSkusEquivalentes(); // Recarrega os dados sincronizados
+    if (AppCasaRosa.carregarSkusEquivalentes) {
+      await AppCasaRosa.carregarSkusEquivalentes(); // Recarrega os dados sincronizados
+    } else {
+      await carregarSkusEquivalentes();
+    }
   } catch (e) {
     console.error("Erro ao excluir SKU:", e);
     alert("Erro ao excluir agrupamento.");
   }
-}
+};
 
-async function excluirMeta(id) {
+AppCasaRosa.excluirMeta = async function(id) {
   if (!confirm("Deseja realmente excluir esta meta?")) return;
 
   try {
     await deleteDoc(doc(db, "metas_mensais", id));
-await registrarLog("Excluiu Meta", { metaId: id });
+    if (AppCasaRosa.registrarLog) {
+      await AppCasaRosa.registrarLog("Excluiu Meta", { metaId: id });
+    } else {
+      await registrarLog("Excluiu Meta", { metaId: id });
+    }
 
     alert("Meta excluída com sucesso.");
-    atualizarCardsMetas();
+    if (AppCasaRosa.atualizarCardsMetas) {
+      AppCasaRosa.atualizarCardsMetas();
+    } else {
+      atualizarCardsMetas();
+    }
   } catch (e) {
     console.error("Erro ao excluir meta:", e);
     alert("Erro ao excluir meta.");
   }
-}
-async function editarMeta(id, valorAtual) {
+};
+AppCasaRosa.editarMeta = async function(id, valorAtual) {
   const novoValorStr = prompt("Novo valor da meta:", valorAtual);
   if (novoValorStr === null) return;
 
@@ -3992,18 +4062,33 @@ async function editarMeta(id, valorAtual) {
 
   try {
     await updateDoc(doc(db, "metas_mensais", id), { valor: novoValor });
-    await registrarLog("Editou Meta", { metaId: id, valor: novoValor });
-    renderizarMetasManuais();
-    atualizarCardsMetas();
+    if (AppCasaRosa.registrarLog) {
+      await AppCasaRosa.registrarLog("Editou Meta", { metaId: id, valor: novoValor });
+    } else {
+      await registrarLog("Editou Meta", { metaId: id, valor: novoValor });
+    }
+
+    if (AppCasaRosa.renderizarMetasManuais) {
+      AppCasaRosa.renderizarMetasManuais();
+    } else {
+      renderizarMetasManuais();
+    }
+
+    if (AppCasaRosa.atualizarCardsMetas) {
+      AppCasaRosa.atualizarCardsMetas();
+    } else {
+      atualizarCardsMetas();
+    }
+
     alert("Meta atualizada com sucesso.");
   } catch (e) {
     console.error("Erro ao editar meta:", e);
     alert("Erro ao editar meta.");
   }
-}
+};
 
 
-async function registrarLog(acao, detalhes = {}) {
+AppCasaRosa.registrarLog = async function(acao, detalhes = {}) {
   const user = auth.currentUser;
   if (!user) return;
 
@@ -4020,8 +4105,8 @@ async function registrarLog(acao, detalhes = {}) {
   } catch (e) {
     console.error("Erro ao registrar log:", e);
   }
-}
-async function carregarLogs() {
+};
+AppCasaRosa.carregarLogs = async function() {
   const snap = await getDocs(query(collection(db, "logs"), orderBy("timestamp", "desc")));
   const logs = snap.docs.map(doc => doc.data());
 
@@ -4033,19 +4118,21 @@ async function carregarLogs() {
       <pre style="background:#f8f8f8;padding:0.5rem;border-radius:5px;">${JSON.stringify(log.detalhes, null, 2)}</pre>
     </div>
   `).join("");
-}
-// 🔁 Carrega os SKUs equivalentes do Firebase e salva globalmente
-AppCasaRosa.skusEquivalentes = {};
+};
 
-async function carregarSkusEquivalentes() {
+AppCasaRosa.carregarSkusEquivalentes = async function() {
   const snap = await getDocs(collection(db, "skus_equivalentes"));
   AppCasaRosa.skusEquivalentes = {};
   snap.forEach(doc => {
     const data = doc.data();
     AppCasaRosa.skusEquivalentes[data.base] = data.equivalentes;
   });
-  renderizarTabelaSkus(); // Atualiza tabela na tela
-}
+  if (typeof AppCasaRosa.renderizarTabelaSkus === "function") {
+    AppCasaRosa.renderizarTabelaSkus(); // Atualiza tabela na tela
+  } else if (typeof renderizarTabelaSkus === "function") {
+    renderizarTabelaSkus();
+  }
+};
 
 // ➕ Salva novo agrupamento
 AppCasaRosa.salvarSkuEquivalente = async function (event) {
@@ -4070,7 +4157,7 @@ AppCasaRosa.excluirSkuEquivalente = async function (base) {
 };
 
 // 📋 Renderiza na tabela
-function renderizarTabelaSkus() {
+AppCasaRosa.renderizarTabelaSkus = function() {
   const tabela = document.querySelector("#tabelaSkus tbody");
   tabela.innerHTML = "";
 
@@ -4086,52 +4173,68 @@ function renderizarTabelaSkus() {
     `;
     tabela.appendChild(linha);
   });
-}
-  async function carregarProdutos() {
-    const snap = await getDocs(collection(db, "produtos"));
-    const tbody = document.querySelector("#tabelaProdutos tbody");
-   AppCasaRosa.produtosMap = {};
-    if (tbody) tbody.innerHTML = "";
-    snap.forEach(docItem => {
-      const data = docItem.data();
-      AppCasaRosa.produtosMap[data.nome] = data;
-      if (tbody) {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${data.nome}</td>
-          <td>${data.sobraIdeal}</td>
-          <td>${data.valor ?? ''}</td>
-          <td><button onclick="AppCasaRosa.excluirProduto('${docItem.id}')">🗑️</button></td>
-        `;
-        tbody.appendChild(tr);
-      }
-    });
-  }
+};
+  AppCasaRosa.carregarProdutos = async function() {
+  const snap = await getDocs(collection(db, "produtos"));
+  const tbody = document.querySelector("#tabelaProdutos tbody");
+  AppCasaRosa.produtosMap = {};
+  if (tbody) tbody.innerHTML = "";
+  snap.forEach(docItem => {
+    const data = docItem.data();
+    AppCasaRosa.produtosMap[data.nome] = data;
+    if (tbody) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${data.nome}</td>
+        <td>${data.sobraIdeal}</td>
+        <td>${data.valor ?? ''}</td>
+        <td><button onclick="AppCasaRosa.excluirProduto('${docItem.id}')">🗑️</button></td>
+      `;
+      tbody.appendChild(tr);
+    }
+  });
+};
   AppCasaRosa.carregarProdutos = carregarProdutos;
 
 
-async function salvarProduto(event) {
+AppCasaRosa.salvarProduto = async function(event) {
   event.preventDefault();
   const nome = document.getElementById("nomeProduto").value.trim();
   const sobra = parseInt(document.getElementById("sobraIdeal").value);
   const valor = parseFloat(document.getElementById("valorProduto").value);
   if (!nome || isNaN(sobra) || isNaN(valor)) return;
   await addDoc(collection(db, "produtos"), { nome, sobraIdeal: sobra, valor });
-  await registrarLog("Adicionou Produto", { nome, valor });
+  if (AppCasaRosa.registrarLog) {
+    await AppCasaRosa.registrarLog("Adicionou Produto", { nome, valor });
+  } else {
+    await registrarLog("Adicionou Produto", { nome, valor });
+  }
   document.getElementById("formProduto").reset();
-  carregarProdutos();
-}
+  if (AppCasaRosa.carregarProdutos) {
+    AppCasaRosa.carregarProdutos();
+  } else {
+    carregarProdutos();
+  }
+};
 AppCasaRosa.salvarProduto = salvarProduto;
 
-async function excluirProduto(id) {
+AppCasaRosa.excluirProduto = async function(id) {
   if (!confirm("Excluir produto?")) return;
   await deleteDoc(doc(db, "produtos", id));
-  await registrarLog("Excluiu Produto", { id });
-  carregarProdutos();
-}
+  if (AppCasaRosa.registrarLog) {
+    await AppCasaRosa.registrarLog("Excluiu Produto", { id });
+  } else {
+    await registrarLog("Excluiu Produto", { id });
+  }
+  if (AppCasaRosa.carregarProdutos) {
+    AppCasaRosa.carregarProdutos();
+  } else {
+    carregarProdutos();
+  }
+};
 AppCasaRosa.excluirProduto = excluirProduto;
 
-function obterSkuPrincipal(sku) {
+AppCasaRosa.obterSkuPrincipal = function(sku) {
   const equivalentes = AppCasaRosa.skusEquivalentes || {};
   for (const base in equivalentes) {
     const aliases = equivalentes[base];
@@ -4140,7 +4243,7 @@ function obterSkuPrincipal(sku) {
     }
   }
   return sku;
-}
+};
 
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
