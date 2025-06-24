@@ -47,7 +47,7 @@ import {
     apiKey: "AIzaSyDanvDxs2RDaMNc7zARyyyUt0rLqes95H0",
     authDomain: "painelpedidos-v2.firebaseapp.com",
     projectId: "painelpedidos-v2",
-    storageBucket: "painelpedidos-v2.firebasestorage.app",
+    storageBucket: "painelpedidos-v2.appspot.com",
     messagingSenderId: "135497440608",
     appId: "1:135497440608:web:093e8fc4264257d5065205"
   };
@@ -97,18 +97,19 @@ window.AppCasaRosa.fazerLogin = function () {
     });
 };
 
-onAuthStateChanged(auth, (user) => {
+document.addEventListener('DOMContentLoaded', () => {
+  onAuthStateChanged(auth, (user) => {
     if (user) {
       document.getElementById("login").style.display = "none";
       document.getElementById("sistema").style.display = "block";
-      window.AppCasaRosa.carregarSkusEquivalentes && window.AppCasaRosa.carregarSkusEquivalentes();
-      window.AppCasaRosa.carregarLojasRegistradas && window.AppCasaRosa.carregarLojasRegistradas();
+AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
+AppCasaRosa.carregarLojasRegistradas && AppCasaRosa.carregarLojasRegistradas();
     } else {
       document.getElementById("login").style.display = "flex";
       document.getElementById("sistema").style.display = "none";
     }
   });
-
+});
 AppCasaRosa.deslogarUsuario = function () {
   signOut(auth).then(() => location.reload());
 };
