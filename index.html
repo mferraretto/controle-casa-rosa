@@ -16,9 +16,11 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Objeto global usado por scripts subsequentes -->
+  <script>window.AppCasaRosa = window.AppCasaRosa || {};</script>
 
  <!-- Firebase App (core) + Firestore (modular v9+) -->
-<!-- Firebase App (core) + Firestore (modular v9+) -->
+ <!-- Firebase App (core) + Firestore (modular v9+) -->
 <script type="module">
 const AppCasaRosa = (window.AppCasaRosa = window.AppCasaRosa || {});
   import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
@@ -166,51 +168,6 @@ onSnapshot(collection(db, "pedidos_enviados"), (snapshot) => {
   AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
   atualizarTabelasEViewsEnviados();
 });
-
-// Função para atualizar todas as views relacionadas a "enviados"
-window.AppCasaRosa.atualizarTabelasEViewsEnviados = function() {
-  if (typeof AppCasaRosa.renderizarTabelaEnviados === "function") {
-    AppCasaRosa.renderizarTabelaEnviados(AppCasaRosa.enviadosList);
-  }
-  if (typeof AppCasaRosa.renderizarTabelaMetas === "function") {
-    AppCasaRosa.renderizarTabelaMetas();
-  }
-  if (typeof preencherFiltroLojaDashboard === "function") preencherFiltroLojaDashboard();
-  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
-  // Não chame deduplicação nem carregarPendentesFirebase aqui!
-}
-
-// Listener "Pedidos Pendentes"
-const pedidosRef = collection(db, "pedidos_pendentes");
-const pedidosQuery = query(pedidosRef, orderBy("dataPagamento"));
-onSnapshot(pedidosQuery, snapshot => {
-  AppCasaRosa.importadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  if (typeof aplicarFiltroPedidos === "function") aplicarFiltroPedidos();
-  if (typeof preencherFiltroLojaDashboard === "function") preencherFiltroLojaDashboard();
-  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
-});
-
-// Listener "Pedidos Cancelados"
-const canceladosRef = collection(db, "pedidos_cancelados");
-onSnapshot(canceladosRef, snap => {
-  AppCasaRosa.canceladosList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  if (typeof renderizarTabelaCancelados === "function") renderizarTabelaCancelados(AppCasaRosa.canceladosList);
-  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
-});
-
-// Listener "PDFs de Etiquetas"
-const pdfsRef = collection(db, "pdf_etiquetas");
-onSnapshot(pdfsRef, snap => {
-  AppCasaRosa.pdfsList = snap.docs.map(d => {
-    const data = d.data();
-    return { id: d.id, nome: data.nome, conteudo: data.base64, ...data };
-  });
-  if (typeof atualizarListaPDFs === "function") atualizarListaPDFs();
-  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
-});
-// ... suas variáveis globais e AppCasaRosa = { ... }
-
-// Função para atualizar todas as views relacionadas a "enviados"
 
 // Função de escape HTML
 AppCasaRosa.escapeHTML = function(str) {
