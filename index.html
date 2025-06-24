@@ -1559,14 +1559,16 @@ async function cancelarPedido(pedidoId) {
     alert("Erro ao cancelar o pedido.");
   }
 }
-function atualizarDashboardPorDataLoja() {
-  const enviados = AppCasaRosa.enviadosList || [];
-  const pendentes = AppCasaRosa.importadosList || [];
+window.AppCasaRosa = window.AppCasaRosa || {};
+
+window.AppCasaRosa.atualizarDashboardPorDataLoja = function() {
+  const enviados = window.AppCasaRosa.enviadosList || [];
+  const pendentes = window.AppCasaRosa.importadosList || [];
 
   const dataSelecionadaStr = document.getElementById("filtroDataDashboard").value;
   const considerarMes = document.getElementById("filtroMesInteiroDashboard").checked;
   const lojaSelecionada = document.getElementById("filtroLojaDashboard").value;
- const mesSelecionadoStr = document.getElementById("filtroMesDashboard")?.value;
+  const mesSelecionadoStr = document.getElementById("filtroMesDashboard")?.value;
   const [anoDash, mesDash] = mesSelecionadoStr ? mesSelecionadoStr.split("-").map(Number) : [];
   const dataSelecionada = dataSelecionadaStr ? new Date(dataSelecionadaStr) : null;
   const ano = dataSelecionada ? dataSelecionada.getFullYear() : null;
@@ -1575,7 +1577,7 @@ function atualizarDashboardPorDataLoja() {
   let totalEnviar = 0, totalEnviados = 0, totalAtrasados = 0, totalRisco = 0, enviadosComAtraso = 0;
 
   // 👉 Cálculo para pendentes
- pendentes.forEach(e => {
+  pendentes.forEach(e => {
     const loja = (e.Loja || "").trim();
     const pagStr = e.dataPagamento?.split("T")[0];
     if (!pagStr) return;
@@ -1636,105 +1638,98 @@ function atualizarDashboardPorDataLoja() {
   document.getElementById("valor-enviados-atraso-dashboard").textContent = enviadosComAtraso;
 
   const percentual = totalEnviados > 0
-  ? ((enviadosComAtraso / totalEnviados) * 100).toFixed(1) + "%"
-  : "0%";
+    ? ((enviadosComAtraso / totalEnviados) * 100).toFixed(1) + "%"
+    : "0%";
 
-document.getElementById("percentual-atrasados").textContent = percentual;
-atualizarResumoPedidosAEviar();
-  atualizarResumoVendasMensal();
-  gerarResumoVendasPorProduto();
-preencherFiltroProdutosDashboard();
-renderizarGraficoVendasPorDia();
-renderizarGraficoTopComparativo();
-renderizarGraficoTempoEnvio();
-gerarRelatorioDetalhado();
-}
+  document.getElementById("percentual-atrasados").textContent = percentual;
 
+  // Chame as outras funções (elas também precisam estar no global se forem usadas em eventos)
+  if (typeof window.AppCasaRosa.atualizarResumoPedidosAEviar === "function") window.AppCasaRosa.atualizarResumoPedidosAEviar();
+  if (typeof window.AppCasaRosa.atualizarResumoVendasMensal === "function") window.AppCasaRosa.atualizarResumoVendasMensal();
+  if (typeof window.AppCasaRosa.gerarResumoVendasPorProduto === "function") window.AppCasaRosa.gerarResumoVendasPorProduto();
+  if (typeof window.AppCasaRosa.preencherFiltroProdutosDashboard === "function") window.AppCasaRosa.preencherFiltroProdutosDashboard();
+  if (typeof window.AppCasaRosa.renderizarGraficoVendasPorDia === "function") window.AppCasaRosa.renderizarGraficoVendasPorDia();
+  if (typeof window.AppCasaRosa.renderizarGraficoTopComparativo === "function") window.AppCasaRosa.renderizarGraficoTopComparativo();
+  if (typeof window.AppCasaRosa.renderizarGraficoTempoEnvio === "function") window.AppCasaRosa.renderizarGraficoTempoEnvio();
+  if (typeof window.AppCasaRosa.gerarRelatorioDetalhado === "function") window.AppCasaRosa.gerarRelatorioDetalhado();
+};
 
-    function atualizarTabelas() {
-  // 1) Dados vindos do Firestore
+function atualizarTabelas() {
   const importar    = AppCasaRosa.importadosList  || [];
   const enviados    = AppCasaRosa.enviadosList    || [];
   const cancelados  = AppCasaRosa.canceladosList  || [];
   const historico   = AppCasaRosa.historicoList   || [...importar, ...enviados];
 
-  // 2) Filtros
   const filtroData    = document.getElementById("filtroData")?.value;
   const lojaFiltro    = document.getElementById("filtroLoja")?.value.toLowerCase()  || "";
   const produtoFiltro = document.getElementById("filtroProduto")?.value.toLowerCase() || "";
 
-  // 3) Identifica pendentes: importados cujo pedido NÃO está em enviados
-const enviadosSet = new Set(
-  enviados.map(p =>
-    normalizarCampo(p, ["pedidoId", "Pedido"])
-      .toString().trim()
-  )
-);
+  const enviadosSet = new Set(
+    enviados.map(p =>
+      normalizarCampo(p, ["pedidoId", "Pedido"])
+        .toString().trim()
+    )
+  );
 
-const pendentes = importar.filter(p =>
-  !enviadosSet.has(
-    normalizarCampo(p, ["Nº de Pedido da Plataforma", ])
-      .toString().trim()
-  )
-);
+  const pendentes = importar.filter(p =>
+    !enviadosSet.has(
+      normalizarCampo(p, ["Nº de Pedido da Plataforma", ])
+        .toString().trim()
+    )
+  );
 
-   
-
-  // 4) Filtra enviados por data e loja
   const enviadosFiltrados = enviados.filter(p => {
-    // Data
     if (filtroData) {
       const dataStr = p.dataEnvio?.split("T")[0];
       if (dataStr !== filtroData) return false;
     }
-    // Loja
     const loja = (p.Loja || "").toLowerCase();
     if (lojaFiltro && loja !== lojaFiltro) return false;
     return true;
   });
 
-  // 5) Filtra pendentes por loja e produto
   const pendentesFiltrados = pendentes.filter(p => {
-    const loja    = normalizarCampo(p, ["Loja", "Nome da Loja no UpSeller"]).toLowerCase();
-const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
+    const loja = normalizarCampo(p, ["Loja", "Nome da Loja no UpSeller"]).toLowerCase();
+    const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
     if (lojaFiltro && loja !== lojaFiltro) return false;
-    if (produtoFiltro && produto !== produtoFiltro) return false;
+    if (produtoFiltro && sku !== produtoFiltro) return false;
     return true;
   });
 
-  // 6) Renderiza tabelas
   renderTabela("tabelaPendentes",  pendentesFiltrados);
   renderTabela("tabelaEnviados",   enviadosFiltrados);
   renderTabela("tabelaHistorico",  historico);
   renderTabela("tabelaCancelados", cancelados);
 
-  // 7) Atualiza resumos e gráficos
-  atualizarResumoCancelados();
-  gerarGraficoCancelados();
-  atualizarDashboardPorDataLoja();
-  atualizarResumoVendasMensal();
-  gerarResumoVendasPorProduto();
-preencherFiltroProdutosDashboard();
-renderizarGraficoVendasPorDia();
-renderizarGraficoTopComparativo();
-renderizarGraficoTempoEnvio();
-gerarRelatorioDetalhado();
+  if (typeof AppCasaRosa.atualizarResumoCancelados === "function") AppCasaRosa.atualizarResumoCancelados();
+  if (typeof AppCasaRosa.gerarGraficoCancelados === "function") AppCasaRosa.gerarGraficoCancelados();
+  if (typeof AppCasaRosa.atualizarDashboardPorDataLoja === "function") AppCasaRosa.atualizarDashboardPorDataLoja();
+  if (typeof AppCasaRosa.atualizarResumoVendasMensal === "function") AppCasaRosa.atualizarResumoVendasMensal();
+  if (typeof AppCasaRosa.gerarResumoVendasPorProduto === "function") AppCasaRosa.gerarResumoVendasPorProduto();
+  if (typeof AppCasaRosa.preencherFiltroProdutosDashboard === "function") AppCasaRosa.preencherFiltroProdutosDashboard();
+  if (typeof AppCasaRosa.renderizarGraficoVendasPorDia === "function") AppCasaRosa.renderizarGraficoVendasPorDia();
+  if (typeof AppCasaRosa.renderizarGraficoTopComparativo === "function") AppCasaRosa.renderizarGraficoTopComparativo();
+  if (typeof AppCasaRosa.renderizarGraficoTempoEnvio === "function") AppCasaRosa.renderizarGraficoTempoEnvio();
+  if (typeof AppCasaRosa.gerarRelatorioDetalhado === "function") AppCasaRosa.gerarRelatorioDetalhado();
 }
 
+// Exponha a função no escopo global:
+window.AppCasaRosa = window.AppCasaRosa || {};
+window.AppCasaRosa.atualizarTabelas = atualizarTabelas;
+
 // Preenche os filtros ao abrir a aba 'Novos a Enviar'
-  document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]").addEventListener("click", () => {
-    const pendentes = AppCasaRosa.importadosList || [];
+document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]").addEventListener("click", () => {
+  const pendentes = AppCasaRosa.importadosList || [];
+  const lojas = [...new Set(pendentes.map(p => p.Loja).filter(Boolean))].sort();
+  const produtos = [...new Set(pendentes.map(p => AppCasaRosa.obterSkuPrincipal(p.SKU)).filter(Boolean))].sort();
+  const selectLoja = document.getElementById("filtroMultiloja");
+  const selectProduto = document.getElementById("filtroMultiproduto");
 
-    const lojas = [...new Set(pendentes.map(p => p.Loja).filter(Boolean))].sort();
-const produtos = [...new Set(pendentes.map(p => AppCasaRosa.obterSkuPrincipal(p.SKU)).filter(Boolean))].sort();
-    const selectLoja = document.getElementById("filtroMultiloja");
-    const selectProduto = document.getElementById("filtroMultiproduto");
+  selectLoja.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
+  selectProduto.innerHTML = produtos.map(p => `<option value="${p}">${p}</option>`).join("");
 
-    selectLoja.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
-    selectProduto.innerHTML = produtos.map(p => `<option value="${p}">${p}</option>`).join("");
-
-    AppCasaRosa.atualizarDashboardPendentes();
-  });
+  if (typeof AppCasaRosa.atualizarDashboardPendentes === "function") AppCasaRosa.atualizarDashboardPendentes();
+});
 function calcularHorasUteis(dataInicio, dataFim) {
   let totalHoras = 0;
   const inicio = new Date(dataInicio);
