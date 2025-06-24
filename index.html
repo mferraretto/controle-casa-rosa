@@ -88,8 +88,8 @@ onAuthStateChanged(auth, (user) => {
     if (user) {
       document.getElementById("login").style.display = "none";
       document.getElementById("sistema").style.display = "block";
-      carregarSkusEquivalentes();
-      carregarLojasRegistradas();
+      AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
+AppCasaRosa.carregarLojasRegistradas && AppCasaRosa.carregarLojasRegistradas();
     } else {
       document.getElementById("login").style.display = "flex";
       document.getElementById("sistema").style.display = "none";
@@ -149,6 +149,51 @@ AppCasaRosa.removerPendentesJaEnviados = removerPendentesJaEnviados;
 // Informações dos produtos (nome -> dados)
   AppCasaRosa.produtosMap = {};
   // Listener "Pedidos Importados"
+  onSnapshot(collection(db, "pedidos_enviados"), async (snapshot) => {
+  // Atualiza a lista global
+  AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // Renderiza tabela de enviados
+  if (typeof AppCasaRosa.renderizarTabelaEnviados === "function") {
+    AppCasaRosa.renderizarTabelaEnviados(AppCasaRosa.enviadosList);
+  }
+
+  // Renderiza tabela metas se necessário (opcional)
+  if (typeof AppCasaRosa.renderizarTabelaMetas === "function") {
+    AppCasaRosa.renderizarTabelaMetas();
+  }
+
+  // Atualiza filtros/resumos/dashboards
+  if (typeof preencherFiltroLojaDashboard === "function") preencherFiltroLojaDashboard();
+  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
+
+  // Atualiza/recupera pendentes
+  if (typeof AppCasaRosa.carregarPendentesFirebase === "function") {
+    await AppCasaRosa.carregarPendentesFirebase();
+  }
+
+  // Lógica de deduplicação de pedidos pendentes
+  const enviados = AppCasaRosa.enviadosList;
+  const pendentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
+  const promises = [];
+  pendentesSnap.forEach(docPendente => {
+    const idPendente = AppCasaRosa.normalizarId(docPendente.data().Pedido || docPendente.data().pedidoId);
+    const existeNosEnviados = enviados.some(env => {
+      const idEnviado = AppCasaRosa.normalizarId(env.Pedido || env.pedidoId);
+      return idEnviado === idPendente;
+    });
+    if (existeNosEnviados) {
+      promises.push(deleteDoc(doc(db, "pedidos_pendentes", docPendente.id)));
+    }
+  });
+  if (promises.length > 0) {
+    await Promise.all(promises);
+    console.log("✅ Pedidos removidos da aba 'Novos a Enviar' por estarem em 'Pedidos Enviados'");
+    if (typeof AppCasaRosa.carregarPendentesFirebase === "function") {
+      AppCasaRosa.carregarPendentesFirebase();
+    }
+  }
+});
   const pedidosRef = collection(db, "pedidos_pendentes");
   const pedidosQuery = query(pedidosRef, orderBy("dataPagamento"));
   onSnapshot(pedidosQuery, snapshot => {
@@ -160,14 +205,7 @@ AppCasaRosa.removerPendentesJaEnviados = removerPendentesJaEnviados;
   });
 
   // Listener "Pedidos Enviados"
-  const enviadosRef = collection(db, "pedidos_enviados");
-  onSnapshot(enviadosRef, snap => {
-    AppCasaRosa.enviadosList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    renderizarTabelaEnviados(AppCasaRosa.enviadosList);
-    preencherFiltroLojaDashboard();
-    atualizarResumoPedidosAEviar();
-    carregarPendentesFirebase();
-  });
+  
 
   // Listener "Pedidos Cancelados"
   const canceladosRef = collection(db, "pedidos_cancelados");
@@ -211,87 +249,24 @@ AppCasaRosa.escapeHTML = function(str) {
 };
 
 // Sincronizar pendentes automaticamente com enviados
-onSnapshot(collection(db, "pedidos_enviados"), async (snapshot) => {
-  const enviados = [];
-  snapshot.forEach(doc => enviados.push(doc.data()));
 
-  const pendentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
-  const promises = [];
-
-  pendentesSnap.forEach(docPendente => {
-    const idPendente = normalizarId(docPendente.data().Pedido || docPendente.data().pedidoId);
-    const existeNosEnviados = enviados.some(env => {
-      const idEnviado = normalizarId(env.Pedido || env.pedidoId);
-      return idEnviado === idPendente;
-    });
-
-    if (existeNosEnviados) {
-      promises.push(deleteDoc(doc(db, "pedidos_pendentes", docPendente.id)));
-    }
-  });
-
-  if (promises.length > 0) {
-    await Promise.all(promises);
-    console.log("✅ Pedidos removidos da aba 'Novos a Enviar' por estarem em 'Pedidos Enviados'");
-    if (typeof AppCasaRosa.carregarPendentesFirebase === "function") {
-      AppCasaRosa.carregarPendentesFirebase();
-    } else if (typeof carregarPendentesFirebase === "function") {
-      carregarPendentesFirebase();
-    }
-  }
-});
 
 // Renderizar tabela de enviados
-onSnapshot(collection(db, "pedidos_enviados"), snapshot => {
-  const container = document.getElementById("tabela-enviados");
-  container.innerHTML = "";
 
-  if (snapshot.empty) {
-    container.innerHTML = "<p>Nenhum pedido enviado encontrado.</p>";
-    return;
-  }
-
-  const table = document.createElement("table");
-  table.innerHTML = `
-    <thead>
-      <tr>
-        <th>Loja</th>
-        <th>Pedido</th>
-        <th>Produto (SKU)</th>
-        <th>Rastreio</th>
-        <th>Pagamento</th>
-        <th>Envio</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  `;
-
-  const tbody = table.querySelector("tbody");
-
-  snapshot.forEach(doc => {
-    const p = doc.data();
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Loja || "-") : escapeHTML(p.Loja || "-")}</td>
-      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.pedidoId || "-") : escapeHTML(p.pedidoId || "-")}</td>
-      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.SKU || "-") : escapeHTML(p.SKU || "-")}</td>
-      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Rastreio || "-") : escapeHTML(p.Rastreio || "-")}</td>
-      <td>${p.dataPagamento ? (AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(new Date(p.dataPagamento).toLocaleDateString()) : escapeHTML(new Date(p.dataPagamento).toLocaleDateString())) : "-"}</td>
-      <td>${p.dataEnvio ? (AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(new Date(p.dataEnvio).toLocaleDateString()) : escapeHTML(new Date(p.dataEnvio).toLocaleDateString())) : "-"}</td>
-    `;
-
-    tbody.appendChild(tr);
-  });
-
-  container.appendChild(table);
-});
   
 </script>
 
 <script>
  AppCasaRosa.normalizarId = function(id) {
   return (id || '').toString().trim().toLowerCase().replace(/^0+/, '');
+};
+  // Função genérica de renderização de tabela
+AppCasaRosa.renderTabela = function(id, lista) {
+  // Exemplo: redireciona para a função de tabela pendentes, se for esse o caso
+  if (id === "tabelaPendentes" && typeof AppCasaRosa.renderizarTabelaPendentes === "function") {
+    AppCasaRosa.renderizarTabelaPendentes(lista);
+  }
+  // Adicione outros casos conforme necessário
 };
  AppCasaRosa.carregarPendentesFirebase = async function() {
   try {
@@ -327,14 +302,6 @@ onSnapshot(collection(db, "pedidos_enviados"), snapshot => {
   }
 };
 
-AppCasaRosa.carregarLojasRegistradas = async function() {
-  try {
-    const snap = await getDocs(collection(db, "lojas"));
-    AppCasaRosa.lojasRegistradas = snap.docs.map(doc => doc.id);
-  } catch (e) {
-    alert("Erro ao carregar lojas registradas: " + (e.message || e));
-  }
-};
   // 🔄 Carrega lista de lojas cadastradas no Firestore
 AppCasaRosa.carregarLojasRegistradas = async function() {
   try {
@@ -3986,7 +3953,7 @@ AppCasaRosa.salvarSkuEquivalente = async function (event) {
   }
 
   document.getElementById("formSkus").reset();
-  carregarSkusEquivalentes(); // Recarrega e sincroniza
+  AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
 };
 
 AppCasaRosa.listarSkusEquivalentes = function() {
@@ -4144,7 +4111,8 @@ AppCasaRosa.salvarSkuEquivalente = async function (event) {
 
   await addDoc(collection(db, "skus_equivalentes"), { base, equivalentes: lista });
   document.getElementById("formSkus").reset();
-  carregarSkusEquivalentes();
+ AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
+
 };
 
 // 🗑️ Deleta agrupamento
@@ -4153,7 +4121,8 @@ AppCasaRosa.excluirSkuEquivalente = async function (base) {
   snap.forEach(doc => {
     if (doc.data().base === base) deleteDoc(doc.ref);
   });
-  carregarSkusEquivalentes();
+  AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
+
 };
 
 // 📋 Renderiza na tabela
