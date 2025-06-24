@@ -71,34 +71,38 @@ onSnapshot(collection(db, "skus_equivalentes"), snap => {
   console.log("🟢 SKUs equivalentes atualizados:", AppCasaRosa.skusEquivalentes);
 });
 
-AppCasaRosa.fazerLogin = function () {
-  const email = document.getElementById("emailLogin").value.trim();
-  const senha = document.getElementById("senhaLogin").value;
+window.AppCasaRosa = window.AppCasaRosa || {};
+
+window.AppCasaRosa.fazerLogin = function () {
+  const email = document.getElementById("emailLogin")?.value.trim();
+  const senha = document.getElementById("senhaLogin")?.value;
   const erroElem = document.getElementById("erroLogin");
 
   if (!email || !senha) {
-    erroElem.textContent = "Preencha e-mail e senha.";
+    if (erroElem) erroElem.textContent = "Preencha e-mail e senha.";
     return;
   }
 
   signInWithEmailAndPassword(auth, email, senha)
     .then(userCredential => {
       console.log("Login realizado:", userCredential.user.email);
-      erroElem.textContent = "";
+      if (erroElem) erroElem.textContent = "";
       // Aqui você pode redirecionar ou atualizar o UI, se necessário
     })
     .catch(error => {
       console.error("Erro de login:", error);
-      erroElem.textContent = "Email ou senha inválidos.";
-      document.getElementById("senhaLogin").value = "";
+      if (erroElem) erroElem.textContent = "Email ou senha inválidos.";
+      const senhaInput = document.getElementById("senhaLogin");
+      if (senhaInput) senhaInput.value = "";
     });
 };
+
 onAuthStateChanged(auth, (user) => {
     if (user) {
       document.getElementById("login").style.display = "none";
       document.getElementById("sistema").style.display = "block";
-      AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
-AppCasaRosa.carregarLojasRegistradas && AppCasaRosa.carregarLojasRegistradas();
+      window.AppCasaRosa.carregarSkusEquivalentes && window.AppCasaRosa.carregarSkusEquivalentes();
+      window.AppCasaRosa.carregarLojasRegistradas && window.AppCasaRosa.carregarLojasRegistradas();
     } else {
       document.getElementById("login").style.display = "flex";
       document.getElementById("sistema").style.display = "none";
