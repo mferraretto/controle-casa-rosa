@@ -995,10 +995,8 @@ body.dark-mode button {
 <!-- 🔍 Filtro de múltiplas lojas -->
 <div class="card-filtros">
   <label>🏪 Filtrar por Loja:</label>
-  <select id="filtroMultiloja" multiple onchange="atualizarDashboardPendentes()"></select>
- <label>🔍 Filtrar por Produto:</label>
-  <select id="filtroMultiproduto" multiple onchange="atualizarDashboardPendentes()"></select>
-<select id="filtroLoja"></select>
+<select id="filtroMultiloja" multiple onchange="AppCasaRosa.atualizarDashboardPendentes()"></select>
+  <select id="filtroMultiproduto" multiple onchange="AppCasaRosa.atualizarDashboardPendentes()"></select>
 
   <div style="flex-basis: 100%;">
     <button onclick="
@@ -1743,7 +1741,7 @@ const pendentes = importar.filter(p =>
   // 5) Filtra pendentes por loja e produto
   const pendentesFiltrados = pendentes.filter(p => {
     const loja    = normalizarCampo(p, ["Loja", "Nome da Loja no UpSeller"]).toLowerCase();
-    const sku = obterSkuPrincipal(p.SKU || "Desconhecido");
+const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
     if (lojaFiltro && loja !== lojaFiltro) return false;
     if (produtoFiltro && produto !== produtoFiltro) return false;
     return true;
@@ -1773,7 +1771,7 @@ gerarRelatorioDetalhado();
     const pendentes = AppCasaRosa.importadosList || [];
 
     const lojas = [...new Set(pendentes.map(p => p.Loja).filter(Boolean))].sort();
-    const produtos = [...new Set(pendentes.map(p => obterSkuPrincipal(p.SKU)).filter(Boolean))].sort();
+      const produtos = [...new Set(pendentes.map(p => AppCasaRosa.obterSkuPrincipal(p.SKU)).filter(Boolean))].sort();
 
 
     const selectLoja = document.getElementById("filtroMultiloja");
@@ -1782,7 +1780,7 @@ gerarRelatorioDetalhado();
     selectLoja.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
     selectProduto.innerHTML = produtos.map(p => `<option value="${p}">${p}</option>`).join("");
 
-    atualizarDashboardPendentes();
+    AppCasaRosa.atualizarDashboardPendentes();
   });
 function calcularHorasUteis(dataInicio, dataFim) {
   let totalHoras = 0;
@@ -1826,7 +1824,7 @@ function calcularHorasUteis(dataInicio, dataFim) {
   // Aplica o filtro
   const filtrados = todosPedidos.filter(p => {
     const loja    = p.Loja || "";
-    const sku = obterSkuPrincipal(p.SKU || "Desconhecido");
+    const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
     const lojaOk    = !lojaSelecionada    || loja    === lojaSelecionada;
     const produtoOk = !produtoSelecionado || produto === produtoSelecionado;
     return lojaOk && produtoOk;
@@ -2314,7 +2312,9 @@ document.addEventListener("DOMContentLoaded", () => {
       if (select) {
         select.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
       }
-      if (typeof atualizarDashboardPendentes === "function") atualizarDashboardPendentes();
+      se (tipo de AppCasaRosa.atualizarDashboardPendentes === "função") {
+        AppCasaRosa.atualizarDashboardPendentes();
+      }
     });
   }
 
