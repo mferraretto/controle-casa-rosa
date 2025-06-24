@@ -1046,19 +1046,19 @@ body.dark-mode button {
   <div class="filtros-dashboard">
     <label>
       📅 Data:
-      <input type="date" id="filtroDataDashboard" onchange="atualizarDashboardPorDataLoja()" />
+  <input type="date" id="filtroDataDashboard" onchange="AppCasaRosa.atualizarDashboardPorDataLoja()" />
     </label>
     <label>
       📊 Mês:
-      <input type="month" id="filtroMesDashboard" onchange="atualizarDashboardPorDataLoja()" />
+        <input type="month" id="filtroMesDashboard" onchange="AppCasaRosa.atualizarDashboardPorDataLoja()" />
     </label>
     <label>
-      <input type="checkbox" id="filtroMesInteiroDashboard" onchange="atualizarDashboardPorDataLoja()" />
+       <input type="checkbox" id="filtroMesInteiroDashboard" onchange="AppCasaRosa.atualizarDashboardPorDataLoja()" />
       🔄 Considerar mês inteiro
     </label>
     <label>
       🏪 Loja:
-      <select id="filtroLojaDashboard" onchange="atualizarDashboardPorDataLoja()">
+      <select id="filtroLojaDashboard" onchange="AppCasaRosa.atualizarDashboardPorDataLoja()">
         <option value="">Todas</option>
       </select>
     </label>
@@ -1346,7 +1346,8 @@ AppCasaRosa.atualizarResumoVendasMensal = function() {
   document.getElementById("vendas-por-produto").innerHTML =
     saida || "<i style='color:#888'>Nenhuma venda no período.</i>";
 }
-
+// Disponibiliza no namespace para acesso pelos handlers
+window.AppCasaRosa.atualizarResumoVendasMensal = atualizarResumoVendasMensal;
   // Lê um arquivo .xlsx e passa o JSON da primeira planilha ao callback
   function lerArquivo(input, callback) {
     const reader = new FileReader();
@@ -2279,19 +2280,19 @@ document.addEventListener("DOMContentLoaded", () => {
     filtroDataDashboard.addEventListener("change", atualizarDashboardPorData);
 
   const filtroMesInteiroDashboard = document.getElementById("filtroMesInteiroDashboard");
-  if (filtroMesInteiroDashboard && typeof atualizarResumoPedidosAEviar === "function")
-    filtroMesInteiroDashboard.addEventListener("change", atualizarResumoPedidosAEviar);
+  if (filtroMesInteiroDashboard && typeof AppCasaRosa.atualizarDashboardPorDataLoja === "function")
+      filtroMesInteiroDashboard.addEventListener("change", AppCasaRosa.atualizarDashboardPorDataLoja);
 
   // Listeners para atualização do dashboard por loja
-  if (filtroDataDashboard && typeof atualizarDashboardPorDataLoja === "function")
-    filtroDataDashboard.addEventListener("change", atualizarDashboardPorDataLoja);
+    if (filtroDataDashboard && typeof AppCasaRosa.atualizarDashboardPorDataLoja === "function")
+      filtroDataDashboard.addEventListener("change", AppCasaRosa.atualizarDashboardPorDataLoja);
 
   if (filtroMesInteiroDashboard && typeof atualizarDashboardPorDataLoja === "function")
     filtroMesInteiroDashboard.addEventListener("change", atualizarDashboardPorDataLoja);
 
   const mesDash = document.getElementById("filtroMesDashboard");
-  if (mesDash && typeof atualizarDashboardPorDataLoja === "function")
-    mesDash.addEventListener("change", atualizarDashboardPorDataLoja);
+  if (mesDash && typeof AppCasaRosa.atualizarDashboardPorDataLoja === "function")
+      mesDash.addEventListener("change", AppCasaRosa.atualizarDashboardPorDataLoja);
 });
 AppCasaRosa.preencherFiltroProdutosDashboard = function() {
   const enviados = AppCasaRosa.enviadosList || [];
@@ -2707,7 +2708,8 @@ function atualizarDashboardPorData() {
   const hojeFormatado = new Intl.DateTimeFormat("pt-BR", {
     day: "2-digit", month: "2-digit", year: "numeric"
   }).format(hoje);
-  document.getElementById("data-hoje-formatada").textContent = hojeFormatado;
+   const elDataHoje = document.getElementById("data-hoje-formatada");
+    if (elDataHoje) elDataHoje.textContent = hojeFormatado;
 
   // 4) Filtra os pedidos enviados na data selecionada
 const dataSelecionada = document.getElementById("filtroDataDashboard")?.value;
@@ -2720,12 +2722,15 @@ const enviadosNoDia = enviados.filter(p => {
 });
 
 // 5) Atualiza o card 📦
-document.getElementById("enviadosHoje").textContent = enviadosHoje;
+  const enviadosHoje = enviadosNoDia.length;
+  const elEnvHoy = document.getElementById("enviadosHoje");
+  if (elEnvHoy) elEnvHoy.textContent = enviadosHoje;
 
 
 
-  // 5) Atualiza o elemento com o total de hoje
-  document.getElementById("total-hoje").textContent = enviadosHoje.length;
+ // 6) Atualiza o elemento com o total de hoje
+  const elTotalHoje = document.getElementById("total-hoje");
+  if (elTotalHoje) elTotalHoje.textContent = enviadosHoje;
 }
 </script>
 <script>
@@ -3142,10 +3147,10 @@ async function adicionarPedido(pedido) {
 
  const abaEnviar = document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]");
 if (abaEnviar) {
-  abaEnviar.addEventListener("click", () => {
-    carregarPendentesFirebase();
-  });
-}
+    abaEnviar.addEventListener("click", () => {
+      AppCasaRosa.carregarPendentesFirebase();
+    });
+  }
 
 async function apagarTudo() {
   if (!confirm("⚠️ Tem certeza que deseja apagar TODOS os dados do sistema? Isso não pode ser desfeito.")) return;
