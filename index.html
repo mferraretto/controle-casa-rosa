@@ -446,7 +446,7 @@ function renderizarTabelaMetas() {
     <input type="number" min="0" value="${escapeHTML(meta)}" data-loja="${escapeHTML(loja)}" style="width:100px;" />
   </td>
   <td style="padding:0.5rem;">
-    <button onclick="removerMeta('${escapeHTML(loja)}')">❌ Remover</button>
+    <button onclick="AppCasaRosa.removerMeta('${escapeHTML(loja)}')">❌ Remover</button>
   </td>
 `;
     tbody.appendChild(linha);
@@ -893,9 +893,9 @@ body.dark-mode button {
 
   <!-- teu layout de cards acima das abas permanece igual -->
 <div style="text-align:right; margin:1rem;">
-  <button onclick="alternarTema()" style="padding:0.5rem 1rem;" id="btnTema">🌙 Modo Escuro</button>
+  <button onclick="AppCasaRosa.alternarTema()" style="padding:0.5rem 1rem;" id="btnTema">🌙 Modo Escuro</button>
 </div>
-<button onclick="deslogarUsuario()">🚪 Sair</button>
+<button onclick="AppCasaRosa.deslogarUsuario()">🚪 Sair</button>
 
   <div class="tabs">
     <div class="tab" onclick="abrirAba('dashboard')"><i class="fas fa-chart-bar"></i> Dashboard</div>
@@ -926,7 +926,7 @@ body.dark-mode button {
   <h2>🔐 Login</h2>
   <input type="email" id="emailLogin" placeholder="Email" style="padding:0.5rem;" />
   <input type="password" id="senhaLogin" placeholder="Senha" style="padding:0.5rem;" />
-  <button onclick="fazerLogin()" style="padding:0.5rem;">Entrar</button>
+  <button onclick="AppCasaRosa.fazerLogin()" style="padding:0.5rem;">Entrar</button>
   <div id="erroLogin" style="color:red;"></div>
 </div>
 <div id="sistema" style="display:none;">
@@ -943,10 +943,10 @@ body.dark-mode button {
     <p><strong>Filtrar por data:</strong><br>
       <input type="date" id="filtroData">
     </p>
-    <button onclick="processarArquivos()">📥 Importar e Comparar</button>
-<button onclick="apagarTudo()" style="background:red;color:white;font-weight:bold;">🧨 Apagar TODOS os dados</button>
+    <button onclick="AppCasaRosa.processarArquivos()">📥 Importar e Comparar</button>
+<button onclick="AppCasaRosa.apagarTudo()" style="background:red;color:white;font-weight:bold;">🧨 Apagar TODOS os dados</button>
 <button onclick="AppCasaRosa.removerPendentesJaEnviados()">...</button>
-  <button onclick="verificarEDeduplicarPedidos()" style="background:#ffc107;color:#000;font-weight:bold;">🔍 Verificar e Limpar Duplicados</button>
+  <button onclick="AppCasaRosa.verificarEDeduplicarPedidos()" style="background:#ffc107;color:#000;font-weight:bold;">🔍 Verificar e Limpar Duplicados</button>
 
     <hr style="margin:2rem 0;">
       </div>
@@ -957,7 +957,7 @@ body.dark-mode button {
   <p><strong>Selecionar PDF:</strong><br>
 <input type="file" id="inputPDF" accept="application/pdf">
   </p>
-  <button onclick="processarPDF()">📦 Ler e Registrar</button>
+  <button onclick="AppCasaRosa.processarPDF()">📦 Ler e Registrar</button>
 
   <ul id="listaPDFs"></ul>
 </div>
@@ -969,8 +969,8 @@ body.dark-mode button {
       <label><strong>📆 Mês:</strong>
         <input type="month" id="filtroMesRelatorio">
       </label>
-      <button onclick="exportarRelatorioMensal()">📤 CSV</button>
-      <button onclick="exportarRelatorioPDF()">📄 PDF</button>
+      <button onclick="AppCasaRosa.exportarRelatorioMensal()">📤 CSV</button>
+      <button onclick="AppCasaRosa.exportarRelatorioPDF()">📄 PDF</button>
     </div>
 <div id="tabela-enviados"></div>
 </div>
@@ -980,7 +980,7 @@ body.dark-mode button {
   <div id="a_enviar" class="tab-content">
     <h2>🟡 Novos a Enviar</h2>
 <div style="text-align:right; margin-bottom: 1rem;">
-  <button onclick="alternarVisualizacaoPedidos()" id="btnVisualizacaoPedidos">
+  <button onclick="AppCasaRosa.alternarVisualizacaoPedidos()" id="btnVisualizacaoPedidos">
     📦 Visualizar como Cards
   </button>
 </div>
@@ -994,7 +994,7 @@ body.dark-mode button {
 <select id="filtroLoja"></select>
 
   <div style="flex-basis: 100%;">
-    <button onclick="document.getElementById('filtroMultiloja').selectedIndex = -1;
+    <button onclick="AppCasaRosa.document.getElementById('filtroMultiloja').selectedIndex = -1;
                      document.getElementById('filtroMultiproduto').selectedIndex = -1;
                      atualizarDashboardPendentes();"
             style="background:#6c757d;color:white;padding:0.4rem 1rem;border:none;border-radius:6px;cursor:pointer;">
@@ -1022,7 +1022,7 @@ body.dark-mode button {
     <span id="resumo-enviados-hoje">0</span>
   </div>
 </div>
- <button onclick="exportarPedidosAEnviar()" style="background:#0d6efd;color:white;margin-bottom:1rem;">
+ <button onclick="AppCasaRosa.exportarPedidosAEnviar()" style="background:#0d6efd;color:white;margin-bottom:1rem;">
   📥 Exportar para Excel
 </button> 
 <div id="tabelaPendentes"></div>
@@ -1033,7 +1033,7 @@ body.dark-mode button {
   <div id="cancelados" class="tab-content">
     <h2 style="display:flex; justify-content:space-between; align-items:center;">
       ❌ Cancelados
-      <button onclick="exportarCanceladosCSV()" style="background:#0d6efd;color:#fff;border:none;padding:0.4rem 0.8rem;border-radius:5px;cursor:pointer;">
+      <button onclick="AppCasaRosa.exportarCanceladosCSV()" style="background:#0d6efd;color:#fff;border:none;padding:0.4rem 0.8rem;border-radius:5px;cursor:pointer;">
         ⬇️ CSV
       </button>
     </h2>
@@ -1078,7 +1078,7 @@ body.dark-mode button {
     <h2>📊 Dashboard Geral</h2>
   </div>
 <div style="text-align:right; margin-bottom: 1rem;">
-  <button onclick="alternarVisualizacaoPedidos()" id="btnVisualizacaoPedidos">
+  <button onclick="AppCasaRosa.alternarVisualizacaoPedidos()" id="btnVisualizacaoPedidos">
     📦 Visualizar como Cards
   </button>
 </div>
@@ -1143,8 +1143,8 @@ body.dark-mode button {
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
       <h3 style="margin:0; color:#343a40;">📦 Peças Vendidas no Mês:</h3>
       <div>
-        <button onclick="exportarVendasCSV()" style="margin-right:0.5rem;">📥 CSV</button>
-        <button onclick="exportarVendasPDF()">📄 PDF</button>
+        <button onclick="AppCasaRosa.exportarVendasCSV()" style="margin-right:0.5rem;">📥 CSV</button>
+        <button onclick="AppCasaRosa.exportarVendasPDF()">📄 PDF</button>
       </div>
     </div>
     <div id="vendas-por-produto" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem;"></div>
@@ -1182,8 +1182,8 @@ body.dark-mode button {
 </div>
 <h3 style="margin-top:2rem;">📈 Relatório por Loja + Produto</h3>
 <div id="tabela-detalhada-vendas" style="overflow-x:auto; margin-bottom:2rem;"></div>
-<button onclick="exportarRelatorioDetalhadoCSV()">📅 Exportar CSV</button>
-<button onclick="exportarRelatorioDetalhadoPDF()">📄 Exportar PDF</button>
+<button onclick="AppCasaRosa.exportarRelatorioDetalhadoCSV()">📅 Exportar CSV</button>
+<button onclick="AppCasaRosa.exportarRelatorioDetalhadoPDF()">📄 Exportar PDF</button>
 
   <!-- Gráfico de Status e Lembrete -->
   <div style="display:flex; gap:2rem; flex-wrap:wrap; justify-content:center; margin-top:2rem;">
@@ -1842,8 +1842,8 @@ function calcularHorasUteis(dataInicio, dataFim) {
       const li = document.createElement("li");
       li.innerHTML = `
         📎 ${pdf.nome}
-        <button onclick="abrirPDF(${i})">🔍 Ver</button>
-        <button onclick="baixarPDF(${i})">⬇️ Baixar</button>
+        <button onclick="AppCasaRosa.abrirPDF(${i})">🔍 Ver</button>
+        <button onclick="AppCasaRosa.baixarPDF(${i})">⬇️ Baixar</button>
       `;
       lista.appendChild(li);
     });
@@ -3704,8 +3704,8 @@ async function renderizarMetasManuais() {
             </td>
             <td style="color:#555; font-size:0.85rem;">🔮 ${projecao} estimado</td>
             <td style="text-align:center;">
-              <button onclick="editarMeta('${meta.id}', ${meta.valor})">✏️</button>
-              <button onclick="excluirMeta('${meta.id}')">🗑️</button>
+              <button onclick="AppCasaRosa.editarMeta('${meta.id}', ${meta.valor})">✏️</button>
+              <button onclick="AppCasaRosa.excluirMeta('${meta.id}')">🗑️</button>
             </td>
           </tr>
         `;
@@ -3893,8 +3893,8 @@ async function atualizarCardsMetas() {
       </div>
       ${atraso > 0 ? `<div style="color:#dc3545; font-weight:bold; margin-top:0.5rem;">🚨 Atraso de ${atraso} unidades</div>` : ""}
       <div style="margin-top:0.75rem;">
-        <button onclick="editarMeta('${meta.id}', ${meta.valor})" style="margin-right: 0.5rem;">✏️ Editar</button>
-        <button onclick="excluirMeta('${meta.id}')">🗑️ Excluir</button>
+        <button onclick="AppCasaRosa.editarMeta('${meta.id}', ${meta.valor})" style="margin-right: 0.5rem;">✏️ Editar</button>
+        <button onclick="AppCasaRosa.excluirMeta('${meta.id}')">🗑️ Excluir</button>
       </div>
 </div>
     `;
@@ -3943,7 +3943,7 @@ function listarSkusEquivalentes() {
     tr.innerHTML = `
       <td>${base}</td>
       <td>${equivalentes.join(", ")}</td>
-      <td><button onclick="excluirSkuEquivalente('${base}')">🗑️ Excluir</button></td>
+      <td><button onclick="AppCasaRosa.excluirSkuEquivalente('${base}')">🗑️ Excluir</button></td>
     `;
     tbody.appendChild(tr);
   });
@@ -4081,7 +4081,7 @@ function renderizarTabelaSkus() {
       <td>${base}</td>
       <td>${aliases.join(", ")}</td>
       <td>
-        <button onclick="excluirSkuEquivalente('${base}')">🗑️</button>
+        <button onclick="AppCasaRosa.excluirSkuEquivalente('${base}')">🗑️</button>
       </td>
     `;
     tabela.appendChild(linha);
@@ -4101,7 +4101,7 @@ function renderizarTabelaSkus() {
           <td>${data.nome}</td>
           <td>${data.sobraIdeal}</td>
           <td>${data.valor ?? ''}</td>
-          <td><button onclick="excluirProduto('${docItem.id}')">🗑️</button></td>
+          <td><button onclick="AppCasaRosa.excluirProduto('${docItem.id}')">🗑️</button></td>
         `;
         tbody.appendChild(tr);
       }
