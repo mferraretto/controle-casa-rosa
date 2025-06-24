@@ -1298,7 +1298,7 @@ body.dark-mode button {
     }
     return "";
   }
-function atualizarResumoVendasMensal() {
+AppCasaRosa.atualizarResumoVendasMensal = function() {
   const enviados = AppCasaRosa.enviadosList || [];
   const mesSelecionado  = document.getElementById("filtroMesDashboard")?.value;
   const lojaSelecionada = document.getElementById("filtroLojaDashboard")?.value;
