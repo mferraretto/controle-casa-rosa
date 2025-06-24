@@ -110,11 +110,11 @@ AppCasaRosa.carregarLojasRegistradas && AppCasaRosa.carregarLojasRegistradas();
     }
   });
 });
-AppCasaRosa.deslogarUsuario = function () {
+window.AppCasaRosa.deslogarUsuario = function () {
   signOut(auth).then(() => location.reload());
 };
   // Remover pendentes que já estão como enviados
- async function removerPendentesJaEnviados() {
+async function removerPendentesJaEnviados() {
   try {
     const pendentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
     const enviadosSnap  = await getDocs(collection(db, "pedidos_enviados"));
@@ -141,36 +141,35 @@ AppCasaRosa.deslogarUsuario = function () {
   }
 }
 
-  // Expondo funções e objetos no escopo global
- // Expondo funções e objetos no escopo global
 window.AppCasaRosa = window.AppCasaRosa || {};
-AppCasaRosa.removerPendentesJaEnviados = removerPendentesJaEnviados;
-AppCasaRosa.db = db;
-AppCasaRosa.collection = collection;
-AppCasaRosa.addDoc = addDoc;
-AppCasaRosa.onSnapshot = onSnapshot;
-AppCasaRosa.doc = doc;
-AppCasaRosa.updateDoc = updateDoc;
-AppCasaRosa.deleteDoc = deleteDoc;
-AppCasaRosa.getDoc = getDoc;
-AppCasaRosa.getDocs = getDocs;
+window.AppCasaRosa.removerPendentesJaEnviados = removerPendentesJaEnviados;
+window.AppCasaRosa.db = db;
+window.AppCasaRosa.collection = collection;
+window.AppCasaRosa.addDoc = addDoc;
+window.AppCasaRosa.onSnapshot = onSnapshot;
+window.AppCasaRosa.doc = doc;
+window.AppCasaRosa.updateDoc = updateDoc;
+window.AppCasaRosa.deleteDoc = deleteDoc;
+window.AppCasaRosa.getDoc = getDoc;
+window.AppCasaRosa.getDocs = getDocs;
 
-// Estado global
-AppCasaRosa.importadosList = [];
-AppCasaRosa.enviadosList = [];
-AppCasaRosa.canceladosList = [];
-AppCasaRosa.pdfsList = [];
-AppCasaRosa.historicoList = [];
-AppCasaRosa.produtosMap = {}; // Informações dos produtos (nome -> dados)
+window.AppCasaRosa.importadosList = [];
+window.AppCasaRosa.enviadosList = [];
+window.AppCasaRosa.canceladosList = [];
+window.AppCasaRosa.pdfsList = [];
+window.AppCasaRosa.historicoList = [];
+window.AppCasaRosa.produtosMap = {};
 
-// Listener "Pedidos Enviados" — apenas atualiza o estado e aciona atualização de views
+// Listener "Pedidos Enviados"
 onSnapshot(collection(db, "pedidos_enviados"), (snapshot) => {
-  AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  atualizarTabelasEViewsEnviados();
+  window.AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  // Use window. se a função também for global
+  if (window.AppCasaRosa.atualizarTabelasEViewsEnviados) {
+    window.AppCasaRosa.atualizarTabelasEViewsEnviados();
+  }
 });
-
 // Função de escape HTML
-AppCasaRosa.escapeHTML = function(str) {
+window.AppCasaRosa.escapeHTML = function(str) {
   return (str || "").replace(/[&<>"']/g, function (c) {
     return ({
       '&': '&amp;',
@@ -182,7 +181,7 @@ AppCasaRosa.escapeHTML = function(str) {
   });
 };
   // Atualizar pedido específico
-  AppCasaRosa.atualizarPedido = async function(id, dados) {
+  window.AppCasaRosa.atualizarPedido = async function(id, dados) {
   try {
     const ref = doc(db, "pedidos_pendentes", id);
     await updateDoc(ref, dados);
@@ -205,14 +204,14 @@ AppCasaRosa.escapeHTML = function(str) {
   return (id || '').toString().trim().toLowerCase().replace(/^0+/, '');
 };
   // Função genérica de renderização de tabela
-AppCasaRosa.renderTabela = function(id, lista) {
+window.AppCasaRosa.renderTabela = function(id, lista) {
   // Exemplo: redireciona para a função de tabela pendentes, se for esse o caso
   if (id === "tabelaPendentes" && typeof AppCasaRosa.renderizarTabelaPendentes === "function") {
     AppCasaRosa.renderizarTabelaPendentes(lista);
   }
   // Adicione outros casos conforme necessário
 };
- AppCasaRosa.carregarPendentesFirebase = async function() {
+ window.AppCasaRosa.carregarPendentesFirebase = async function() {
   try {
     const snapshot = await getDocs(collection(db, "pedidos_pendentes"));
     const pendentes = [];
@@ -247,7 +246,7 @@ AppCasaRosa.renderTabela = function(id, lista) {
 };
 
   // 🔄 Carrega lista de lojas cadastradas no Firestore
-AppCasaRosa.carregarLojasRegistradas = async function() {
+window.AppCasaRosa.carregarLojasRegistradas = async function() {
   try {
     const snap = await getDocs(collection(db, "lojas"));
     AppCasaRosa.lojasRegistradas = snap.docs.map(doc => doc.id);
@@ -255,7 +254,7 @@ AppCasaRosa.carregarLojasRegistradas = async function() {
     alert("Erro ao carregar lojas registradas: " + (e.message || e));
   }
 };
-AppCasaRosa.identificarLoja = function(texto) {
+window.AppCasaRosa.identificarLoja = function(texto) {
   const linhas = texto.split('\n');
   const indexRemetente = linhas.findIndex(l => l.trim().toUpperCase() === "REMETENTE");
 
@@ -309,7 +308,7 @@ AppCasaRosa.identificarLoja = function(texto) {
 <script>
   window.AppCasaRosa = window.AppCasaRosa || {};
   // Renderização da tabela de “Novos a Enviar”
- AppCasaRosa.renderizarTabelaPendentes = function(lista) {
+ window.AppCasaRosa.renderizarTabelaPendentes = function(lista) {
   const container = document.getElementById("tabelaPendentes");
   if (!container) return;
 
@@ -358,7 +357,7 @@ AppCasaRosa.identificarLoja = function(texto) {
 
 
 
-AppCasaRosa.renderizarTabelaMetas = function() {
+window.AppCasaRosa.renderizarTabelaMetas = function() {
   const lojas = [...new Set((AppCasaRosa.enviadosList || []).map(p => p.Loja).filter(Boolean))];
   const tbody = document.querySelector("#tabela-metas tbody");
   tbody.innerHTML = "";
@@ -391,7 +390,7 @@ function salvarMetas() {
   alert("🎯 Metas salvas com sucesso!");
 }
 
-AppCasaRosa.removerMeta = function(loja) {
+window.AppCasaRosa.removerMeta = function(loja) {
   delete metasPorLoja[loja];
   localStorage.setItem("metasPorLoja", JSON.stringify(metasPorLoja));
   if (typeof AppCasaRosa.renderizarTabelaMetas === "function") {
@@ -407,7 +406,7 @@ AppCasaRosa.removerMeta = function(loja) {
 
 <script>
   window.AppCasaRosa = window.AppCasaRosa || {};
- AppCasaRosa.renderizarTabelaEnviados = function(lista) {
+ window.AppCasaRosa.renderizarTabelaEnviados = function(lista) {
   const container = document.getElementById("tabela-enviados");
   if (!container) return;
 
@@ -456,7 +455,7 @@ AppCasaRosa.removerMeta = function(loja) {
 
 
   // Renderização da tabela de “Cancelados”
- AppCasaRosa.renderizarTabelaCancelados = function(lista) {
+ window.AppCasaRosa.renderizarTabelaCancelados = function(lista) {
   const tbody = document.querySelector("#tabela-cancelados tbody");
   tbody.innerHTML = "";
   lista.forEach(p => {
@@ -470,7 +469,7 @@ AppCasaRosa.removerMeta = function(loja) {
 };
 
 // Marca um pedido como “enviado” no Firestore
-AppCasaRosa.marcarEnviado = function(id) {
+window.AppCasaRosa.marcarEnviado = function(id) {
   if (typeof AppCasaRosa.atualizarPedido === "function") {
     AppCasaRosa.atualizarPedido(id, {
       status: "enviado",
@@ -485,7 +484,7 @@ AppCasaRosa.marcarEnviado = function(id) {
 };
 
 // Cancela um pedido: atualiza status e registra em coleção “pedidos_cancelados”
-AppCasaRosa.cancelarPedido = async function(id) {
+window.AppCasaRosa.cancelarPedido = async function(id) {
   try {
     const motivo = prompt("Digite o motivo do cancelamento:");
     if (!motivo) return;
