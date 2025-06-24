@@ -137,105 +137,102 @@ AppCasaRosa.deslogarUsuario = function () {
 }
 
   // Expondo funções e objetos no escopo global
-  AppCasaRosa.AppCasaRosa = AppCasaRosa.AppCasaRosa || {};
+ // Expondo funções e objetos no escopo global
+window.AppCasaRosa = window.AppCasaRosa || {};
 AppCasaRosa.removerPendentesJaEnviados = removerPendentesJaEnviados;
-  AppCasaRosa.db = db;
-  AppCasaRosa.collection = collection;
-  AppCasaRosa.addDoc = addDoc;
-  AppCasaRosa.onSnapshot = onSnapshot;
-  AppCasaRosa.doc = doc;
-  AppCasaRosa.updateDoc = updateDoc;
-  AppCasaRosa.deleteDoc = deleteDoc;
-  AppCasaRosa.getDoc = getDoc;
-  AppCasaRosa.getDocs = getDocs;
+AppCasaRosa.db = db;
+AppCasaRosa.collection = collection;
+AppCasaRosa.addDoc = addDoc;
+AppCasaRosa.onSnapshot = onSnapshot;
+AppCasaRosa.doc = doc;
+AppCasaRosa.updateDoc = updateDoc;
+AppCasaRosa.deleteDoc = deleteDoc;
+AppCasaRosa.getDoc = getDoc;
+AppCasaRosa.getDocs = getDocs;
 
-  // Estado global
-  AppCasaRosa.importadosList = [];
-  AppCasaRosa.enviadosList = [];
-  AppCasaRosa.canceladosList = [];
-  AppCasaRosa.pdfsList = [];
-  AppCasaRosa.historicoList = [];
-// Informações dos produtos (nome -> dados)
-  AppCasaRosa.produtosMap = {};
-  // Listener "Pedidos Importados"
-  onSnapshot(collection(db, "pedidos_enviados"), async (snapshot) => {
-  // Atualiza a lista global
+// Estado global
+AppCasaRosa.importadosList = [];
+AppCasaRosa.enviadosList = [];
+AppCasaRosa.canceladosList = [];
+AppCasaRosa.pdfsList = [];
+AppCasaRosa.historicoList = [];
+AppCasaRosa.produtosMap = {}; // Informações dos produtos (nome -> dados)
+
+// Listener "Pedidos Enviados" — apenas atualiza o estado e aciona atualização de views
+onSnapshot(collection(db, "pedidos_enviados"), (snapshot) => {
   AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  atualizarTabelasEViewsEnviados();
+});
 
-  // Renderiza tabela de enviados
+// Função para atualizar todas as views relacionadas a "enviados"
+function atualizarTabelasEViewsEnviados() {
   if (typeof AppCasaRosa.renderizarTabelaEnviados === "function") {
     AppCasaRosa.renderizarTabelaEnviados(AppCasaRosa.enviadosList);
   }
-
-  // Renderiza tabela metas se necessário (opcional)
   if (typeof AppCasaRosa.renderizarTabelaMetas === "function") {
     AppCasaRosa.renderizarTabelaMetas();
   }
-
-  // Atualiza filtros/resumos/dashboards
   if (typeof preencherFiltroLojaDashboard === "function") preencherFiltroLojaDashboard();
   if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
+  // Não chame deduplicação nem carregarPendentesFirebase aqui!
+}
 
-  // Atualiza/recupera pendentes
-  if (typeof AppCasaRosa.carregarPendentesFirebase === "function") {
-    await AppCasaRosa.carregarPendentesFirebase();
-  }
-
-  // Lógica de deduplicação de pedidos pendentes
-  const enviados = AppCasaRosa.enviadosList;
-  const pendentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
-  const promises = [];
-  pendentesSnap.forEach(docPendente => {
-    const idPendente = AppCasaRosa.normalizarId(docPendente.data().Pedido || docPendente.data().pedidoId);
-    const existeNosEnviados = enviados.some(env => {
-      const idEnviado = AppCasaRosa.normalizarId(env.Pedido || env.pedidoId);
-      return idEnviado === idPendente;
-    });
-    if (existeNosEnviados) {
-      promises.push(deleteDoc(doc(db, "pedidos_pendentes", docPendente.id)));
-    }
-  });
-  if (promises.length > 0) {
-    await Promise.all(promises);
-    console.log("✅ Pedidos removidos da aba 'Novos a Enviar' por estarem em 'Pedidos Enviados'");
-    if (typeof AppCasaRosa.carregarPendentesFirebase === "function") {
-      AppCasaRosa.carregarPendentesFirebase();
-    }
-  }
+// Listener "Pedidos Pendentes"
+const pedidosRef = collection(db, "pedidos_pendentes");
+const pedidosQuery = query(pedidosRef, orderBy("dataPagamento"));
+onSnapshot(pedidosQuery, snapshot => {
+  AppCasaRosa.importadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (typeof aplicarFiltroPedidos === "function") aplicarFiltroPedidos();
+  if (typeof preencherFiltroLojaDashboard === "function") preencherFiltroLojaDashboard();
+  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
 });
-  const pedidosRef = collection(db, "pedidos_pendentes");
-  const pedidosQuery = query(pedidosRef, orderBy("dataPagamento"));
-  onSnapshot(pedidosQuery, snapshot => {
-    const lista = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    AppCasaRosa.importadosList = lista;
-    aplicarFiltroPedidos();
-    preencherFiltroLojaDashboard();
-    atualizarResumoPedidosAEviar();
-  });
 
-  // Listener "Pedidos Enviados"
-  
+// Listener "Pedidos Cancelados"
+const canceladosRef = collection(db, "pedidos_cancelados");
+onSnapshot(canceladosRef, snap => {
+  AppCasaRosa.canceladosList = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (typeof renderizarTabelaCancelados === "function") renderizarTabelaCancelados(AppCasaRosa.canceladosList);
+  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
+});
 
-  // Listener "Pedidos Cancelados"
-  const canceladosRef = collection(db, "pedidos_cancelados");
-  onSnapshot(canceladosRef, snap => {
-    const cancelados = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    AppCasaRosa.canceladosList = cancelados;
-    renderizarTabelaCancelados(cancelados);
-    atualizarResumoPedidosAEviar();
+// Listener "PDFs de Etiquetas"
+const pdfsRef = collection(db, "pdf_etiquetas");
+onSnapshot(pdfsRef, snap => {
+  AppCasaRosa.pdfsList = snap.docs.map(d => {
+    const data = d.data();
+    return { id: d.id, nome: data.nome, conteudo: data.base64, ...data };
   });
+  if (typeof atualizarListaPDFs === "function") atualizarListaPDFs();
+  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
+});
+// ... suas variáveis globais e AppCasaRosa = { ... }
 
-  // Listener "PDFs de Etiquetas"
-  const pdfsRef = collection(db, "pdf_etiquetas");
-  onSnapshot(pdfsRef, snap => {
-    AppCasaRosa.pdfsList = snap.docs.map(d => {
-      const data = d.data();
-      return { id: d.id, nome: data.nome, conteudo: data.base64, ...data };
-    });
-    atualizarListaPDFs();
-    atualizarResumoPedidosAEviar();
-  });
-  
+// Função para atualizar todas as views relacionadas a "enviados"
+function atualizarTabelasEViewsEnviados() {
+  if (typeof AppCasaRosa.renderizarTabelaEnviados === "function") {
+    AppCasaRosa.renderizarTabelaEnviados(AppCasaRosa.enviadosList);
+  }
+  if (typeof AppCasaRosa.renderizarTabelaMetas === "function") {
+    AppCasaRosa.renderizarTabelaMetas();
+  }
+  if (typeof preencherFiltroLojaDashboard === "function") preencherFiltroLojaDashboard();
+  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
+}
+
+// Listener "Pedidos Enviados"
+onSnapshot(collection(db, "pedidos_enviados"), (snapshot) => {
+  AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  atualizarTabelasEViewsEnviados();
+});
+
+// Listener "Pedidos Pendentes"
+onSnapshot(pedidosQuery, snapshot => {
+  AppCasaRosa.importadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (typeof aplicarFiltroPedidos === "function") aplicarFiltroPedidos();
+  if (typeof preencherFiltroLojaDashboard === "function") preencherFiltroLojaDashboard();
+  if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
+});
+// Função de escape HTML
 AppCasaRosa.escapeHTML = function(str) {
   return (str || "").replace(/[&<>"']/g, function (c) {
     return ({
@@ -2272,7 +2269,8 @@ function exportarCanceladosCSV() {
 
 
   // Preenche o <select> de lojas no Dashboard usando dados em memória
-  function preencherFiltroLojaDashboard() {
+ // Função no namespace AppCasaRosa
+AppCasaRosa.preencherFiltroLojaDashboard = function() {
   const enviados  = AppCasaRosa.enviadosList   || [];
   const pendentes = AppCasaRosa.importadosList || [];
   const lojas = [...enviados, ...pendentes]
@@ -2281,42 +2279,70 @@ function exportarCanceladosCSV() {
   const lojasUnicas = [...new Set(lojas)].sort();
   const select = document.getElementById("filtroLojaDashboard");
   if (!select) return;
+  // Função para capitalizar cada palavra
+  function capitalizeWords(str) {
+    return str.replace(/\b\w/g, l => l.toUpperCase());
+  }
   select.innerHTML =
     '<option value="">Todas</option>' +
-    lojasUnicas.map(loja => `<option value="${loja}">${loja.charAt(0).toUpperCase() + loja.slice(1)}</option>`).join('');
-}
+    lojasUnicas.map(loja =>
+      `<option value="${loja}">${capitalizeWords(loja)}</option>`
+    ).join('');
+};
 
-  // Dispara ao carregar a página
-  document.addEventListener("DOMContentLoaded", () => {
-    atualizarResumoVendasMensal();
-atualizarDashboardPorDataLoja();
-    preencherFiltroLojaDashboard();
-preencherFiltroLojaMetas();
-    carregarProdutos();
-    atualizarRelatorioMetas();
-    // Ajusta o filtro de data da aba “Importados” para hoje
-    const hoje = new Date().toISOString().split("T")[0];
-    const inputFiltroData = document.getElementById("filtroData");
-    if (inputFiltroData) inputFiltroData.value = hoje;
-const tabEnviar = document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]");
-if (tabEnviar) {
-  tabEnviar.addEventListener("click", () => {
-    const pendentes = AppCasaRosa.importadosList || [];
-    const lojas = [...new Set(pendentes.map(p => p.Loja).filter(Boolean))].sort();
-    const select = document.getElementById("filtroMultiloja");
-    select.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
-    atualizarDashboardPendentes();
-  });
-}
-document.getElementById("filtroLojaDashboard").addEventListener("change", atualizarDashboardPorData);
-  document.getElementById("filtroDataDashboard").addEventListener("change", atualizarDashboardPorData);
-  document.getElementById("filtroMesInteiroDashboard").addEventListener("change", atualizarResumoPedidosAEviar);
-  document.getElementById("filtroDataDashboard").addEventListener("change", atualizarDashboardPorDataLoja);
-  document.getElementById("filtroMesInteiroDashboard").addEventListener("change", atualizarDashboardPorDataLoja);
-   const mesDash = document.getElementById("filtroMesDashboard");
-  if (mesDash) mesDash.addEventListener("change", atualizarDashboardPorDataLoja); 
-  });
-function preencherFiltroProdutosDashboard() {
+// Dispara ao carregar a página
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof atualizarResumoVendasMensal === "function") atualizarResumoVendasMensal();
+  if (typeof atualizarDashboardPorDataLoja === "function") atualizarDashboardPorDataLoja();
+  if (typeof AppCasaRosa.preencherFiltroLojaDashboard === "function") AppCasaRosa.preencherFiltroLojaDashboard();
+  if (typeof preencherFiltroLojaMetas === "function") preencherFiltroLojaMetas();
+  if (typeof carregarProdutos === "function") carregarProdutos();
+  if (typeof atualizarRelatorioMetas === "function") atualizarRelatorioMetas();
+
+  // Ajusta o filtro de data da aba “Importados” para hoje
+  const hoje = new Date().toISOString().split("T")[0];
+  const inputFiltroData = document.getElementById("filtroData");
+  if (inputFiltroData) inputFiltroData.value = hoje;
+
+  // Filtro Multiloja na aba "A Enviar"
+  const tabEnviar = document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]");
+  if (tabEnviar) {
+    tabEnviar.addEventListener("click", () => {
+      const pendentes = AppCasaRosa.importadosList || [];
+      const lojas = [...new Set(pendentes.map(p => p.Loja).filter(Boolean))].sort();
+      const select = document.getElementById("filtroMultiloja");
+      if (select) {
+        select.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
+      }
+      if (typeof atualizarDashboardPendentes === "function") atualizarDashboardPendentes();
+    });
+  }
+
+  // Listeners dos filtros do dashboard
+  const filtroLojaDashboard = document.getElementById("filtroLojaDashboard");
+  if (filtroLojaDashboard && typeof atualizarDashboardPorData === "function")
+    filtroLojaDashboard.addEventListener("change", atualizarDashboardPorData);
+
+  const filtroDataDashboard = document.getElementById("filtroDataDashboard");
+  if (filtroDataDashboard && typeof atualizarDashboardPorData === "function")
+    filtroDataDashboard.addEventListener("change", atualizarDashboardPorData);
+
+  const filtroMesInteiroDashboard = document.getElementById("filtroMesInteiroDashboard");
+  if (filtroMesInteiroDashboard && typeof atualizarResumoPedidosAEviar === "function")
+    filtroMesInteiroDashboard.addEventListener("change", atualizarResumoPedidosAEviar);
+
+  // Listeners para atualização do dashboard por loja
+  if (filtroDataDashboard && typeof atualizarDashboardPorDataLoja === "function")
+    filtroDataDashboard.addEventListener("change", atualizarDashboardPorDataLoja);
+
+  if (filtroMesInteiroDashboard && typeof atualizarDashboardPorDataLoja === "function")
+    filtroMesInteiroDashboard.addEventListener("change", atualizarDashboardPorDataLoja);
+
+  const mesDash = document.getElementById("filtroMesDashboard");
+  if (mesDash && typeof atualizarDashboardPorDataLoja === "function")
+    mesDash.addEventListener("change", atualizarDashboardPorDataLoja);
+});
+AppCasaRosa.preencherFiltroProdutosDashboard = function() {
   const enviados = AppCasaRosa.enviadosList || [];
   const produtos = new Set();
 
@@ -2325,7 +2351,10 @@ function preencherFiltroProdutosDashboard() {
   });
 
   const select = document.getElementById("filtroProdutoDashboard");
-  select.innerHTML = "";
+  if (!select) return; // Segurança: não faz nada se o elemento não existe
+
+  // Option padrão "Todas"
+  select.innerHTML = '<option value="">Todas</option>';
 
   Array.from(produtos)
     .sort()
@@ -2336,10 +2365,11 @@ function preencherFiltroProdutosDashboard() {
       select.appendChild(option);
     });
 
-  // Atualizar Select2
-  $('#filtroProdutoDashboard').trigger('change.select2');
-}
-
+  // Atualizar Select2, se estiver usando
+  if (window.$ && $(select).hasClass("select2-hidden-accessible")) {
+    $(select).trigger('change.select2');
+  }
+};
   // Exporta relatório mensal de “Pedidos Enviados” para CSV
   function exportarRelatorioMensal() {
     const enviados = AppCasaRosa.enviadosList || [];
