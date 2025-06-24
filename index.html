@@ -100,19 +100,20 @@ window.deslogarUsuario = function () {
 };
   // Remover pendentes que já estão como enviados
   async function removerPendentesJaEnviados() {
+  try {
     const pendentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
     const enviadosSnap  = await getDocs(collection(db, "pedidos_enviados"));
 
     const enviadosIds = new Set();
     enviadosSnap.forEach(doc => {
-      const id = doc.data().pedidoId || doc.data().Pedido || "";
-      enviadosIds.add(id.toString().trim());
+      const id = normalizarId(doc.data().pedidoId || doc.data().Pedido || "");
+      enviadosIds.add(id);
     });
 
     const promises = [];
     pendentesSnap.forEach(doc => {
-      const id = doc.data().pedidoId || doc.data().Pedido || "";
-      if (enviadosIds.has(id.toString().trim())) {
+      const id = normalizarId(doc.data().pedidoId || doc.data().Pedido || "");
+      if (enviadosIds.has(id)) {
         promises.push(deleteDoc(doc.ref));
       }
     });
@@ -120,10 +121,14 @@ window.deslogarUsuario = function () {
     await Promise.all(promises);
     alert("✅ Pedidos duplicados removidos da aba 'Novos a Enviar'.");
     location.reload();
+  } catch (e) {
+    alert("Erro ao remover pendentes: " + (e.message || e));
   }
+}
 
   // Expondo funções e objetos no escopo global
-  window.removerPendentesJaEnviados = removerPendentesJaEnviados;
+  window.AppCasaRosa = window.AppCasaRosa || {};
+AppCasaRosa.removerPendentesJaEnviados = removerPendentesJaEnviados;
   window.db = db;
   window.collection = collection;
   window.addDoc = addDoc;
@@ -182,7 +187,18 @@ window.deslogarUsuario = function () {
     atualizarListaPDFs();
     atualizarResumoPedidosAEviar();
   });
-
+  
+function escapeHTML(str) {
+  return (str || "").replace(/[&<>"']/g, function (c) {
+    return ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[c];
+  });
+}
   // Atualizar pedido específico
   async function atualizarPedido(id, dados) {
     const ref = doc(db, "pedidos_pendentes", id);
@@ -198,12 +214,11 @@ window.deslogarUsuario = function () {
     const promises = [];
 
     pendentesSnap.forEach(docPendente => {
-      const idPendente = (docPendente.data().Pedido || docPendente.data().pedidoId || "").toString().trim();
-
-      const existeNosEnviados = enviados.some(env => {
-        const idEnviado = (env.Pedido || env.pedidoId || "").toString().trim();
-        return idEnviado === idPendente;
-      });
+      const idPendente = normalizarId(docPendente.data().Pedido || docPendente.data().pedidoId);
+const existeNosEnviados = enviados.some(env => {
+  const idEnviado = normalizarId(env.Pedido || env.pedidoId);
+  return idEnviado === idPendente;
+});
 
       if (existeNosEnviados) {
         promises.push(deleteDoc(doc(db, "pedidos_pendentes", docPendente.id)));
@@ -250,14 +265,14 @@ window.deslogarUsuario = function () {
       const p = doc.data();
       const tr = document.createElement("tr");
 
-      tr.innerHTML = `
-        <td>${p.Loja || "-"}</td>
-        <td>${p.pedidoId || "-"}</td>
-        <td>${p.SKU || "-"}</td>
-        <td>${p.Rastreio || "-"}</td>
-        <td>${p.dataPagamento ? new Date(p.dataPagamento).toLocaleDateString() : "-"}</td>
-        <td>${p.dataEnvio ? new Date(p.dataEnvio).toLocaleDateString() : "-"}</td>
-      `;
+     tr.innerHTML = `
+  <td>${escapeHTML(p.Loja || "-")}</td>
+  <td>${escapeHTML(p.pedidoId || "-")}</td>
+  <td>${escapeHTML(p.SKU || "-")}</td>
+  <td>${escapeHTML(p.Rastreio || "-")}</td>
+  <td>${p.dataPagamento ? escapeHTML(new Date(p.dataPagamento).toLocaleDateString()) : "-"}</td>
+  <td>${p.dataEnvio ? escapeHTML(new Date(p.dataEnvio).toLocaleDateString()) : "-"}</td>
+`;
 
       tbody.appendChild(tr);
     });
@@ -268,6 +283,9 @@ window.deslogarUsuario = function () {
 </script>
 
 <script>
+  function normalizarId(id) {
+  return (id || '').toString().trim().toLowerCase().replace(/^0+/, '');
+}
   async function carregarPendentesFirebase() {
   const snapshot = await getDocs(collection(db, "pedidos_pendentes"));
   const pendentes = [];
@@ -536,8 +554,7 @@ function removerMeta(loja) {
     );
   };
 </script>
-<!-- Fonte moderna Inter -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap" rel="stylesheet">
+
 
  <style>
   body {
@@ -912,8 +929,8 @@ body.dark-mode button {
     </p>
     <button onclick="processarArquivos()">📥 Importar e Comparar</button>
 <button onclick="apagarTudo()" style="background:red;color:white;font-weight:bold;">🧨 Apagar TODOS os dados</button>
-<button onclick="removerPendentesJaEnviados()">🧹 Remover pedidos já enviados</button>
-<button onclick="verificarEDeduplicarPedidos()" style="background:#ffc107;color:#000;font-weight:bold;">🔍 Verificar e Limpar Duplicados</button>
+<button onclick="AppCasaRosa.removerPendentesJaEnviados()">...</button>
+  <button onclick="verificarEDeduplicarPedidos()" style="background:#ffc107;color:#000;font-weight:bold;">🔍 Verificar e Limpar Duplicados</button>
 
     <hr style="margin:2rem 0;">
       </div>
