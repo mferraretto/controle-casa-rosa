@@ -219,11 +219,6 @@ function atualizarTabelasEViewsEnviados() {
   if (typeof atualizarResumoPedidosAEviar === "function") atualizarResumoPedidosAEviar();
 }
 
-// Listener "Pedidos Enviados"
-onSnapshot(collection(db, "pedidos_enviados"), (snapshot) => {
-  AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  atualizarTabelasEViewsEnviados();
-});
 
 // Listener "Pedidos Pendentes"
 onSnapshot(pedidosQuery, snapshot => {
@@ -911,20 +906,16 @@ body.dark-mode button {
 <div class="tab" onclick="abrirAba('a_enviar')"><i class="fas fa-clock"></i> A Enviar</div>
 <div class="tab" onclick="abrirAba('cancelados')"><i class="fas fa-ban"></i> Cancelados</div>
 <div class="tab" onclick="abrirAba('etiquetas_pdf')"><i class="fas fa-file-pdf"></i> Etiquetas</div>
-<div class="tab" onclick="abrirAba('aba-metas'); preencherLojasInputMeta(); preencherFiltroLojaMetas(); atualizarRelatorioMetas(); renderizarMetasManuais();">
-  <i class="fas fa-bullseye"></i> Metas Diárias
+<div class="tab" onclick="abrirAba('aba-metas'); AppCasaRosa.preencherLojasInputMeta(); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.renderizarMetasManuais();">  <i class="fas fa-bullseye"></i> Metas Diárias
 </div>
-<div class="tab" onclick="abrirAba('aba-skus-equivalentes'); carregarSkusEquivalentes();">
+<div class="tab" onclick="openAba('aba-skus-equivalents'); AppCasaRosa. loadSkusEquivalents();">
   <i class="fas fa-code-branch"></i> SKUs Equivalentes
 </div>
-    <div class="tab" onclick="abrirAba('aba-produtos'); carregarProdutos();">
-  <i class="fas fa-box"></i> Produtos
+ <div class="tab" onclick="abrirAba('aba-produtos'); AppCasaRosa.carregarProdutos();">  <i class="fas fa-box"></i> Produtos
 </div>
-<div class="tab" onclick="abrirAba('aba-logs'); carregarLogs();">
-  <i class="fas fa-clipboard-list"></i> Logs
+<div class="tab" onclick="abrirAba('aba-logs'); AppCasaRosa. carregarLogs();">  <i class="fas fa-clipboard-list"></i> Logs
 </div>
-<div class="tab" onclick="abrirAba('aba-admin'); preencherFiltroLojaMetas(); atualizarRelatorioMetas(); carregarProdutos(); atualizarCardsMetas();">
-  <i class="fas fa-user-shield"></i> Administrador
+<div class="tab" onclick="abrirAba('aba-admin'); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.carregarProdutos(); AppCasaRosa.atualizarCardsMetas();">  <i class="fas fa-user-shield"></i> Administrador
 </div>
 
 
@@ -996,8 +987,8 @@ body.dark-mode button {
 <div class="card-filtros">
   <label>🏪 Filtrar por Loja:</label>
 <select id="filtroMultiloja" multiple onchange="AppCasaRosa.atualizarDashboardPendentes()"></select>
-  <select id="filtroMultiproduto" multiple onchange="AppCasaRosa.atualizarDashboardPendentes()"></select>
-
+   <label>🔍 Filtrar por Produto:</label>
+<select id="filtroMultiproduto" multiple onchange="AppCasaRosa.atualizarDashboardPendentes()"></select>
   <div style="flex-basis: 100%;">
     <button onclick="
     document.getElementById('filtroMultiloja').selectedIndex = -1;
@@ -1279,15 +1270,15 @@ body.dark-mode button {
   <div class="filtros-dashboard">
     <label>
       📅 Data:
-      <input type="date" id="filtroDataMetas" onchange="atualizarRelatorioMetas()" />
+      <input type="date" id="filtroDataMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()" />
     </label>
     <label>
-      <input type="checkbox" id="filtroMesInteiroMetas" onchange="atualizarRelatorioMetas()" />
+      <input type="checkbox" id="filtroMesInteiroMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()" />
       🔄 Considerar mês inteiro
     </label>
     <label>
       🏪 Loja:
-      <select id="filtroLojaMetas" onchange="atualizarRelatorioMetas()">
+      <select id="filtroLojaMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()">
         <option value="">Todas</option>
       </select>
     </label>
@@ -1315,25 +1306,25 @@ body.dark-mode button {
     document.getElementById(id).classList.add('active');
 
     if (id === "dashboard") {
-      atualizarDashboardPorDataLoja();
-      atualizarResumoVendasMensal();
-      preencherFiltroLojaDashboard();
-      gerarResumoVendasPorProduto();
-      preencherFiltroProdutosDashboard();
-      renderizarGraficoVendasPorDia();
-      renderizarGraficoTopComparativo();
-      renderizarGraficoTempoEnvio();
-      gerarRelatorioDetalhado();
+       AppCasaRosa.atualizarDashboardPorDataLoja();
+      AppCasaRosa.atualizarResumoVendasMensal();
+      AppCasaRosa.preencherFiltroLojaDashboard();
+      AppCasaRosa.gerarResumoVendasPorProduto();
+      AppCasaRosa.preencherFiltroProdutosDashboard();
+      AppCasaRosa.renderizarGraficoVendasPorDia();
+      AppCasaRosa.renderizarGraficoTopComparativo();
+      AppCasaRosa.renderizarGraficoTempoEnvio();
+      AppCasaRosa.gerarRelatorioDetalhado();
     } else if (id === "aba-metas") {
-      preencherFiltroLojaMetas();
-      atualizarRelatorioMetas();
+       AppCasaRosa.preencherFiltroLojaMetas();
+      AppCasaRosa.atualizarRelatorioMetas();
     } else if (id === "aba-produtos") {
-      carregarProdutos();
-       } else if (id === "aba-admin") {
-      preencherFiltroLojaMetas();
-      atualizarRelatorioMetas();
-      carregarProdutos();
-      atualizarCardsMetas();
+      AppCasaRosa.carregarProdutos();
+    } else if (id === "aba-admin") {
+      AppCasaRosa.preencherFiltroLojaMetas();
+      AppCasaRosa.atualizarRelatorioMetas();
+      AppCasaRosa.carregarProdutos();
+      AppCasaRosa.atualizarCardsMetas();
     }
   }
   // Retorna o primeiro campo definido em obj dentre a lista de keys
@@ -1771,9 +1762,7 @@ gerarRelatorioDetalhado();
     const pendentes = AppCasaRosa.importadosList || [];
 
     const lojas = [...new Set(pendentes.map(p => p.Loja).filter(Boolean))].sort();
-      const produtos = [...new Set(pendentes.map(p => AppCasaRosa.obterSkuPrincipal(p.SKU)).filter(Boolean))].sort();
-
-
+const produtos = [...new Set(pendentes.map(p => AppCasaRosa.obterSkuPrincipal(p.SKU)).filter(Boolean))].sort();
     const selectLoja = document.getElementById("filtroMultiloja");
     const selectProduto = document.getElementById("filtroMultiproduto");
 
@@ -1801,6 +1790,9 @@ function calcularHorasUteis(dataInicio, dataFim) {
 
   return totalHoras;
 }
+   function obterLojaPrincipal(p) {
+  return (p.Loja || p["Nome da Loja no UpSeller"] || p["Nome da Loja"] || "").trim().toLowerCase();
+} 
 
  function aplicarFiltroPedidos() {
   const todosPedidos       = AppCasaRosa.importadosList || [];
@@ -1824,7 +1816,7 @@ function calcularHorasUteis(dataInicio, dataFim) {
   // Aplica o filtro
   const filtrados = todosPedidos.filter(p => {
     const loja    = p.Loja || "";
-    const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
+const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
     const lojaOk    = !lojaSelecionada    || loja    === lojaSelecionada;
     const produtoOk = !produtoSelecionado || produto === produtoSelecionado;
     return lojaOk && produtoOk;
@@ -2290,12 +2282,12 @@ AppCasaRosa.preencherFiltroLojaDashboard = function() {
 
 // Dispara ao carregar a página
 document.addEventListener("DOMContentLoaded", () => {
-  if (typeof atualizarResumoVendasMensal === "function") atualizarResumoVendasMensal();
-  if (typeof atualizarDashboardPorDataLoja === "function") atualizarDashboardPorDataLoja();
+  if (typeof AppCasaRosa.atualizarResumoVendasMensal === "function") AppCasaRosa.atualizarResumoVendasMensal();
+  if (typeof AppCasaRosa.atualizarDashboardPorDataLoja === "function") AppCasaRosa.atualizarDashboardPorDataLoja();
   if (typeof AppCasaRosa.preencherFiltroLojaDashboard === "function") AppCasaRosa.preencherFiltroLojaDashboard();
-  if (typeof preencherFiltroLojaMetas === "function") preencherFiltroLojaMetas();
-  if (typeof carregarProdutos === "function") carregarProdutos();
-  if (typeof atualizarRelatorioMetas === "function") atualizarRelatorioMetas();
+   if (typeof AppCasaRosa.preencherFiltroLojaMetas === "function") AppCasaRosa.preencherFiltroLojaMetas();
+  if (typeof AppCasaRosa.carregarProdutos === "function") AppCasaRosa.carregarProdutos();
+  if (typeof AppCasaRosa.atualizarRelatorioMetas === "function") AppCasaRosa.atualizarRelatorioMetas();
 
   // Ajusta o filtro de data da aba “Importados” para hoje
   const hoje = new Date().toISOString().split("T")[0];
@@ -2312,7 +2304,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (select) {
         select.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
       }
-      se (tipo de AppCasaRosa.atualizarDashboardPendentes === "função") {
+        if (typeof AppCasaRosa.atualizarDashboardPendentes === "function") {
         AppCasaRosa.atualizarDashboardPendentes();
       }
     });
@@ -2732,10 +2724,8 @@ renderTabela = function(destinoId, dados) {
 </script>
   <script>
   function considerar(loja) {
- const lojasSelecionadas = Array.from(
-      document.getElementById('filtroMultiloja').selectedOptions
-    ).map(opt => opt.value);
-    return lojasSelecionadas.length === 0 || lojasSelecionadas.includes(loja);
+ const lojasSelecionadas = Array.from(selectLoja.selectedOptions).map(opt => opt.value);
+const lojaOk = !lojasSelecionadas.length || lojasSelecionadas.includes(loja);
   }
     </script>
 <script>
@@ -4025,15 +4015,16 @@ AppCasaRosa.excluirSkuEquivalente = async function(base) {
 
     if (AppCasaRosa.carregarSkusEquivalentes) {
       await AppCasaRosa.carregarSkusEquivalentes(); // Recarrega os dados sincronizados
-    } else {
-      await carregarSkusEquivalentes();
+    
     }
   } catch (e) {
     console.error("Erro ao excluir SKU:", e);
     alert("Erro ao excluir agrupamento.");
   }
 };
-
+window.salvarSkuEquivalente = AppCasaRosa.salvarSkuEquivalente;
+window.excluirSkuEquivalente = AppCasaRosa.excluirSkuEquivalente;
+window.renderizarTabelaSkus = AppCasaRosa.renderizarTabelaSkus;
 AppCasaRosa.excluirMeta = async function(id) {
   if (!confirm("Deseja realmente excluir esta meta?")) return;
 
@@ -4154,34 +4145,7 @@ AppCasaRosa.salvarSkuEquivalente = async function (event) {
 
 };
 
-// 🗑️ Deleta agrupamento
-AppCasaRosa.excluirSkuEquivalente = async function (base) {
-  const snap = await getDocs(query(collection(db, "skus_equivalentes")));
-  snap.forEach(doc => {
-    if (doc.data().base === base) deleteDoc(doc.ref);
-  });
-  AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
 
-};
-
-// 📋 Renderiza na tabela
-AppCasaRosa.renderizarTabelaSkus = function() {
-  const tabela = document.querySelector("#tabelaSkus tbody");
-  tabela.innerHTML = "";
-
-  const equivalentes = AppCasaRosa.skusEquivalentes || {};
-  Object.entries(equivalentes).forEach(([base, aliases]) => {
-    const linha = document.createElement("tr");
-    linha.innerHTML = `
-      <td>${base}</td>
-      <td>${aliases.join(", ")}</td>
-      <td>
-        <button onclick="AppCasaRosa.excluirSkuEquivalente('${base}')">🗑️</button>
-      </td>
-    `;
-    tabela.appendChild(linha);
-  });
-};
   AppCasaRosa.carregarProdutos = async function() {
   const snap = await getDocs(collection(db, "produtos"));
   const tbody = document.querySelector("#tabelaProdutos tbody");
@@ -4202,7 +4166,6 @@ AppCasaRosa.renderizarTabelaSkus = function() {
     }
   });
 };
-  AppCasaRosa.carregarProdutos = carregarProdutos;
 
 
 AppCasaRosa.salvarProduto = async function(event) {
@@ -4220,11 +4183,9 @@ AppCasaRosa.salvarProduto = async function(event) {
   document.getElementById("formProduto").reset();
   if (AppCasaRosa.carregarProdutos) {
     AppCasaRosa.carregarProdutos();
-  } else {
-    carregarProdutos();
   }
 };
-AppCasaRosa.salvarProduto = salvarProduto;
+window.salvarProduto = AppCasaRosa.salvarProduto;
 
 AppCasaRosa.excluirProduto = async function(id) {
   if (!confirm("Excluir produto?")) return;
@@ -4236,12 +4197,10 @@ AppCasaRosa.excluirProduto = async function(id) {
   }
   if (AppCasaRosa.carregarProdutos) {
     AppCasaRosa.carregarProdutos();
-  } else {
-    carregarProdutos();
+  
   }
 };
-AppCasaRosa.excluirProduto = excluirProduto;
-
+window.excluirProduto = AppCasaRosa.excluirProduto;
 AppCasaRosa.obterSkuPrincipal = function(sku) {
   const equivalentes = AppCasaRosa.skusEquivalentes || {};
   for (const base in equivalentes) {
