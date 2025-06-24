@@ -57,7 +57,22 @@ import {
   // Inicializa o Firebase e Firestore
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
-const auth = getAuth(app);
+ const auth = getAuth(app);
+
+  // Disponibiliza instância e helpers globalmente para scripts não-modulares
+  Object.assign(window, {
+    db,
+    collection,
+    addDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    updateDoc,
+    deleteDoc,
+    doc,
+    getDoc,
+    getDocs,
+  });
   AppCasaRosa.auth = auth;
   // 🔁 Sincroniza SKUs equivalentes em tempo real
 AppCasaRosa.skusEquivalentes = {};
