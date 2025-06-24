@@ -99,7 +99,7 @@ window.deslogarUsuario = function () {
   signOut(auth).then(() => location.reload());
 };
   // Remover pendentes que já estão como enviados
-  async function removerPendentesJaEnviados() {
+ async function removerPendentesJaEnviados() {
   try {
     const pendentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
     const enviadosSnap  = await getDocs(collection(db, "pedidos_enviados"));
@@ -201,10 +201,13 @@ function escapeHTML(str) {
 }
   // Atualizar pedido específico
   async function atualizarPedido(id, dados) {
+  try {
     const ref = doc(db, "pedidos_pendentes", id);
     await updateDoc(ref, dados);
+  } catch (e) {
+    alert("Erro ao atualizar pedido: " + (e.message || e));
   }
-
+}
   // Sincronizar pendentes automaticamente com enviados
   onSnapshot(collection(db, "pedidos_enviados"), async (snapshot) => {
     const enviados = [];
@@ -294,7 +297,7 @@ const existeNosEnviados = enviados.some(env => {
       pendentes.push({ id: doc.id, ...doc.data() });
     });
 
-    // ... resto da função ...
+    // Atualize esta parte abaixo
     const enviados = window.enviadosList || [];
     const idsEnviados = new Set(
       enviados.map(e =>
@@ -543,6 +546,7 @@ function removerMeta(loja) {
 
   // Cancela um pedido: atualiza status e registra em coleção “pedidos_cancelados”
   window.cancelarPedido = async id => {
+  try {
     const motivo = prompt("Digite o motivo do cancelamento:");
     if (!motivo) return;
     // 1) Atualiza o próprio pedido
@@ -560,7 +564,10 @@ function removerMeta(loja) {
         dataCancelamento: new Date().toISOString()
       }
     );
-  };
+  } catch (e) {
+    alert("Erro ao cancelar pedido: " + (e.message || e));
+  }
+};
 </script>
 
 
