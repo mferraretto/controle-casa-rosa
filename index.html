@@ -2027,7 +2027,7 @@ document.getElementById("percentual-atrasados").textContent = percentual;
 
 }
 
-function gerarResumoVendasPorProduto() {
+AppCasaRosa.gerarResumoVendasPorProduto = function () {
   const enviados = AppCasaRosa.enviadosList || [];
 
   const dataSelecionada = document.getElementById("filtroDataDashboard")?.value;
@@ -2052,21 +2052,25 @@ function gerarResumoVendasPorProduto() {
 
     if (lojaSelecionada && p.Loja !== lojaSelecionada) return;
 
-    // Usa os SKUs equivalentes em memória, atualizados em tempo real
+    // Usa os SKUs equivalentes em memória
     const agrupamentos = AppCasaRosa.skusEquivalentes || {};
-let skuOriginal = p.SKU || "Produto desconhecido";
+    const skuOriginal = p.SKU || "Produto desconhecido";
 
-// Aplica agrupamento: transforma para SKU base se existir
-const sku = Object.entries(agrupamentos).find(([, lista]) => lista.includes(skuOriginal))?.[0] || skuOriginal;
+    // Aplica agrupamento: transforma para SKU base se existir
+    const sku = Object.entries(agrupamentos).find(([, lista]) => lista.includes(skuOriginal))?.[0] || skuOriginal;
 
-// Aplica filtro, se houver
-if (produtosSelecionados.length > 0 && !produtosSelecionados.includes(sku)) return;
+    // Aplica filtro, se houver
+    if (produtosSelecionados.length > 0 && !produtosSelecionados.includes(sku)) return;
 
-resumo[sku] = (resumo[sku] || 0) + 1;
-
+    resumo[sku] = (resumo[sku] || 0) + 1;
   });
 
   const container = document.getElementById("vendas-por-produto");
+  if (!container) {
+    console.warn("⚠️ Elemento #vendas-por-produto não encontrado.");
+    return;
+  }
+
   container.innerHTML = "";
 
   if (!Object.keys(resumo).length) {
@@ -2094,7 +2098,8 @@ resumo[sku] = (resumo[sku] || 0) + 1;
       `;
       container.appendChild(card);
     });
-}
+};
+
 // 1) Dias úteis entre duas datas (exclui início ou fim conforme necessidade)
 function calcularDiasUteis(dataInicial, dataFinal) {
   let d1 = new Date(dataInicial);
@@ -4170,7 +4175,7 @@ AppCasaRosa.atualizarCardsMetas = async function () {
 
 
   AppCasaRosa.carregarProdutos = async function() {
-  const snap = await getDocs(collection(db, "produtos"));
+const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "produtos"));
   const tbody = document.querySelector("#tabelaProdutos tbody");
   AppCasaRosa.produtosMap = {};
   if (tbody) tbody.innerHTML = "";
