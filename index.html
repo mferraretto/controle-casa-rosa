@@ -3287,6 +3287,7 @@ document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]")
       width: '100%'
     });
   });
+// 🧹 Função para verificar e remover pedidos duplicados (em qualquer aba)
 async function verificarEDeduplicarPedidos() {
   const colecoes = [
     { nome: "pedidos_enviados", label: "enviados" },
@@ -3298,21 +3299,21 @@ async function verificarEDeduplicarPedidos() {
   const aExcluir = [];
 
   for (const { nome, label } of colecoes) {
-    const snap = await getDocs(collection(db, nome));
+    const snap = await AppCasaRosa.getDocs(
+      AppCasaRosa.collection(AppCasaRosa.db, nome)
+    );
+
     const vistosLocais = new Set();
 
     snap.forEach(doc => {
       const pedidoId = (doc.data().pedidoId || doc.data().Pedido || "").toString().trim().toUpperCase();
       if (!pedidoId) return;
 
-      const key = `${label}-${pedidoId}`;     // chave única por coleção
-      const keyGlobal = pedidoId;             // usada para identificar duplicidade entre abas
+      const keyGlobal = pedidoId;
 
       if (vistosLocais.has(pedidoId)) {
-        // 🧹 Duplicado dentro da mesma aba
         aExcluir.push({ ref: doc.ref, motivo: `Duplicado interno em ${label}` });
       } else if (vistosGlobais.has(keyGlobal)) {
-        // 🧹 Duplicado entre coleções (já visto antes em outra aba)
         aExcluir.push({ ref: doc.ref, motivo: `Duplicado entre coleções (em ${label})` });
       } else {
         vistosLocais.add(pedidoId);
@@ -3327,13 +3328,17 @@ async function verificarEDeduplicarPedidos() {
   }
 
   for (const { ref } of aExcluir) {
-    await deleteDoc(ref);
+    await AppCasaRosa.deleteDoc(ref);
   }
 
   alert(`✅ ${aExcluir.length} pedidos duplicados foram removidos (internos e entre abas).`);
   location.reload();
-
 }
+
+// Torna acessível globalmente (caso esteja usando onclick no HTML)
+window.verificarEDeduplicarPedidos = verificarEDeduplicarPedidos;
+
+// 🧠 Inicialização segura do Select2 + evento change
 $(document).ready(function () {
   $('#filtroProdutoDashboard').select2({
     placeholder: "Escolha os produtos",
@@ -3341,9 +3346,15 @@ $(document).ready(function () {
     width: 'resolve'
   });
 
-$('#filtroProdutoDashboard').on('change', AppCasaRosa.gerarResumoVendasPorProduto);
+  // Garante que a função foi carregada antes de vincular
+  if (typeof AppCasaRosa.gerarResumoVendasPorProduto === "function") {
+    $('#filtroProdutoDashboard').on('change', AppCasaRosa.gerarResumoVendasPorProduto);
+  }
 });
-let graficoVendasPorDia; // manter referência global
+
+// Referência para gráfico global (opcional)
+let graficoVendasPorDia;
+
 
 AppCasaRosa.renderizarGraficoVendasPorDia = function() {
   const enviados = AppCasaRosa.enviadosList || [];
