@@ -2495,34 +2495,6 @@ async function exportarRelatorioPDF() {
   doc.save(`relatorio_vendas_${mesSelecionado}.pdf`);
 }
 
-
-// Atualiza os cards de cancelamentos (hoje e no mês)
-function atualizarResumoCancelados() {
-  const cancelados = AppCasaRosa.canceladosList || [];
-
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const hojeStr  = hoje.toISOString().split("T")[0];
-  const mesAtual = hoje.getMonth();
-  const anoAtual = hoje.getFullYear();
-
-  let totalHoje = 0;
-  let totalMes  = 0;
-
-  cancelados.forEach(p => {
-    const dtStr = p.dataCancelamento?.split("T")[0];
-    if (!dtStr) return;
-    if (dtStr === hojeStr) totalHoje++;
-    const dt = new Date(dtStr);
-    if (dt.getFullYear() === anoAtual && dt.getMonth() === mesAtual) {
-      totalMes++;
-    }
-  });
-
-  document.getElementById("cancelados-hoje").textContent = totalHoje;
-  document.getElementById("cancelados-mes").textContent  = totalMes;
-}
-
 // Gera o gráfico de cancelamentos por dia do mês atual
 function gerarGraficoCancelados() {
   const cancelados = AppCasaRosa.canceladosList || [];
@@ -3163,7 +3135,7 @@ async function exportarDashboardPDF() {
   const loja = document.getElementById("filtroLojaDashboard")?.value || "Todas";
   const mes = document.getElementById("filtroMesDashboard")?.value || "Não selecionado";
 
-  const aEnviar = document.getElementById("valor-a-enviar-dashboard").textContent;
+   const aEnviar = document.getElementById("valor-a-enviar-dashboard").textContent;
   const enviados = document.getElementById("valor-enviados-dashboard").textContent;
   const enviadosAtraso = document.getElementById("valor-enviados-atrasados-dashboard")?.textContent || "0";
   const atrasados = document.getElementById("valor-atrasados-dashboard").textContent;
