@@ -1309,15 +1309,14 @@ AppCasaRosa.atualizarResumoVendasMensal = function() {
 
   // ✅ Função para obter SKU base
   AppCasaRosa.obterSkuBase = function(sku) {
- const equivalents = AppCasaRosa.skusEquivalentes || {};
-  for (const [base, aliases] of Object.entries(equivalents)) {
-    if (base === sku || (Array.isArray(aliases) && aliases.includes(sku))) {
-      return base;
+    const equivalents = AppCasaRosa.skusEquivalentes || {};
+    for (const [base, aliases] of Object.entries(equivalents)) {
+      if (base === sku || (Array.isArray(aliases) && aliases.includes(sku))) {
+        return base;
+      }
     }
-  }
-  return sku;
-};
-
+    return sku;
+  };
 
   const resumo = {};
 
@@ -1332,10 +1331,7 @@ AppCasaRosa.atualizarResumoVendasMensal = function() {
     const loja = p.Loja || "";
     if (lojaSelecionada && loja !== lojaSelecionada) return;
 
-    const skuOriginal = p.SKU || "Desconhecido";
-    const skuBase = AppCasaRosa.obterSkuBase(p.SKU);
-
-
+    const skuBase = AppCasaRosa.obterSkuBase(p.SKU || "Desconhecido");
     resumo[skuBase] = (resumo[skuBase] || 0) + 1;
   });
 
@@ -1347,9 +1343,12 @@ AppCasaRosa.atualizarResumoVendasMensal = function() {
     )
     .join("");
 
-  document.getElementById("vendas-por-produto").innerHTML =
-    saida || "<i style='color:#888'>Nenhuma venda no período.</i>";
-}
+  const vendasContainer = document.getElementById("vendas-por-produto");
+  if (vendasContainer) {
+    vendasContainer.innerHTML = saida || "<i style='color:#888'>Nenhuma venda no período.</i>";
+  }
+};
+
 
   // Lê um arquivo .xlsx e passa o JSON da primeira planilha ao callback
   function lerArquivo(input, callback) {
@@ -4235,6 +4234,11 @@ AppCasaRosa.obterSkuPrincipal = function(sku) {
   }
   return sku;
 };
+document.addEventListener("DOMContentLoaded", () => {
+  if (typeof AppCasaRosa.atualizarResumoVendasMensal === "function") {
+    AppCasaRosa.atualizarResumoVendasMensal();
+  }
+});
 
 </script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
