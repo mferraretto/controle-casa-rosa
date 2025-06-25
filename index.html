@@ -1426,7 +1426,10 @@ async function processarArquivos() {
 
             console.log("✅ Pedido enviado:", pedidoId);
           } else {
-            await addDoc(collection(db, "pedidos_pendentes"), baseDoc);
+            await AppCasaRosa.addDoc(
+  AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes"),
+  baseDoc
+);
             console.log("🕒 Pedido pendente:", pedidoId);
           }
         } catch (erro) {
