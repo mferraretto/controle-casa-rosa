@@ -2946,7 +2946,7 @@ function abrirPDF(index) {
   if (!pdf) return;
   const blob = dataURLToBlob(pdf.conteudo);
   const url = URL.createObjectURL(blob);
-  AppCasaRosa.open(url, "_blank");
+  window.open(url, "_blank");
 }
 
 function baixarPDF(index) {
