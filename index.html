@@ -1346,8 +1346,7 @@ AppCasaRosa.atualizarResumoVendasMensal = function() {
   document.getElementById("vendas-por-produto").innerHTML =
     saida || "<i style='color:#888'>Nenhuma venda no período.</i>";
 }
-// Disponibiliza no namespace para acesso pelos handlers
-window.AppCasaRosa.atualizarResumoVendasMensal = atualizarResumoVendasMensal;
+
   // Lê um arquivo .xlsx e passa o JSON da primeira planilha ao callback
   function lerArquivo(input, callback) {
     const reader = new FileReader();
