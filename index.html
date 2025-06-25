@@ -1454,128 +1454,122 @@ async function processarArquivos() {
 
   // ─── IMPORTAR "A ENVIAR" ──────────────────────────────
   if (enviarTemArquivo) {
-  await new Promise(resolve => {
-    lerArquivo(inputEnviar, async dadosEnviar => {
-      for (const p of dadosEnviar) {
-        const pedidoId = normalizarCampo(p, ["Nº de Pedido da Plataforma"]).toString().trim().toUpperCase();
-        if (!pedidoId || idsExistentes.has(pedidoId)) continue;
+    await new Promise(resolve => {
+      lerArquivo(inputEnviar, async dadosEnviar => {
+        for (const p of dadosEnviar) {
+          const pedidoId = normalizarCampo(p, ["Nº de Pedido da Plataforma"]).toString().trim().toUpperCase();
+          if (!pedidoId || idsExistentes.has(pedidoId)) continue;
 
-        const statusPosVenda = normalizarCampo(p, ["Pós-venda/Cancelado/Devolvido", "Pós-venda"]);
-        const horaEnvio = normalizarCampo(p, ["Hora de Envio"]);
+          const statusPosVenda = normalizarCampo(p, ["Pós-venda/Cancelado/Devolvido", "Pós-venda"]);
+          const horaEnvio = normalizarCampo(p, ["Hora de Envio"]);
 
-        const baseDoc = {
-          pedidoId,
-          Loja: normalizarCampo(p, ["Loja", "Nome da Loja no UpSeller"]),
-          SKU: normalizarCampo(p, ["SKU"]),
-          Rastreio: normalizarCampo(p, ["Nº de Rastreio", "Código de Rastreio"]),
-          dataPagamento: p["Impressão da Etiqueta"]
-            ? new Date(p["Impressão da Etiqueta"]).toISOString()
-            : new Date().toISOString(),
-          status: "novo"
-        };
+          const baseDoc = {
+            pedidoId,
+            Loja: normalizarCampo(p, ["Loja", "Nome da Loja no UpSeller"]),
+            SKU: normalizarCampo(p, ["SKU"]),
+            Rastreio: normalizarCampo(p, ["Nº de Rastreio", "Código de Rastreio"]),
+            dataPagamento: p["Impressão da Etiqueta"]
+              ? new Date(p["Impressão da Etiqueta"]).toISOString()
+              : new Date().toISOString(),
+            status: "novo"
+          };
 
-        try {
-          if (statusPosVenda?.toLowerCase().includes("cancelado")) {
-            await addDoc(collection(db, "pedidos_cancelados"), {
-              ...baseDoc,
-              motivo: "Cancelado automaticamente via planilha",
-              dataCancelamento: new Date().toISOString()
-            });
-            console.log("📦 Pedido cancelado:", pedidoId);
-          } else if (horaEnvio && !isNaN(new Date(horaEnvio))) {
-  await addDoc(collection(db, "pedidos_enviados"), {
-    ...baseDoc,
-    dataEnvio: new Date(horaEnvio).toISOString()
-  });
-
-            console.log("✅ Pedido enviado:", pedidoId);
-          } else {
-            await AppCasaRosa.addDoc(
-  AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes"),
-  baseDoc
-);
-            console.log("🕒 Pedido pendente:", pedidoId);
+          try {
+            if (statusPosVenda?.toLowerCase().includes("cancelado")) {
+              await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_cancelados"), {
+                ...baseDoc,
+                motivo: "Cancelado automaticamente via planilha",
+                dataCancelamento: new Date().toISOString()
+              });
+              console.log("📦 Pedido cancelado:", pedidoId);
+            } else if (horaEnvio && !isNaN(new Date(horaEnvio))) {
+              await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados"), {
+                ...baseDoc,
+                dataEnvio: new Date(horaEnvio).toISOString()
+              });
+              console.log("✅ Pedido enviado:", pedidoId);
+            } else {
+              await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes"), baseDoc);
+              console.log("🕒 Pedido pendente:", pedidoId);
+            }
+          } catch (erro) {
+            console.error("❌ Erro ao salvar pedido:", pedidoId, erro);
           }
-        } catch (erro) {
-          console.error("❌ Erro ao salvar pedido:", pedidoId, erro);
         }
-      }
 
-      alert("✅ Pedidos 'a enviar' importados com sucesso!");
-      resolve();
+        alert("✅ Pedidos 'a enviar' importados com sucesso!");
+        resolve();
+      });
     });
-  });
-}
-
+  }
 
   // ─── IMPORTAR "ENVIADOS" ──────────────────────────────
-if (enviadosTemArquivo) {
-  await new Promise(resolve => {
-    lerArquivo(inputEnviados, async dadosEnviados => {
-      console.log("📦 Dados da planilha ENVIADOS:", dadosEnviados);
+  if (enviadosTemArquivo) {
+    await new Promise(resolve => {
+      lerArquivo(inputEnviados, async dadosEnviados => {
+        console.log("📦 Dados da planilha ENVIADOS:", dadosEnviados);
 
-      for (const pedido of dadosEnviados) {
-        const pedidoId = normalizarCampo(pedido, [
-          "Nº de Pedido da Plataforma",
-          "Número do Pedido",
-          "Pedido",
-          "ID do Pedido"
-        ]).toString().trim().toUpperCase();
+        for (const pedido of dadosEnviados) {
+          const pedidoId = normalizarCampo(pedido, [
+            "Nº de Pedido da Plataforma",
+            "Número do Pedido",
+            "Pedido",
+            "ID do Pedido"
+          ]).toString().trim().toUpperCase();
 
-        if (!pedidoId) continue;
+          if (!pedidoId) continue;
 
-        const loja = normalizarCampo(pedido, ["Loja", "Nome da Loja no UpSeller"]);
-        const sku = normalizarCampo(pedido, ["SKU", "Produto"]);
-        const rastreio = normalizarCampo(pedido, ["Código de Rastreio", "Rastreio", "Nº de Rastreio"]);
-        const pagRaw = normalizarCampo(pedido, ["Data de Pagamento", "Impressão da Etiqueta"]);
-        const envioRaw = normalizarCampo(pedido, ["Hora de Envio"]);
+          const loja = normalizarCampo(pedido, ["Loja", "Nome da Loja no UpSeller"]);
+          const sku = normalizarCampo(pedido, ["SKU", "Produto"]);
+          const rastreio = normalizarCampo(pedido, ["Código de Rastreio", "Rastreio", "Nº de Rastreio"]);
+          const pagRaw = normalizarCampo(pedido, ["Data de Pagamento", "Impressão da Etiqueta"]);
+          const envioRaw = normalizarCampo(pedido, ["Hora de Envio"]);
 
-        const dataPagamento = pagRaw && !isNaN(new Date(pagRaw)) ? new Date(pagRaw).toISOString() : null;
-        const dataEnvio = envioRaw && !isNaN(new Date(envioRaw)) ? new Date(envioRaw).toISOString() : new Date().toISOString();
+          const dataPagamento = pagRaw && !isNaN(new Date(pagRaw)) ? new Date(pagRaw).toISOString() : null;
+          const dataEnvio = envioRaw && !isNaN(new Date(envioRaw)) ? new Date(envioRaw).toISOString() : new Date().toISOString();
 
-        try {
-          // 1️⃣ Verifica se já está em pedidos_enviados ou pedidos_cancelados
-          const enviadoJaExiste = enviadosSnap.docs.some(d => (d.data().pedidoId || "").toUpperCase() === pedidoId);
-          const canceladoJaExiste = canceladosSnap.docs.some(d => (d.data().pedidoId || "").toUpperCase() === pedidoId);
+          try {
+            const enviadoJaExiste = enviadosSnap.docs.some(d => (d.data().pedidoId || "").toUpperCase() === pedidoId);
+            const canceladoJaExiste = canceladosSnap.docs.some(d => (d.data().pedidoId || "").toUpperCase() === pedidoId);
 
-          if (enviadoJaExiste || canceladoJaExiste) {
-            console.warn("⏭️ Ignorado (já enviado ou cancelado):", pedidoId);
-            continue;
+            if (enviadoJaExiste || canceladoJaExiste) {
+              console.warn("⏭️ Ignorado (já enviado ou cancelado):", pedidoId);
+              continue;
+            }
+
+            const pendenteDoc = pendentesSnap.docs.find(d => (d.data().pedidoId || "").toUpperCase() === pedidoId);
+            if (pendenteDoc) {
+              await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "pedidos_pendentes", pendenteDoc.id));
+              console.log("🧹 Removido de pendentes:", pedidoId);
+            }
+
+            await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados"), {
+              pedidoId,
+              Loja: loja,
+              SKU: sku,
+              Rastreio: rastreio,
+              dataPagamento,
+              dataEnvio,
+              status: "enviado"
+            });
+
+            console.log("✅ Pedido enviado salvo:", pedidoId);
+          } catch (erro) {
+            console.error("❌ Erro ao salvar pedido:", pedidoId, erro);
           }
-
-          // 2️⃣ Verifica se está nos pendentes → remove e move para enviados
-          const pendenteDoc = pendentesSnap.docs.find(d => (d.data().pedidoId || "").toUpperCase() === pedidoId);
-          if (pendenteDoc) {
-            await deleteDoc(doc(db, "pedidos_pendentes", pendenteDoc.id));
-            console.log("🧹 Removido de pendentes:", pedidoId);
-          }
-
-          // 3️⃣ Adiciona em pedidos_enviados
-          await addDoc(collection(db, "pedidos_enviados"), {
-            pedidoId,
-            Loja: loja,
-            SKU: sku,
-            Rastreio: rastreio,
-            dataPagamento,
-            dataEnvio,
-            status: "enviado"
-          });
-
-          console.log("✅ Pedido enviado salvo:", pedidoId);
-        } catch (erro) {
-          console.error("❌ Erro ao salvar pedido:", pedidoId, erro);
         }
-      }
 
-      alert("✅ Pedidos ENVIADOS importados com sucesso!");
-      await carregarEnviadosFirebase();
-      resolve();
+        alert("✅ Pedidos ENVIADOS importados com sucesso!");
+        await carregarEnviadosFirebase();
+        resolve();
+      });
     });
-  });
+  }
 }
 
+// 🧩 REGISTRA A FUNÇÃO PARA O HTML USAR
+AppCasaRosa.processarArquivos = processarArquivos;
 
-}
 async function carregarEnviadosFirebase() {
   const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados"));
   const hoje = new Date();
