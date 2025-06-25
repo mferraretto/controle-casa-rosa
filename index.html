@@ -4032,10 +4032,16 @@ AppCasaRosa.salvarSkuEquivalente = async function (event) {
 
   if (existente) {
     // Atualiza se já existir
-    await updateDoc(doc(db, "skus_equivalentes", existente.id), { equivalentes });
+   await AppCasaRosa.updateDoc(
+      AppCasaRosa.doc(AppCasaRosa.db, "skus_equivalentes", existente.id),
+      { equivalentes }
+    );
   } else {
     // Cria novo agrupamento
-    await addDoc(collection(db, "skus_equivalentes"), { base, equivalentes });
+    await AppCasaRosa.addDoc(
+      AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes"),
+      { base, equivalentes }
+    );
   }
 
   document.getElementById("formSkus").reset();
@@ -4189,19 +4195,7 @@ AppCasaRosa.carregarSkusEquivalentes = async function() {
   }
 };
 
-// ➕ Salva novo agrupamento
-AppCasaRosa.salvarSkuEquivalente = async function (event) {
-  event.preventDefault();
-  const base = document.getElementById("skuBase").value.trim().toUpperCase();
-  const lista = document.getElementById("skusEquivalentes").value
-    .split(",")
-    .map(x => x.trim().toUpperCase());
 
-  await addDoc(collection(db, "skus_equivalentes"), { base, equivalentes: lista });
-  document.getElementById("formSkus").reset();
- AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
-
-};
 AppCasaRosa.atualizarCardsMetas = async function () {
   try {
     const container = document.getElementById("cardsMetas");
