@@ -3930,8 +3930,15 @@ window.AppCasaRosa.atualizarCardsMetas = async function() {
   });
 };
 
-// Atualiza automaticamente
-setTimeout(atualizarCardsMetas, 1000);
+// Atualiza automaticamente após o carregamento da página
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    if (AppCasaRosa.atualizarCardsMetas) {
+      AppCasaRosa.atualizarCardsMetas();
+    }
+  }, 1000);
+});
+
 AppCasaRosa.salvarSkuEquivalente = async function (event) {
   event.preventDefault();
 
@@ -3974,6 +3981,7 @@ AppCasaRosa.listarSkusEquivalentes = function() {
     tbody.appendChild(tr);
   });
 };
+
 AppCasaRosa.excluirSkuEquivalente = async function(base) {
   try {
     const snap = await getDocs(collection(db, "skus_equivalentes"));
@@ -3989,16 +3997,17 @@ AppCasaRosa.excluirSkuEquivalente = async function(base) {
 
     if (AppCasaRosa.carregarSkusEquivalentes) {
       await AppCasaRosa.carregarSkusEquivalentes(); // Recarrega os dados sincronizados
-    
     }
   } catch (e) {
     console.error("Erro ao excluir SKU:", e);
     alert("Erro ao excluir agrupamento.");
   }
 };
+
 window.salvarSkuEquivalente = AppCasaRosa.salvarSkuEquivalente;
 window.excluirSkuEquivalente = AppCasaRosa.excluirSkuEquivalente;
 window.renderizarTabelaSkus = AppCasaRosa.renderizarTabelaSkus;
+
 AppCasaRosa.excluirMeta = async function(id) {
   if (!confirm("Deseja realmente excluir esta meta?")) return;
 
@@ -4013,14 +4022,13 @@ AppCasaRosa.excluirMeta = async function(id) {
     alert("Meta excluída com sucesso.");
     if (AppCasaRosa.atualizarCardsMetas) {
       AppCasaRosa.atualizarCardsMetas();
-    } else {
-      atualizarCardsMetas();
     }
   } catch (e) {
     console.error("Erro ao excluir meta:", e);
     alert("Erro ao excluir meta.");
   }
 };
+
 AppCasaRosa.editarMeta = async function(id, valorAtual) {
   const novoValorStr = prompt("Novo valor da meta:", valorAtual);
   if (novoValorStr === null) return;
@@ -4117,6 +4125,45 @@ AppCasaRosa.salvarSkuEquivalente = async function (event) {
   document.getElementById("formSkus").reset();
  AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
 
+};
+AppCasaRosa.atualizarCardsMetas = async function () {
+  try {
+    const container = document.getElementById("cardsMetas");
+    if (!container) return;
+
+    // Limpa o conteúdo atual
+    container.innerHTML = "<p>🔄 Atualizando metas...</p>";
+
+    // Busca metas no Firebase
+    const snap = await getDocs(collection(db, "metas_mensais"));
+    if (snap.empty) {
+      container.innerHTML = "<p>⚠️ Nenhuma meta encontrada.</p>";
+      return;
+    }
+
+    // Estrutura para agrupar e renderizar
+    let html = '';
+    snap.forEach(doc => {
+      const meta = doc.data();
+      html += `
+        <div class="card-meta">
+          <h3>📦 Produto: ${meta.produto || "Sem nome"}</h3>
+          <p>🎯 Meta: <strong>${meta.meta || 0}</strong> unidades</p>
+          <p>🏪 Loja: ${meta.loja || "Todas"}</p>
+          <p>🗓️ Mês: ${meta.mes || "Indefinido"}</p>
+          <button onclick="AppCasaRosa.excluirMeta('${doc.id}')">🗑️ Excluir</button>
+        </div>
+      `;
+    });
+
+    // Renderiza os cards
+    container.innerHTML = html;
+
+  } catch (e) {
+    console.error("Erro ao atualizar os cards de metas:", e);
+    const container = document.getElementById("cardsMetas");
+    if (container) container.innerHTML = "<p>❌ Erro ao carregar metas.</p>";
+  }
 };
 
 
