@@ -410,7 +410,7 @@ window.AppCasaRosa.renderizarCardsPendentes = function(lista) {
 window.AppCasaRosa.alternarVisualizacaoPedidos = function() {
   const tabela = document.getElementById("tabelaPendentes");
   const cards  = document.getElementById("cardsPendentes");
-  const btn    = document.getElementById("btnVisualizacaoPedidos");
+  const btn    = document.getElementById("btnVisualizacaoPendentes");
   if (!tabela || !cards || !btn) return;
 
   if (tabela.style.display === "none") {
@@ -1006,7 +1006,7 @@ body.dark-mode button {
   <div id="a_enviar" class="tab-content">
     <h2>🟡 Novos a Enviar</h2>
 <div style="text-align:right; margin-bottom: 1rem;">
-  <button onclick="AppCasaRosa.alternarVisualizacaoPedidos()" id="btnVisualizacaoPedidos">
+ <button onclick="AppCasaRosa.alternarVisualizacaoPedidos()" id="btnVisualizacaoPendentes">
     📦 Visualizar como Cards
   </button>
 </div>
@@ -1102,7 +1102,7 @@ body.dark-mode button {
     <h2>📊 Dashboard Geral</h2>
   </div>
 <div style="text-align:right; margin-bottom: 1rem;">
-  <button onclick="AppCasaRosa.alternarVisualizacaoPedidos()" id="btnVisualizacaoPedidos">
+   <button onclick="AppCasaRosa.alternarVisualizacaoPedidos()" id="btnVisualizacaoDashboard">
     📦 Visualizar como Cards
   </button>
 </div>
