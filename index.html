@@ -4,130 +4,134 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle de Pedidos Casa Rosa</title>
-  <!-- Fonte moderna Inter -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&amp;display=swap" rel="stylesheet">
 
-<!-- Font Awesome (ícones bonitos) -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <!-- Fonte Inter moderna -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
 
-<!-- Select2 (para filtros múltiplos elegantes) -->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <!-- Ícones Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+  <!-- Select2 para filtros -->
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+
+  <!-- Bibliotecas JS auxiliares -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- Objeto global usado por scripts subsequentes -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Objeto global antes de tudo -->
   <script>window.AppCasaRosa = window.AppCasaRosa || {};</script>
 
- <!-- Firebase App (core) + Firestore (modular v9+) -->
- <!-- Firebase App (core) + Firestore (modular v9+) -->
-<script type="module">
-window.AppCasaRosa = window.AppCasaRosa || {};
+  <!-- Firebase App + Firestore + Auth (modular) -->
+  <script type="module">
+    // Importação dos módulos Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import {
+      getFirestore,
+      collection,
+      addDoc,
+      onSnapshot,
+      query,
+      orderBy,
+      updateDoc,
+      deleteDoc,
+      doc,
+      getDoc,
+      getDocs
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
 
-// IMPORTS
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  addDoc,
-  onSnapshot,
-  query,
-  orderBy,
-  updateDoc,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-import {
-  getAuth,
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    // Configuração do Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyDanvDxs2RDaMNc7zARyyyUt0rLqes95H0",
+      authDomain: "painelpedidos-v2.firebaseapp.com",
+      projectId: "painelpedidos-v2",
+      storageBucket: "painelpedidos-v2.appspot.com",
+      messagingSenderId: "135497440608",
+      appId: "1:135497440608:web:093e8fc4264257d5065205"
+    };
 
-// Firebase config
-const firebaseConfig = {
-  apiKey: "AIzaSyDanvDxs2RDaMNc7zARyyyUt0rLqes95H0",
-  authDomain: "painelpedidos-v2.firebaseapp.com",
-  projectId: "painelpedidos-v2",
-  storageBucket: "painelpedidos-v2.appspot.com",
-  messagingSenderId: "135497440608",
-  appId: "1:135497440608:web:093e8fc4264257d5065205"
-};
+    // Inicializa Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
 
-// Inicializa Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+    // Disponibiliza métodos Firebase no objeto global
+    window.AppCasaRosa.db = db;
+    window.AppCasaRosa.auth = auth;
+    window.AppCasaRosa.collection = collection;
+    window.AppCasaRosa.addDoc = addDoc;
+    window.AppCasaRosa.onSnapshot = onSnapshot;
+    window.AppCasaRosa.query = query;
+    window.AppCasaRosa.orderBy = orderBy;
+    window.AppCasaRosa.updateDoc = updateDoc;
+    window.AppCasaRosa.deleteDoc = deleteDoc;
+    window.AppCasaRosa.doc = doc;
+    window.AppCasaRosa.getDoc = getDoc;
+    window.AppCasaRosa.getDocs = getDocs;
+    window.AppCasaRosa.signInWithEmailAndPassword = signInWithEmailAndPassword;
+    window.AppCasaRosa.signOut = signOut;
+    window.AppCasaRosa.onAuthStateChanged = onAuthStateChanged;
 
-// Disponibilize TUDO no objeto global AppCasaRosa
-window.AppCasaRosa.db = db;
-window.AppCasaRosa.auth = auth;
-window.AppCasaRosa.collection = collection;
-window.AppCasaRosa.addDoc = addDoc;
-window.AppCasaRosa.onSnapshot = onSnapshot;
-window.AppCasaRosa.query = query;
-window.AppCasaRosa.orderBy = orderBy;
-window.AppCasaRosa.updateDoc = updateDoc;
-window.AppCasaRosa.deleteDoc = deleteDoc;
-window.AppCasaRosa.doc = doc;
-window.AppCasaRosa.getDoc = getDoc;
-window.AppCasaRosa.getDocs = getDocs;
-window.AppCasaRosa.signInWithEmailAndPassword = signInWithEmailAndPassword;
-window.AppCasaRosa.signOut = signOut;
-window.AppCasaRosa.onAuthStateChanged = onAuthStateChanged;
-
-// Exemplo de sincronização de SKUs equivalentes
-window.AppCasaRosa.skusEquivalentes = {};
-onSnapshot(collection(db, "skus_equivalentes"), snap => {
-  const equivalentes = {};
-  snap.docs.forEach(doc => {
-    const data = doc.data();
-    if (data.base) {
-      equivalentes[data.base] = data.equivalentes || [];
-    }
-  });
-  window.AppCasaRosa.skusEquivalentes = equivalentes;
-  console.log("🟢 SKUs equivalentes atualizados:", equivalentes);
-});
-window.AppCasaRosa.fazerLogin = function () {
-  const email = document.getElementById("emailLogin")?.value.trim();
-  const senha = document.getElementById("senhaLogin")?.value;
-  const erroElem = document.getElementById("erroLogin");
-
-  if (!email || !senha) {
-    if (erroElem) erroElem.textContent = "Preencha e-mail e senha.";
-    return;
-  }
-
-  signInWithEmailAndPassword(auth, email, senha)
-    .then(userCredential => {
-      console.log("Login realizado:", userCredential.user.email);
-      if (erroElem) erroElem.textContent = "";
-      // Aqui você pode redirecionar ou atualizar o UI, se necessário
-    })
-    .catch(error => {
-      console.error("Erro de login:", error);
-      if (erroElem) erroElem.textContent = "Email ou senha inválidos.";
-      const senhaInput = document.getElementById("senhaLogin");
-      if (senhaInput) senhaInput.value = "";
+    // Observador de SKUs equivalentes
+    window.AppCasaRosa.skusEquivalentes = {};
+    onSnapshot(collection(db, "skus_equivalentes"), snap => {
+      const equivalentes = {};
+      snap.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.base) {
+          equivalentes[data.base] = data.equivalentes || [];
+        }
+      });
+      window.AppCasaRosa.skusEquivalentes = equivalentes;
+      console.log("🟢 SKUs equivalentes atualizados:", equivalentes);
     });
-};
 
-document.addEventListener('DOMContentLoaded', () => {
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      document.getElementById("login").style.display = "none";
-      document.getElementById("sistema").style.display = "block";
-AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
-AppCasaRosa.carregarLojasRegistradas && AppCasaRosa.carregarLojasRegistradas();
-    } else {
-      document.getElementById("login").style.display = "flex";
-      document.getElementById("sistema").style.display = "none";
-    }
-  });
-});
+    // Função de login
+    window.AppCasaRosa.fazerLogin = function () {
+      const email = document.getElementById("emailLogin")?.value.trim();
+      const senha = document.getElementById("senhaLogin")?.value;
+      const erroElem = document.getElementById("erroLogin");
+
+      if (!email || !senha) {
+        if (erroElem) erroElem.textContent = "Preencha e-mail e senha.";
+        return;
+      }
+
+      signInWithEmailAndPassword(auth, email, senha)
+        .then(userCredential => {
+          console.log("Login realizado:", userCredential.user.email);
+          if (erroElem) erroElem.textContent = "";
+        })
+        .catch(error => {
+          console.error("Erro de login:", error);
+          if (erroElem) erroElem.textContent = "Email ou senha inválidos.";
+          const senhaInput = document.getElementById("senhaLogin");
+          if (senhaInput) senhaInput.value = "";
+        });
+    };
+
+    // Verifica autenticação ao carregar
+    document.addEventListener("DOMContentLoaded", () => {
+      onAuthStateChanged(auth, (user) => {
+        const loginTela = document.getElementById("login");
+        const sistemaTela = document.getElementById("sistema");
+        if (user) {
+          loginTela.style.display = "none";
+          sistemaTela.style.display = "block";
+          AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
+          AppCasaRosa.carregarLojasRegistradas && AppCasaRosa.carregarLojasRegistradas();
+        } else {
+          loginTela.style.display = "flex";
+          sistemaTela.style.display = "none";
+        }
+      });
+    });
 window.AppCasaRosa.deslogarUsuario = function () {
   signOut(auth).then(() => location.reload());
 };
