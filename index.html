@@ -138,8 +138,8 @@ window.AppCasaRosa.deslogarUsuario = function () {
   // Remover pendentes que já estão como enviados
 async function removerPendentesJaEnviados() {
   try {
-    const pendentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
-    const enviadosSnap  = await getDocs(collection(db, "pedidos_enviados"));
+    const pendentesSnap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes"));
+    const enviadosSnap  = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados"));
 
     const enviadosIds = new Set();
     enviadosSnap.forEach(doc => {
@@ -235,7 +235,7 @@ window.AppCasaRosa.renderTabela = function(id, lista) {
 };
  window.AppCasaRosa.carregarPendentesFirebase = async function() {
   try {
-    const snapshot = await getDocs(collection(db, "pedidos_pendentes"));
+    const snapshot = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes"));
     const pendentes = [];
     snapshot.forEach(doc => {
       pendentes.push({ id: doc.id, ...doc.data() });
@@ -270,7 +270,7 @@ window.AppCasaRosa.renderTabela = function(id, lista) {
   // 🔄 Carrega lista de lojas cadastradas no Firestore
 window.AppCasaRosa.carregarLojasRegistradas = async function() {
   try {
-    const snap = await getDocs(collection(db, "lojas"));
+    const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "lojas"));
     AppCasaRosa.lojasRegistradas = snap.docs.map(doc => doc.id);
   } catch (e) {
     alert("Erro ao carregar lojas registradas: " + (e.message || e));
@@ -1377,9 +1377,9 @@ async function processarArquivos() {
 
   // Carrega todos os pedidos existentes para evitar duplicidade
   const [pendentesSnap, enviadosSnap, canceladosSnap] = await Promise.all([
-    getDocs(collection(db, "pedidos_pendentes")),
-    getDocs(collection(db, "pedidos_enviados")),
-    getDocs(collection(db, "pedidos_cancelados")),
+    AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes")),
+    AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados")),
+    AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_cancelados")),
   ]);
 
   const idsExistentes = new Set();
@@ -1510,7 +1510,7 @@ if (enviadosTemArquivo) {
 
 }
 async function carregarEnviadosFirebase() {
-  const snap = await getDocs(collection(db, "pedidos_enviados"));
+  const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados"));
   const hoje = new Date();
   const tresDiasAtras = new Date();
   tresDiasAtras.setDate(hoje.getDate() - 3);
@@ -2881,7 +2881,7 @@ if (!pedidosExtraidos.length) {
 
 
     // 💾 Verifica se já existem pedidos iguais no Firestore
-    const existentesSnap = await getDocs(collection(db, "pedidos_pendentes"));
+    const existentesSnap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes"));
     const pedidosExistentes = new Set(existentesSnap.docs.map(d => (d.data().Pedido || "").trim()));
 
     // 📦 Filtra apenas os pedidos novos
@@ -3684,7 +3684,7 @@ AppCasaRosa.renderizarMetasManuais = async function() {
   container.innerHTML = "<p style='color:#888;'>Carregando metas...</p>";
 
   try {
-    const snap = await getDocs(collection(db, "metas_mensais"));
+    const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "metas_mensais"));
     const metas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     const vendidos = AppCasaRosa.enviadosList || [];
 
@@ -3865,7 +3865,7 @@ window.AppCasaRosa.atualizarCardsMetas = async function() {
   const container = document.getElementById("container-cards-metas");
   container.innerHTML = "<div>Carregando...</div>";
 
-  const snap = await getDocs(collection(db, "metas_mensais"));
+  const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "metas_mensais"));
   const metas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
   const hoje = new Date();
@@ -3969,7 +3969,7 @@ AppCasaRosa.salvarSkuEquivalente = async function (event) {
   if (!base || equivalentes.length === 0) return;
 
   // 🔍 Verifica se já existe esse agrupamento no Firebase
-  const snap = await getDocs(collection(db, "skus_equivalentes"));
+  const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes"));
   const existente = snap.docs.find(doc => doc.data().base === base);
 
   if (existente) {
@@ -4002,7 +4002,7 @@ AppCasaRosa.listarSkusEquivalentes = function() {
 
 AppCasaRosa.excluirSkuEquivalente = async function(base) {
   try {
-    const snap = await getDocs(collection(db, "skus_equivalentes"));
+    const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes"));
     snap.forEach(docItem => {
       if (docItem.data().base === base) {
         deleteDoc(doc(db, "skus_equivalentes", docItem.id));
@@ -4118,7 +4118,7 @@ AppCasaRosa.carregarLogs = async function() {
 };
 
 AppCasaRosa.carregarSkusEquivalentes = async function() {
-  const snap = await getDocs(collection(db, "skus_equivalentes"));
+  const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes"));
   AppCasaRosa.skusEquivalentes = {};
   snap.forEach(doc => {
     const data = doc.data();
@@ -4153,7 +4153,7 @@ AppCasaRosa.atualizarCardsMetas = async function () {
     container.innerHTML = "<p>🔄 Atualizando metas...</p>";
 
     // Busca metas no Firebase
-    const snap = await getDocs(collection(db, "metas_mensais"));
+    const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "metas_mensais"));
     if (snap.empty) {
       container.innerHTML = "<p>⚠️ Nenhuma meta encontrada.</p>";
       return;
