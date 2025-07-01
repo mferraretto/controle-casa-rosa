@@ -1782,7 +1782,7 @@ function atualizarTabelas() {
   renderTabela("tabelaPendentes",  pendentesFiltrados);
   renderTabela("tabelaEnviados",   enviadosFiltrados);
   renderTabela("tabelaHistorico",  historico);
-  renderTabela("tabelaCancelados", cancelados);
+  renderTabela("tabela-cancelados", cancelados);
 
   if (typeof AppCasaRosa.atualizarResumoCancelados === "function") AppCasaRosa.atualizarResumoCancelados();
   if (typeof AppCasaRosa.gerarGraficoCancelados === "function") AppCasaRosa.gerarGraficoCancelados();
@@ -1907,7 +1907,7 @@ const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
   // cabeçalhos e linhas por tipo de tabela
   let cols = [], rowsHtml = "";
 
-  if (destinoId === "tabelaCancelados") {
+  if (destinoId === "tabela-cancelados") {
     cols = ["Pedido", "Loja", "Produto", "Pagamento", "Rastreio", "Motivo"];
     dados.forEach(p => {
       const pedido   = normalizarCampo(p, ["pedidoId", "Pedido"]);
