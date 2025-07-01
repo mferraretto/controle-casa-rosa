@@ -2983,54 +2983,53 @@ function dataURLToBlob(dataURL) {
   return new Blob([buf], { type: mime });
 }
 
-const AppCasaRosa = {
-  exportarVendasCSV: function () {
-    const enviados = AppCasaRosa.enviadosList || [];
-    const dataSelecionada = document.getElementById("filtroDataDashboard")?.value;
-    const considerarMesInteiro = document.getElementById("filtroMesInteiroDashboard")?.checked;
-    const lojaSelecionada = document.getElementById("filtroLojaDashboard")?.value;
+AppCasaRosa.exportarVendasCSV = function () {
+  const enviados = AppCasaRosa.enviadosList || [];
+  const dataSelecionada = document.getElementById("filtroDataDashboard")?.value;
+  const considerarMesInteiro = document.getElementById("filtroMesInteiroDashboard")?.checked;
+  const lojaSelecionada = document.getElementById("filtroLojaDashboard")?.value;
 
-    if (!dataSelecionada) {
-      alert("Selecione uma data para exportar.");
+  if (!dataSelecionada) {
+    alert("Selecione uma data para exportar.");
+    return;
+  }
+
+  const [anoSel, mesSel, diaSel] = dataSelecionada.split("-").map(Number);
+  const resumo = {};
+
+  enviados.forEach(p => {
+    const dt = new Date(p.dataEnvio);
+    if (isNaN(dt)) return;
+
+    const ano = dt.getFullYear();
+    const mes = dt.getMonth() + 1;
+    const dia = dt.getDate();
+
+    const mesmoDia = dt.toISOString().split("T")[0] === dataSelecionada;
+    const mesmoMes = ano === anoSel && mes === mesSel;
+
+    if ((!considerarMesInteiro && !mesmoDia) || (considerarMesInteiro && !mesmoMes)) {
       return;
     }
 
-    const [anoSel, mesSel, diaSel] = dataSelecionada.split("-").map(Number);
-    const resumo = {};
+    const loja = p.Loja || "Loja desconhecida";
+    if (lojaSelecionada && loja !== lojaSelecionada) return;
 
-    enviados.forEach(p => {
-      const dt = new Date(p.dataEnvio);
-      if (isNaN(dt)) return;
+    const skuBase = AppCasaRosa.obterSkuBase(p.SKU);
+    resumo[skuBase] = (resumo[skuBase] || 0) + 1;
+  });
 
-      const ano = dt.getFullYear();
-      const mes = dt.getMonth() + 1;
+  const linhas = [["Produto", "Quantidade"]];
+  Object.entries(resumo).forEach(([produto, qtd]) => {
+    linhas.push([produto, qtd]);
+  });
 
-      if (
-        (!considerarMesInteiro && dt.toISOString().split("T")[0] !== dataSelecionada) ||
-        (considerarMesInteiro && (ano !== anoSel || mes !== mesSel))
-      ) {
-        return;
-      }
-
-      const loja = p.Loja || "Loja desconhecida";
-      if (lojaSelecionada && loja !== lojaSelecionada) return;
-
-      const skuBase = AppCasaRosa.obterSkuBase(p.SKU);
-      resumo[skuBase] = (resumo[skuBase] || 0) + 1;
-    });
-
-    const linhas = [["Produto", "Quantidade"]];
-    Object.entries(resumo).forEach(([produto, qtd]) => {
-      linhas.push([produto, qtd]);
-    });
-
-    const csv = linhas.map(l => l.join(";")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = "vendas_filtradas.csv";
-    link.click();
-  }
+  const csv = linhas.map(l => l.join(";")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "vendas_filtradas.csv";
+  link.click();
 };
 
 async function exportarVendasPDF() {
