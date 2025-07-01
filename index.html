@@ -2255,6 +2255,7 @@ function exportarPedidosAEnviar() {
   XLSX.utils.book_append_sheet(wb, ws, "Pedidos A Enviar");
   XLSX.writeFile(wb, "pedidos_a_enviar.xlsx");
 }
+    AppCasaRosa.exportarPedidosAEnviar = exportarPedidosAEnviar;
 // 2) Exporta os pedidos cancelados para CSV usando os campos do Firestore
 function exportarCanceladosCSV() {
   const dados = AppCasaRosa.canceladosList || [];
@@ -2288,6 +2289,7 @@ function exportarCanceladosCSV() {
   link.download = "pedidos_cancelados.csv";
   link.click();
 }
+    AppCasaRosa.exportarCanceladosCSV = exportarCanceladosCSV;
 // Substitua sua versão antiga por esta:
 
 
@@ -2447,9 +2449,10 @@ AppCasaRosa.preencherFiltroProdutosDashboard = function() {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `relatorio_vendas_${mesSelecionado}.csv`;
-    link.click();
-  }
+   link.download = `relatorio_vendas_${mesSelecionado}.csv`;
+  link.click();
+}
+AppCasaRosa.exportarRelatorioMensal = exportarRelatorioMensal;
 // Exporta o relatório mensal para Excel
   function exportarRelatorioMensalExcel() {
     const enviados = AppCasaRosa.enviadosList || [];
@@ -2483,9 +2486,10 @@ AppCasaRosa.preencherFiltroProdutosDashboard = function() {
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(linhas);
-    XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
-    XLSX.writeFile(wb, `relatorio_vendas_${mesSelecionado}.xlsx`);
-  }
+     XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
+  XLSX.writeFile(wb, `relatorio_vendas_${mesSelecionado}.xlsx`);
+}
+AppCasaRosa.exportarRelatorioMensalExcel = exportarRelatorioMensalExcel;
 async function exportarRelatorioPDF() {
   const { jsPDF } = AppCasaRosa.jspdf;
   const doc = new jsPDF();
@@ -2560,7 +2564,7 @@ async function exportarRelatorioPDF() {
   // 5) Gera o download
   doc.save(`relatorio_vendas_${mesSelecionado}.pdf`);
 }
-
+AppCasaRosa.exportarRelatorioPDF = exportarRelatorioPDF;
 // Gera o gráfico de cancelamentos por dia do mês atual
 function gerarGraficoCancelados() {
   const cancelados = AppCasaRosa.canceladosList || [];
@@ -3099,6 +3103,7 @@ resumo[skuBase] = (resumo[skuBase] || 0) + 1;
   link.download = "vendas_filtradas.csv";
   link.click();
 }
+  AppCasaRosa.exportarVendasCSV = exportarVendasCSV;
 async function exportarVendasPDF() {
   const { jsPDF } = AppCasaRosa.jspdf;
   const doc = new jsPDF();
@@ -3174,6 +3179,7 @@ resumo[skuBase] = (resumo[skuBase] || 0) + 1;
 
   doc.save("vendas_filtradas.pdf");
 }
+  AppCasaRosa.exportarVendasPDF = exportarVendasPDF;
 function exportarDashboardExcel() {
   const aEnviar = document.getElementById("valor-a-enviar-dashboard").textContent;
   const enviados = document.getElementById("valor-enviados-dashboard").textContent;
@@ -3195,6 +3201,7 @@ function exportarDashboardExcel() {
   XLSX.utils.book_append_sheet(wb, ws, "Resumo Dashboard");
   XLSX.writeFile(wb, `resumo_dashboard.xlsx`);
 }
+  AppCasaRosa.exportarDashboardExcel = exportarDashboardExcel;
 async function exportarDashboardPDF() {
   const { jsPDF } = AppCasaRosa.jspdf;
   const doc = new jsPDF();
@@ -3241,6 +3248,7 @@ async function exportarDashboardPDF() {
 
   doc.save("resumo_dashboard.pdf");
 }
+  AppCasaRosa.exportarDashboardPDF = exportarDashboardPDF;
 async function adicionarPedido(pedido) {
   try {
     await addDoc(collection(db, "pedidos_pendentes"), pedido);
