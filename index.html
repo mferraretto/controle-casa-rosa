@@ -3181,6 +3181,68 @@ resumo[skuBase] = (resumo[skuBase] || 0) + 1;
   doc.save("vendas_filtradas.pdf");
 }
   AppCasaRosa.exportarVendasPDF = exportarVendasPDF;
+  function exportarRelatorioDetalhadoCSV() {
+  const enviados = AppCasaRosa.enviadosList || [];
+  const dataSelecionada = document.getElementById("filtroDataDashboard")?.value;
+  const considerarMesInteiro = document.getElementById("filtroMesInteiroDashboard")?.checked;
+  const lojaSelecionada = (document.getElementById("filtroLojaDashboard")?.value || "").toLowerCase();
+
+  if (!dataSelecionada) {
+    alert("Selecione uma data para exportar.");
+    return;
+  }
+
+  const [anoSel, mesSel] = dataSelecionada.split("-").map(Number);
+  const resumo = {};
+
+  enviados.forEach(p => {
+    if (!p.dataEnvio) return;
+    const dt = new Date(p.dataEnvio);
+    if (isNaN(dt)) return;
+
+    const ano = dt.getFullYear();
+    const mes = dt.getMonth() + 1;
+
+    if (
+      (!considerarMesInteiro && dt.toISOString().split("T")[0] !== dataSelecionada) ||
+      (considerarMesInteiro && (ano !== anoSel || mes !== mesSel))
+    ) {
+      return;
+    }
+
+    const lojaNome = p.Loja || "Loja desconhecida";
+    const loja = lojaNome.toLowerCase();
+    if (lojaSelecionada && loja !== lojaSelecionada) return;
+
+    const produto = p.SKU || "Produto desconhecido";
+
+    if (!resumo[lojaNome]) resumo[lojaNome] = {};
+    if (!resumo[lojaNome][produto]) resumo[lojaNome][produto] = 0;
+    resumo[lojaNome][produto]++;
+  });
+
+  if (!Object.keys(resumo).length) {
+    alert("Nenhuma venda encontrada para os filtros selecionados.");
+    return;
+  }
+
+  const linhas = [["Loja", "Produto", "Quantidade"]];
+  Object.entries(resumo).forEach(([loja, produtos]) => {
+    Object.entries(produtos).forEach(([produto, qtd]) => {
+      linhas.push([loja, produto, qtd]);
+    });
+  });
+
+  const csv = linhas.map(l => l.join(";")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = considerarMesInteiro ?
+    `relatorio_detalhado_${String(mesSel).padStart(2, "0")}-${anoSel}.csv` :
+    `relatorio_detalhado_${dataSelecionada}.csv`;
+  link.click();
+}
+  AppCasaRosa.exportarRelatorioDetalhadoCSV = exportarRelatorioDetalhadoCSV;
 function exportarDashboardExcel() {
   const aEnviar = document.getElementById("valor-a-enviar-dashboard").textContent;
   const enviados = document.getElementById("valor-enviados-dashboard").textContent;
