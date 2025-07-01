@@ -559,29 +559,36 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
   try {
     const motivo = prompt("Digite o motivo do cancelamento:");
     if (!motivo) return;
-    // 1) Atualiza o próprio pedido
-    if (typeof AppCasaRosa.atualizarPedido === "function") {
-      await AppCasaRosa.atualizarPedido(id, {
-        status: "cancelado",
-        motivo,
-        dataCancelamento: new Date().toISOString()
-      });
-    } else if (typeof atualizarPedido === "function") {
-      await atualizarPedido(id, {
-        status: "cancelado",
-        motivo,
-        dataCancelamento: new Date().toISOString()
-      });
+   
+    // Obtem o documento atual
+    const ref = doc(db, "pedidos_pendentes", id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      alert("Pedido não encontrado.");
+      return;
     }
-    // 2) Registra em coleção específica de cancelados
-    await addDoc(
-      collection(db, "pedidos_cancelados"),
-      {
-        pedidoId: id,
-        motivo,
-        dataCancelamento: new Date().toISOString()
-      }
-    );
+   const dadosPedido = snap.data();
+
+    // Remove dos pendentes
+    await deleteDoc(ref);
+
+    // Registra o cancelamento em coleção própria
+    await addDoc(collection(db, "pedidos_cancelados"), {
+      ...dadosPedido,
+      pedidoId: id,
+      motivo,
+      dataCancelamento: new Date().toISOString()
+    });
+
+    // Atualiza lista em memória e UI
+    if (Array.isArray(AppCasaRosa.importadosList)) {
+      AppCasaRosa.importadosList = AppCasaRosa.importadosList.filter(p => p.id !== id);
+    }
+    if (typeof AppCasaRosa.carregarPendentesFirebase === "function") {
+      AppCasaRosa.carregarPendentesFirebase();
+    }
+
+    alert("Pedido cancelado com sucesso.");
   } catch (e) {
     alert("Erro ao cancelar pedido: " + (e.message || e));
   }
