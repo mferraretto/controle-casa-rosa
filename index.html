@@ -4152,13 +4152,20 @@ AppCasaRosa.atualizarRelatorioMetas = function() {
 
   let html = `<div style="overflow-x:auto;"><table border="1" cellspacing="0" cellpadding="5" style="width:100%; border-collapse:collapse;">`;
   html += '<thead><tr><th>Loja</th><th>Produto</th><th>Quantidade</th><th>Valor Esperado</th></tr></thead><tbody>';
+  const linhas = [];
   Object.entries(resumo).forEach(([loja, produtos]) => {
     Object.entries(produtos).forEach(([produto, qtd]) => {
       const sobra = AppCasaRosa.produtosMap && AppCasaRosa.produtosMap[produto] ? parseFloat(AppCasaRosa.produtosMap[produto].sobraIdeal) : 0;
       const valorEsperado = sobra * qtd;
-      const valorFormatado = valorEsperado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-      html += `<tr><td>${loja}</td><td>${produto}</td><td style="text-align:right;">${qtd}</td><td style="text-align:right;">${valorFormatado}</td></tr>`;
+      linhas.push({ loja, produto, qtd, valorEsperado });
     });
+  });
+  
+  linhas.sort((a, b) => b.qtd - a.qtd);
+
+  linhas.forEach(linha => {
+    const valorFormatado = linha.valorEsperado.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+    html += `<tr><td>${linha.loja}</td><td>${linha.produto}</td><td style="text-align:right;">${linha.qtd}</td><td style="text-align:right;">${valorFormatado}</td></tr>`;
   });
   html += '</tbody></table></div>';
   container.innerHTML = html;
