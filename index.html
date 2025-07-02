@@ -975,7 +975,7 @@ body.dark-mode button {
 </div>
 <div class="tab" onclick="abrirAba('aba-logs'); AppCasaRosa.carregarLogs();">  <i class="fas fa-clipboard-list"></i> Logs
 </div>
-<div class="tab" onclick="abrirAba('aba-admin'); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.carregarProdutos(); AppCasaRosa.atualizarCardsMetas();">  <i class="fas fa-user-shield"></i> Administrador</div>
+<div class=<div class="tab" onclick="abrirAba('aba-admin'); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioProdutosGerais(); AppCasaRosa.carregarProdutos(); AppCasaRosa.atualizarCardsMetas();">  <i class="fas fa-user-shield"></i> Administrador</div>
   </div>
 <div id="login" style="display:flex; flex-direction:column; gap:1rem; max-width:400px; margin:5rem auto;">
   <h2>🔐 Login</h2>
@@ -1333,27 +1333,29 @@ body.dark-mode button {
   <div class="filtros-dashboard">
     <label>
       📅 Data:
-      <input type="date" id="filtroDataMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()" />
+      <input type="date" id="filtroDataMetas" onchange="AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioProdutosGerais();" />
     </label>
     <label>
-      <input type="checkbox" id="filtroMesInteiroMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()" />
+      <input type="checkbox" id="filtroMesInteiroMetas" onchange="AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioProdutosGerais();" />
       🔄 Considerar mês inteiro
     </label>
     <label>
       🏪 Loja:
-      <select id="filtroLojaMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()">
+     <select id="filtroLojaMetas" onchange="AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioProdutosGerais()">
         <option value="">Todas</option>
       </select>
     </label>
        <label>
       📦 Produto:
-      <select id="filtroProdutoMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()">
+      <select id="filtroProdutoMetas" onchange="AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioProdutosGerais()">
         <option value="">Todos</option>
       </select>
     </label>
   </div>
   
   <div id="tabela-vendas-metas" style="margin-top:1rem;"></div>
+  <h3 style="margin-top:2rem;">📦 Produtos Vendidos (Todas as Lojas)</h3>
+  <div id="tabela-produtos-agrupados" style="margin-top:1rem;"></div>
   <button onclick="AppCasaRosa.exportarVendasMetasExcel()">📥 Exportar Excel</button>
   <h3>Produtos Salvos</h3>
   <div style="overflow-x:auto;">
@@ -1412,6 +1414,7 @@ body.dark-mode button {
       AppCasaRosa.preencherFiltroLojaMetas();
             AppCasaRosa.preencherFiltroProdutoMetas();
       AppCasaRosa.atualizarRelatorioMetas();
+      AppCasaRosa.atualizarRelatorioProdutosGerais();
       AppCasaRosa.carregarProdutos();
       AppCasaRosa.atualizarCardsMetas();
        AppCasaRosa.carregarSkusEquivalentesAdmin();
@@ -2395,7 +2398,7 @@ document.addEventListener("DOMContentLoaded", () => {
    if (typeof AppCasaRosa.preencherFiltroLojaMetas === "function") AppCasaRosa.preencherFiltroLojaMetas();
   if (typeof AppCasaRosa.carregarProdutos === "function") AppCasaRosa.carregarProdutos();
   if (typeof AppCasaRosa.atualizarRelatorioMetas === "function") AppCasaRosa.atualizarRelatorioMetas();
-
+if (typeof AppCasaRosa.atualizarRelatorioProdutosGerais === "function") AppCasaRosa.atualizarRelatorioProdutosGerais();
   // Ajusta o filtro de data da aba “Importados” para hoje
   const hoje = new Date().toISOString().split("T")[0];
   const inputFiltroData = document.getElementById("filtroData");
@@ -4171,6 +4174,59 @@ AppCasaRosa.atualizarRelatorioMetas = function() {
   container.innerHTML = html;
 };
   
+AppCasaRosa.atualizarRelatorioProdutosGerais = function() {
+  const enviados = AppCasaRosa.enviadosList || [];
+  const dataSel = document.getElementById('filtroDataMetas')?.value;
+  const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
+  const lojaSel = document.getElementById('filtroLojaMetas')?.value;
+  const produtoSel = document.getElementById('filtroProdutoMetas')?.value;
+
+  const resumo = {};
+  enviados.forEach(p => {
+    if (!p.dataEnvio) return;
+    const envioStr = p.dataEnvio.split('T')[0];
+    if (dataSel) {
+      if (considerarMes) {
+        const [anoSel, mesSel] = dataSel.split('-').map(Number);
+        const [ano, mes] = envioStr.split('-').map(Number);
+        if (ano !== anoSel || mes !== mesSel) return;
+      } else if (envioStr !== dataSel) {
+        return;
+      }
+    }
+    const loja = p.Loja || 'Loja desconhecida';
+    if (lojaSel && loja !== lojaSel) return;
+
+    const produto = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU) : (p.SKU || 'Produto desconhecido');
+    if (produtoSel && produto !== produtoSel) return;
+
+    resumo[produto] = (resumo[produto] || 0) + 1;
+  });
+
+  const container = document.getElementById('tabela-produtos-agrupados');
+  if (!container) return;
+  container.innerHTML = '';
+
+  if (!Object.keys(resumo).length) {
+    container.innerHTML = "<div style='color:#888;'>Nenhuma venda encontrada.</div>";
+    return;
+  }
+
+  let html = `<div style="overflow-x:auto;"><table border="1" cellspacing="0" cellpadding="5" style="width:100%; border-collapse:collapse;">`;
+  html += '<thead><tr><th>Produto</th><th>Quantidade</th><th>Valor Esperado</th></tr></thead><tbody>';
+
+  Object.entries(resumo)
+    .sort((a,b) => b[1]-a[1])
+    .forEach(([produto,qtd]) => {
+      const sobra = AppCasaRosa.produtosMap && AppCasaRosa.produtosMap[produto] ? parseFloat(AppCasaRosa.produtosMap[produto].sobraIdeal) : 0;
+      const valorEsperado = sobra * qtd;
+      const valorFormatado = valorEsperado.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+      html += `<tr><td>${produto}</td><td style="text-align:right;">${qtd}</td><td style="text-align:right;">${valorFormatado}</td></tr>`;
+    });
+
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+};
 AppCasaRosa.calcularProjecaoMeta = function(valorMeta, vendidos, diasDoMes, hoje) {
   const mediaDiaria = vendidos / hoje;
   const estimadoFinal = Math.round(mediaDiaria * diasDoMes);
