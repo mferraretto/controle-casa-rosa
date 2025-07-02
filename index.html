@@ -91,7 +91,19 @@
       window.AppCasaRosa.skusEquivalentes = equivalentes;
       console.log("🟢 SKUs equivalentes atualizados:", equivalentes);
     });
-
+ // Observador de SKUs equivalentes usados apenas em relatórios do admin
+    window.AppCasaRosa.skusEquivalentesAdmin = {};
+    onSnapshot(collection(db, "skus_equivalentes_admin"), snap => {
+      const equivalentes = {};
+      snap.docs.forEach(doc => {
+        const data = doc.data();
+        if (data.base) {
+          equivalentes[data.base] = data.equivalentes || [];
+        }
+      });
+      window.AppCasaRosa.skusEquivalentesAdmin = equivalentes;
+      console.log("🟢 SKUs equivalentes admin atualizados:", equivalentes);
+    });
     // Função de login
     window.AppCasaRosa.fazerLogin = function () {
       const email = document.getElementById("emailLogin")?.value.trim();
@@ -125,6 +137,7 @@
           loginTela.style.display = "none";
           sistemaTela.style.display = "block";
           AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
+            AppCasaRosa.carregarSkusEquivalentesAdmin && AppCasaRosa.carregarSkusEquivalentesAdmin();
           AppCasaRosa.carregarLojasRegistradas && AppCasaRosa.carregarLojasRegistradas();
         } else {
           loginTela.style.display = "flex";
@@ -1345,7 +1358,23 @@ body.dark-mode button {
   </div>
 </div>
 
+ <h3 style="margin-top:2rem;">🧩 SKUs Equivalentes (Admin)</h3>
+  <form id="formSkusAdmin" onsubmit="salvarSkuEquivalenteAdmin(event)">
+    <label><strong>SKU Base:</strong></label><br />
+    <input type="text" id="skuBaseAdmin" required style="margin-bottom:0.5rem;width:200px;" /><br />
+    <label><strong>SKUs Equivalentes (separados por vírgula):</strong></label><br />
+    <input type="text" id="skusEquivalentesAdmin" required style="width:300px;" /><br />
+    <button type="submit" style="margin-top:1rem;">➕ Salvar Agrupamento</button>
+  </form>
 
+  <div style="overflow-x:auto;">
+    <table border="1" cellpadding="5" id="tabelaSkusAdmin" style="border-collapse:collapse;margin-top:0.5rem;width:100%;">
+      <thead>
+        <tr style="background:#f0f0f0;"><th>SKU Base</th><th>Equivalentes</th><th>Ações</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
 
   <script>
     window.AppCasaRosa = window.AppCasaRosa || {};
@@ -1376,6 +1405,7 @@ body.dark-mode button {
       AppCasaRosa.atualizarRelatorioMetas();
       AppCasaRosa.carregarProdutos();
       AppCasaRosa.atualizarCardsMetas();
+       AppCasaRosa.carregarSkusEquivalentesAdmin();
     }
   }
   // Retorna o primeiro campo definido em obj dentre a lista de keys
@@ -3909,12 +3939,9 @@ AppCasaRosa.renderizarMetasManuais = async function() {
       const produtosHtml = grupo.produtos.map(meta => {
         const vendidosTotal = vendidos.filter(e => {
           const lojaOk = grupo.lojas.includes(e.Loja);
-          const equivalents = AppCasaRosa.skusEquivalentes || {};
-          const grupoEquivalente = Object.entries(equivalents).find(([base, aliases]) => {
-            return base === meta.produto || aliases.includes(meta.produto);
-          });
-          const todosRelacionados = grupoEquivalente ? [grupoEquivalente[0], ...grupoEquivalente[1]] : [meta.produto];
-          const produtoOk = todosRelacionados.includes(e.SKU);
+           const prodMeta = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(meta.produto) : meta.produto;
+          const prodPedido = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(e.SKU) : e.SKU;
+          const produtoOk = prodMeta === prodPedido;
           const dataOk = e.dataEnvio && e.dataEnvio.startsWith(grupo.mes);
           return lojaOk && produtoOk && dataOk;
         }).length;
@@ -4025,7 +4052,7 @@ AppCasaRosa.atualizarRelatorioMetas = function() {
     }
     const loja = p.Loja || 'Loja desconhecida';
     if (lojaSel && loja !== lojaSel) return;
-    const produto = AppCasaRosa.obterSkuBase ? AppCasaRosa.obterSkuBase(p.SKU) : (p.SKU || 'Produto desconhecido');
+   const produto = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU) : (p.SKU || 'Produto desconhecido');
     if (!resumo[loja]) resumo[loja] = {};
     resumo[loja][produto] = (resumo[loja][produto] || 0) + 1;
   });
@@ -4081,7 +4108,7 @@ window.AppCasaRosa.atualizarCardsMetas = async function() {
     if (isNaN(dt)) return;
     const mes = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
     const loja = p.Loja || p.loja || "";
-    const sku = AppCasaRosa.obterSkuPrincipal ? AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido") : (p.SKU || "Desconhecido");
+    const sku = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU || "Desconhecido") : (p.SKU || "Desconhecido");
     const chave = `${mes}__${loja}__${sku}`;
     progresso[chave] = (progresso[chave] || 0) + 1;
   });
@@ -4094,7 +4121,7 @@ window.AppCasaRosa.atualizarCardsMetas = async function() {
     const metaAteHoje = metaDiaria * diaAtual;
 
     const vendido = meta.lojas.reduce((total, loja) => {
-      const chave = `${meta.mes}__${loja}__${meta.produto}`;
+        const chave = `${meta.mes}__${loja}__${AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(meta.produto) : meta.produto}`;
       return total + (progresso[chave] || 0);
     }, 0);
 
@@ -4232,7 +4259,58 @@ AppCasaRosa.excluirSkuEquivalente = async function(base) {
 window.salvarSkuEquivalente = AppCasaRosa.salvarSkuEquivalente;
 window.excluirSkuEquivalente = AppCasaRosa.excluirSkuEquivalente;
 window.renderizarTabelaSkus = AppCasaRosa.renderizarTabelaSkus;
+AppCasaRosa.salvarSkuEquivalenteAdmin = async function(event) {
+  event.preventDefault();
+  const base = document.getElementById("skuBaseAdmin").value.trim().toUpperCase();
+  const equivalentes = document.getElementById("skusEquivalentesAdmin").value
+    .split(",")
+    .map(s => s.trim().toUpperCase())
+    .filter(Boolean);
+  if (!base || equivalentes.length === 0) return;
+  const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes_admin"));
+  const existente = snap.docs.find(d => d.data().base === base);
+  if (existente) {
+    await AppCasaRosa.updateDoc(AppCasaRosa.doc(AppCasaRosa.db, "skus_equivalentes_admin", existente.id), { equivalentes });
+  } else {
+    await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes_admin"), { base, equivalentes });
+  }
+  document.getElementById("formSkusAdmin").reset();
+  AppCasaRosa.carregarSkusEquivalentesAdmin && AppCasaRosa.carregarSkusEquivalentesAdmin();
+};
 
+AppCasaRosa.listarSkusEquivalentesAdmin = function() {
+  const tbody = document.querySelector("#tabelaSkusAdmin tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  const dados = AppCasaRosa.skusEquivalentesAdmin || {};
+  Object.entries(dados).forEach(([base, equivalentes]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${base}</td>
+      <td>${equivalentes.join(", ")}</td>
+      <td><button onclick="AppCasaRosa.excluirSkuEquivalenteAdmin('${base}')">🗑️ Excluir</button></td>`;
+    tbody.appendChild(tr);
+  });
+};
+
+AppCasaRosa.excluirSkuEquivalenteAdmin = async function(base) {
+  try {
+    const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes_admin"));
+    snap.forEach(docItem => {
+      if (docItem.data().base === base) {
+        deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "skus_equivalentes_admin", docItem.id));
+      }
+    });
+    if (AppCasaRosa.carregarSkusEquivalentesAdmin) {
+      await AppCasaRosa.carregarSkusEquivalentesAdmin();
+    }
+  } catch(e) {
+    console.error("Erro ao excluir SKU admin:", e);
+  }
+};
+
+window.salvarSkuEquivalenteAdmin = AppCasaRosa.salvarSkuEquivalenteAdmin;
+window.excluirSkuEquivalenteAdmin = AppCasaRosa.excluirSkuEquivalenteAdmin;
 AppCasaRosa.excluirMeta = async function(id) {
   if (!confirm("Deseja realmente excluir esta meta?")) return;
 
@@ -4338,7 +4416,17 @@ AppCasaRosa.carregarSkusEquivalentes = async function() {
   }
 };
 
-
+AppCasaRosa.carregarSkusEquivalentesAdmin = async function() {
+  const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes_admin"));
+  AppCasaRosa.skusEquivalentesAdmin = {};
+  snap.forEach(doc => {
+    const data = doc.data();
+    AppCasaRosa.skusEquivalentesAdmin[data.base] = data.equivalentes;
+  });
+  if (typeof AppCasaRosa.listarSkusEquivalentesAdmin === "function") {
+    AppCasaRosa.listarSkusEquivalentesAdmin();
+  }
+};
 AppCasaRosa.atualizarCardsMetas = async function () {
   try {
     const container = document.getElementById("cardsMetas");
@@ -4437,6 +4525,16 @@ AppCasaRosa.excluirProduto = async function(id) {
 window.excluirProduto = AppCasaRosa.excluirProduto;
 AppCasaRosa.obterSkuPrincipal = function(sku) {
   const equivalentes = AppCasaRosa.skusEquivalentes || {};
+  for (const base in equivalentes) {
+    const aliases = equivalentes[base];
+    if (sku === base || (Array.isArray(aliases) && aliases.includes(sku))) {
+      return base;
+    }
+  }
+  return sku;
+};
+  AppCasaRosa.obterSkuAdmin = function(sku) {
+  const equivalentes = AppCasaRosa.skusEquivalentesAdmin || {};
   for (const base in equivalentes) {
     const aliases = equivalentes[base];
     if (sku === base || (Array.isArray(aliases) && aliases.includes(sku))) {
