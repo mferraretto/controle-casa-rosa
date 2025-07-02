@@ -1354,6 +1354,7 @@ body.dark-mode button {
   </div>
   
   <div id="tabela-vendas-metas" style="margin-top:1rem;"></div>
+  <button onclick="AppCasaRosa.exportarVendasMetasExcel()">📥 Exportar Excel</button>
   <h3>Produtos Salvos</h3>
   <div style="overflow-x:auto;">
     <table border="1" cellpadding="5" id="tabelaProdutos" style="border-collapse:collapse; width:100%;">
@@ -2541,9 +2542,64 @@ AppCasaRosa.exportarRelatorioMensal = exportarRelatorioMensal;
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(linhas);
      XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
+    XLSX.writeFile(wb, `relatorio_vendas_${mesSelecionado}.xlsx`);
   XLSX.writeFile(wb, `relatorio_vendas_${mesSelecionado}.xlsx`);
 }
 AppCasaRosa.exportarRelatorioMensalExcel = exportarRelatorioMensalExcel;
+    function exportarVendasMetasExcel() {
+  const enviados = AppCasaRosa.enviadosList || [];
+  const dataSel = document.getElementById('filtroDataMetas')?.value;
+  const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
+  const lojaSel = document.getElementById('filtroLojaMetas')?.value;
+  const produtoSel = document.getElementById('filtroProdutoMetas')?.value;
+  const resumo = {};
+  enviados.forEach(p => {
+    if (!p.dataEnvio) return;
+    const envioStr = p.dataEnvio.split('T')[0];
+    if (dataSel) {
+      if (considerarMes) {
+        const [anoSel, mesSel] = dataSel.split('-').map(Number);
+        const [ano, mes] = envioStr.split('-').map(Number);
+        if (ano !== anoSel || mes !== mesSel) return;
+      } else if (envioStr !== dataSel) {
+        return;
+      }
+    }
+    const loja = p.Loja || 'Loja desconhecida';
+    if (lojaSel && loja !== lojaSel) return;
+    const produto = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU) : (p.SKU || 'Produto desconhecido');
+    if (produtoSel && produto !== produtoSel) return;
+    if (!resumo[loja]) resumo[loja] = {};
+    resumo[loja][produto] = (resumo[loja][produto] || 0) + 1;
+  });
+
+  if (!Object.keys(resumo).length) {
+    alert('Nenhuma venda encontrada.');
+    return;
+  }
+
+  const linhas = [['Loja', 'Produto', 'Quantidade', 'Valor Esperado']];
+  Object.entries(resumo).forEach(([loja, produtos]) => {
+    Object.entries(produtos).forEach(([produto, qtd]) => {
+      const sobra = AppCasaRosa.produtosMap && AppCasaRosa.produtosMap[produto]
+        ? parseFloat(AppCasaRosa.produtosMap[produto].sobraIdeal)
+        : 0;
+      const valor = sobra * qtd;
+      linhas.push([loja, produto, qtd, valor]);
+    });
+  });
+
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(linhas);
+  XLSX.utils.book_append_sheet(wb, ws, 'Metas');
+  let dataParte = '';
+  if (dataSel) {
+    dataParte = considerarMes ? dataSel.slice(0, 7) : dataSel;
+  }
+  const nome = dataParte ? `vendas_metas_${dataParte}.xlsx` : 'vendas_metas.xlsx';
+  XLSX.writeFile(wb, nome);
+}
+AppCasaRosa.exportarVendasMetasExcel = exportarVendasMetasExcel;
 async function exportarRelatorioPDF() {
   const { jsPDF } = AppCasaRosa.jspdf;
   const doc = new jsPDF();
