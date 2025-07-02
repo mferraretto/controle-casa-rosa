@@ -4079,50 +4079,6 @@ AppCasaRosa.atualizarRelatorioMetas = function() {
   container.innerHTML = html;
 };
   
-AppCasaRosa.exportarVendasMetasExcel = function() {
-  const enviados = AppCasaRosa.enviadosList || [];
-  const dataSel = document.getElementById('filtroDataMetas')?.value;
-  const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
-  const lojaSel = document.getElementById('filtroLojaMetas')?.value;
-
-  const resumo = {};
-  enviados.forEach(p => {
-    se (!p.dataEnvio) retornar;
-    const envioStr = p.dataEnvio.split('T')[0];
-    se (dataSel) {
-      se (considerarMes) {
-        const [anoSel, mesSel] = dataSel.split('-').map(Número);
-        const [ano, mes] = envioStr.split('-').map(Number);
-        se (ano !== anoSel || meses !== mesSel) retornar;
-      } senão se (envioStr !== dataSel) {
-        retornar;
-      }
-    }
-    const loja = p.Loja || 'Loja desconhecida';
-    if (lojaSel && loja !== lojaSel) return;
-    const produto = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU) : (p.SKU || 'Produto desconhecido');
-    if (!resumo[loja]) resumo[loja] = {};
-    resumo[loja][produto] = (resumo[loja][produto] || 0) + 1;
-  });
-
-  const linhas = [['Loja', 'Produto', 'Quantidade']];
-  Object.entries(resumo).forEach(([loja, produtos]) => {
-    Object.entries(produtos).forEach(([produto, qtd]) => {
-      linhas.push([loja, produto, qtd]);
-    });
-  });
-
-  se (linhas.length === 1) {
-    alert('Nenhuma venda encontrada.');
-    retornar;
-  }
-
-  const wb = XLSX.utils.book_new();
-  const ws = XLSX.utils.aoa_to_sheet(linhas);
-  XLSX.utils.book_append_sheet(wb, ws, 'Vendas');
-  const nome = `vendas_por_loja_${(dataSel || 'geral').replace(/-/g, '')}.xlsx`;
-  XLSX.writeFile(wb, nome);
-};
 AppCasaRosa.calcularProjecaoMeta = function(valorMeta, vendidos, diasDoMes, hoje) {
   const mediaDiaria = vendidos / hoje;
   const estimadoFinal = Math.round(mediaDiaria * diasDoMes);
