@@ -1413,7 +1413,7 @@ body.dark-mode button {
       AppCasaRosa.preencherFiltroLojaMetas();
        AppCasaRosa.preencherFiltroProdutoMetas();
       AppCasaRosa.atualizarRelatorioMetas();
-          
+        AppCasaRosa.atualizarRelatorioSku();   
       AppCasaRosa.carregarProdutos();
       AppCasaRosa.atualizarCardsMetas();
      AppCasaRosa.carregarSkusEquivalentesAdmin();
@@ -4174,6 +4174,52 @@ AppCasaRosa.atualizarRelatorioMetas = function() {
 };
   
 
+AppCasaRosa.atualizarRelatorioSku = function() {
+  const enviados = AppCasaRosa.enviadosList || [];
+  const dataSel = document.getElementById('filtroDataMetas')?.value;
+  const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
+  const lojaSel = document.getElementById('filtroLojaMetas')?.value;
+  const produtoSel = document.getElementById('filtroProdutoMetas')?.value;
+  const resumo = {};
+  enviados.forEach(p => {
+    if (!p.dataEnvio) return;
+    const envioStr = p.dataEnvio.split('T')[0];
+    if (dataSel) {
+      if (considerarMes) {
+        const [aSel, mSel] = dataSel.split('-').map(Number);
+        const [a, m] = envioStr.split('-').map(Number);
+        if (a !== aSel || m !== mSel) return;
+      } else if (envioStr !== dataSel) {
+        return;
+      }
+    }
+    const loja = p.Loja || 'Loja desconhecida';
+    if (lojaSel && loja !== lojaSel) return;
+    const produto = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU) : (p.SKU || 'Produto desconhecido');
+    if (produtoSel && produto !== produtoSel) return;
+    resumo[produto] = (resumo[produto] || 0) + 1;
+  });
+
+  const container = document.getElementById('tabela-vendas-sku');
+  container.innerHTML = '';
+  if (!Object.keys(resumo).length) {
+    container.innerHTML = "<div style='color:#888;'>Nenhuma venda encontrada.</div>";
+    return;
+  }
+
+  let html = `<div style="overflow-x:auto;"><table border="1" cellspacing="0" cellpadding="5" style="width:100%; border-collapse:collapse;">`;
+  html += '<thead><tr><th>SKU</th><th>Quantidade</th><th>Valor Esperado</th></tr></thead><tbody>';
+  Object.entries(resumo)
+    .sort((a,b) => b[1]-a[1])
+    .forEach(([produto,qtd]) => {
+      const sobra = AppCasaRosa.produtosMap && AppCasaRosa.produtosMap[produto] ? parseFloat(AppCasaRosa.produtosMap[produto].sobraIdeal) : 0;
+      const valor = sobra * qtd;
+      const valorFmt = valor.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
+      html += `<tr><td>${produto}</td><td style="text-align:right;">${qtd}</td><td style="text-align:right;">${valorFmt}</td></tr>`;
+    });
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+};
 AppCasaRosa.calcularProjecaoMeta = function(valorMeta, vendidos, diasDoMes, hoje) {
   const mediaDiaria = vendidos / hoje;
   const estimadoFinal = Math.round(mediaDiaria * diasDoMes);
