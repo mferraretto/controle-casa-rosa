@@ -975,8 +975,7 @@ body.dark-mode button {
 </div>
 <div class="tab" onclick="abrirAba('aba-logs'); AppCasaRosa.carregarLogs();">  <i class="fas fa-clipboard-list"></i> Logs
 </div>
-<div class="tab" onclick="abrirAba('aba-admin'); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.carregarProdutos(); AppCasaRosa.atualizarCardsMetas();"> <i class="fas fa-user-shield"></i> Administrador</div> 
-  </div>
+<div class="tab" onclick="abrirAba('aba-admin'); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioSku(); AppCasaRosa.carregarProdutos(); AppCasaRosa.atualizarCardsMetas();"> <i class="fas fa-user-shield"></i> Administrador</div>  </div>
 <div id="login" style="display:flex; flex-direction:column; gap:1rem; max-width:400px; margin:5rem auto;">
   <h2>🔐 Login</h2>
   <input type="email" id="emailLogin" placeholder="Email" style="padding:0.5rem;" />
@@ -1333,21 +1332,21 @@ body.dark-mode button {
   <div class="filtros-dashboard">
     <label>
       📅 Data:
-       <input type="data" id="filtroDataMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()" />
+<input type="data" id="filtroDataMetas" onchange="AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioSku();" />
     </label>
     <label>
-     <input type="checkbox" id="filtroMesInteiroMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()" />
+<input type="checkbox" id="filtroMesInteiroMetas" onchange="AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioSku();" />
       🔄 Considerar mês inteiro
     </label>
     <label>
       🏪 Loja:
-     <select id="filtroLojaMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()">
+     <select id="filtroLojaMetas" onchange="AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioSku();">
         <option value="">Todas</option>
       </select>
     </label>
        <label>
       📦 Produto:
-       <select id="filtroProdutoMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()">
+      <select id="filtroProdutoMetas" onchange="AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioSku();">
         <option value="">Todos</option>
       </select>
     </label>
@@ -1355,6 +1354,8 @@ body.dark-mode button {
   
   <div id="tabela-vendas-metas" style="margin-top:1rem;"></div>
   <button onclick="AppCasaRosa.exportarVendasMetasExcel()">📥 Exportar Excel</button>
+  <h2 style="margin:2rem 0 1rem;">📦 Vendas Agrupadas por SKU</h2>
+  <div id="tabela-vendas-sku" style="margin-top:1rem;"></div>
   <h3>Produtos Salvos</h3>
   <div style="overflow-x:auto;">
     <table border="1" cellpadding="5" id="tabelaProdutos" style="border-collapse:collapse; width:100%;">
@@ -1410,12 +1411,12 @@ body.dark-mode button {
       AppCasaRosa.carregarProdutos();
     } else if (id === "aba-admin") {
       AppCasaRosa.preencherFiltroLojaMetas();
-            AppCasaRosa.preencherFiltroProdutoMetas();
+             AppCasaRosa.preencherFiltroProdutoMetas();
       AppCasaRosa.atualizarRelatorioMetas();
-    
+          AppCasaRosa.atualizarRelatorioSku();
       AppCasaRosa.carregarProdutos();
       AppCasaRosa.atualizarCardsMetas();
-       AppCasaRosa.carregarSkusEquivalentesAdmin();
+     AppCasaRosa.carregarSkusEquivalentesAdmin();
       
     }
   }
@@ -4172,6 +4173,52 @@ AppCasaRosa.atualizarRelatorioMetas = function() {
   container.innerHTML = html;
 };
   
+AppCasaRosa.atualizarRelatorioSku = function() {
+  const enviados = AppCasaRosa.enviadosList || [];
+  const dataSel = document.getElementById('filtroDataMetas')?.value;
+  const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
+  const lojaSel = document.getElementById('filtroLojaMetas')?.value;
+  const produtoSel = document.getElementById('filtroProdutoMetas')?.value;
+  const resumo = {};
+  enviados.forEach(p => {
+    se (!p.dataEnvio) retornar;
+    const envioStr = p.dataEnvio.split('T')[0];
+    se (dataSel) {
+      se (considerarMes) {
+        const [aSel, mSel] = dataSel.split('-').map(Number);
+        const [a, m] = envioStr.split('-').map(Número);
+        se (a !== aSel || m !== mSel) retornar;
+      } senão se (envioStr !== dataSel) {
+        retornar;
+      }
+    }
+    const loja = p.Loja || 'Loja desconhecida';
+    if (lojaSel && loja !== lojaSel) return;
+    const produto = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU) : (p.SKU || 'Produto desconhecido');
+    if (produtoSel && produto !== produtoSel) return;
+    resumo[produto] = (resumo[produto] || 0) + 1;
+  });
+
+  const container = document.getElementById('tabela-vendas-sku');
+  container.innerHTML = '';
+  se (!Object.keys(resumo).length) {
+    container.innerHTML = "<div style='color:#888;'>Nenhuma venda encontrada.</div>";
+    retornar;
+  }
+
+  deixe html = `<div style="overflow-x:auto;"><tabela border="1" cellspacing="0" cellpadding="5" style="width:100%; border-collapse:collapse;">`;
+  html += '<thead><tr><th>SKU</th><th>Quantidade</th><th>Valor Esperado</th></tr></thead><tbody>';
+  Object.entries(resumo)
+    .ordenar((a,b) => b[1]-a[1])
+    .forEach(([produto,qtd]) => {
+      const sobra = AppCasaRosa.produtosMap && AppCasaRosa.produtosMap[produto] ? parseFloat(AppCasaRosa.produtosMap[produto].sobraIdeal) : 0;
+      const valor = sobra * qtd;
+      const valorFmt = valor.toLocaleString('pt-BR', { estilo:'moeda', moeda:'BRL' });
+      html += `<tr><td>${produto}</td><td style="text-align:right;">${qtd}</td><td style="text-align:right;">${valorFmt}</td></tr>`;
+    });
+  html += '</tbody></table></div>';
+  container.innerHTML = html;
+};
 AppCasaRosa.calcularProjecaoMeta = function(valorMeta, vendidos, diasDoMes, hoje) {
   const mediaDiaria = vendidos / hoje;
   const estimadoFinal = Math.round(mediaDiaria * diasDoMes);
