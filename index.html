@@ -1345,6 +1345,12 @@ body.dark-mode button {
         <option value="">Todas</option>
       </select>
     </label>
+       <label>
+      📦 Produto:
+      <select id="filtroProdutoMetas" onchange="AppCasaRosa.atualizarRelatorioMetas()">
+        <option value="">Todos</option>
+      </select>
+    </label>
   </div>
   
   <div id="tabela-vendas-metas" style="margin-top:1rem;"></div>
@@ -1397,16 +1403,18 @@ body.dark-mode button {
       AppCasaRosa.renderizarGraficoTempoEnvio();
       AppCasaRosa.gerarRelatorioDetalhado();
     } else if (id === "aba-metas") {
-       AppCasaRosa.preencherFiltroLojaMetas();
+            AppCasaRosa.preencherFiltroProdutoMetas();
       AppCasaRosa.atualizarRelatorioMetas();
     } else if (id === "aba-produtos") {
       AppCasaRosa.carregarProdutos();
     } else if (id === "aba-admin") {
       AppCasaRosa.preencherFiltroLojaMetas();
+            AppCasaRosa.preencherFiltroProdutoMetas();
       AppCasaRosa.atualizarRelatorioMetas();
       AppCasaRosa.carregarProdutos();
       AppCasaRosa.atualizarCardsMetas();
        AppCasaRosa.carregarSkusEquivalentesAdmin();
+      
     }
   }
   // Retorna o primeiro campo definido em obj dentre a lista de keys
@@ -4025,19 +4033,39 @@ AppCasaRosa.preencherLojasInputMeta = function() {
   const select = document.getElementById("inputLojasMeta");
   select.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
 };
- AppCasaRosa.preencherFiltroLojaMetas = function() {
+AppCasaRosa.preencherFiltroLojaMetas = function() {
   const lojas = [...new Set((AppCasaRosa.enviadosList || []).map(p => p.Loja).filter(Boolean))].sort();
   const select = document.getElementById("filtroLojaMetas");
   if (!select) return;
   select.innerHTML = '<option value="">Todas</option>' + lojas.map(l => `<option value="${l}">${l}</option>`).join('');
 };
+AppCasaRosa.preencherFiltroProdutoMetas = function() {
+  const enviados = AppCasaRosa.enviadosList || [];
+  const produtos = new Set();
 
+  enviados.forEach(p => {
+    if (p.SKU) produtos.add(p.SKU);
+  });
+
+  const select = document.getElementById("filtroProdutoMetas");
+  if (!select) return;
+  select.innerHTML = '<option value="">Todos</option>';
+
+  Array.from(produtos)
+    .sort()
+    .forEach(sku => {
+      const option = document.createElement("option");
+      option.value = sku;
+      option.textContent = sku;
+      select.appendChild(option);
+    });
+};
 AppCasaRosa.atualizarRelatorioMetas = function() {
   const enviados = AppCasaRosa.enviadosList || [];
   const dataSel = document.getElementById('filtroDataMetas')?.value;
   const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
   const lojaSel = document.getElementById('filtroLojaMetas')?.value;
-
+ const produtoSel = document.getElementById('filtroProdutoMetas')?.value;
   const resumo = {};
   enviados.forEach(p => {
     if (!p.dataEnvio) return;
@@ -4054,6 +4082,7 @@ AppCasaRosa.atualizarRelatorioMetas = function() {
     const loja = p.Loja || 'Loja desconhecida';
     if (lojaSel && loja !== lojaSel) return;
    const produto = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU) : (p.SKU || 'Produto desconhecido');
+    if (produtoSel && produto !== produtoSel) return;
     if (!resumo[loja]) resumo[loja] = {};
     resumo[loja][produto] = (resumo[loja][produto] || 0) + 1;
   });
