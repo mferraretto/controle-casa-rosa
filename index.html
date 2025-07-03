@@ -1594,18 +1594,7 @@ async function processarArquivos() {
             const enviadoJaExiste = enviadosSnap.docs.some(d => (d.data().pedidoId || "").toUpperCase() === pedidoId);
             const canceladoJaExiste = canceladosSnap.docs.some(d => (d.data().pedidoId || "").toUpperCase() === pedidoId);
 
-            if (enviadoJaExiste || canceladoJaExiste) {
-              console.warn("⏭️ Ignorado (já enviado ou cancelado):", pedidoId);
-              continue;
-            }
-
-            const pendenteDoc = pendentesSnap.docs.find(d => (d.data().pedidoId || "").toUpperCase() === pedidoId);
-            if (pendenteDoc) {
-              await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "pedidos_pendentes", pendenteDoc.id));
-              console.log("🧹 Removido de pendentes:", pedidoId);
-            }
-
-            if (!hasDataEnvio) {
+             if (!hasDataEnvio) {
               console.warn("⏭️ Ignorado por falta de Hora de Envio:", pedidoId);
               if (!pendenteDoc) {
                 await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes"), {
@@ -1631,6 +1620,8 @@ async function processarArquivos() {
 
               console.log("✅ Pedido enviado salvo:", pedidoId);
             }
+          } catch (erro) {
+            console.error("❌ Erro ao salvar pedido:", pedidoId, erro);
           }
         }
 
