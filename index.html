@@ -1587,7 +1587,14 @@ async function processarArquivos() {
           const envioRaw = normalizarCampo(pedido, ["Hora de Envio"]);
 
           const dataPagamento = pagRaw && !isNaN(new Date(pagRaw)) ? new Date(pagRaw).toISOString() : null;
-          const dataEnvio = envioRaw && !isNaN(new Date(envioRaw)) ? new Date(envioRaw).toISOString() : new Date().toISOString();
+           const possuiHoraEnvio = envioRaw && !isNaN(new Date(envioRaw));
+          if (!possuiHoraEnvio) {
+            console.warn("⏭️ Ignorado (sem hora de envio):", pedidoId);
+            continue;
+          }
+
+          const dataEnvio = new Date(envioRaw).toISOString();
+
 
           try {
             const enviadoJaExiste = enviadosSnap.docs.some(d => (d.data().pedidoId || "").toUpperCase() === pedidoId);
