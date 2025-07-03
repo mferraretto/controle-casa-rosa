@@ -224,6 +224,8 @@ window.AppCasaRosa.escapeHTML = function(str) {
     })[c];
   });
 };
+    // Disponibiliza a função também no escopo global
+window.escapeHTML = window.AppCasaRosa.escapeHTML;
   // Atualizar pedido específico
   window.AppCasaRosa.atualizarPedido = async function(id, dados) {
   try {
