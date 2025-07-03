@@ -1931,7 +1931,7 @@ const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
     pdfs.forEach((pdf, i) => {
       const li = document.createElement("li");
       li.innerHTML = `
-        📎 ${pdf.nome}
+       📎 ${ AppCasaRosa.escapeHTML(pdf.name) }
         <button onclick="AppCasaRosa.abrirPDF(${i})">🔍 Ver</button>
         <button onclick="AppCasaRosa.baixarPDF(${i})">⬇️ Baixar</button>
       `;
