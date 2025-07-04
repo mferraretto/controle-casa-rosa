@@ -4450,10 +4450,10 @@ document.addEventListener("DOMContentLoaded", () => {
 AppCasaRosa.salvarSkuEquivalente = async function (event) {
   event.preventDefault();
 
-  const base = document.getElementById("skuBase").value.trim().toUpperCase();
+  const base = document.getElementById("skuBase").value.trim();
   const equivalentes = document.getElementById("skusEquivalentes").value
     .split(",")
-    .map(s => s.trim().toUpperCase())
+    .map(s => s.trim())
     .filter(Boolean);
 
   if (!base || equivalentes.length === 0) return;
@@ -4523,10 +4523,10 @@ window.excluirSkuEquivalente = AppCasaRosa.excluirSkuEquivalente;
 window.renderizarTabelaSkus = AppCasaRosa.renderizarTabelaSkus;
 AppCasaRosa.salvarSkuEquivalenteAdmin = async function(event) {
   event.preventDefault();
-  const base = document.getElementById("skuBaseAdmin").value.trim().toUpperCase();
+   const base = document.getElementById("skuBaseAdmin").value.trim();
   const equivalentes = document.getElementById("skusEquivalentesAdmin").value
     .split(",")
-    .map(s => s.trim().toUpperCase())
+    .map(s => s.trim())
     .filter(Boolean);
   if (!base || equivalentes.length === 0) return;
   const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes_admin"));
