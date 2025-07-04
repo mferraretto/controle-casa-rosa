@@ -164,7 +164,7 @@ async function removerPendentesJaEnviados() {
     pendentesSnap.forEach(doc => {
       const id = AppCasaRosa.normalizarId(doc.data().pedidoId || doc.data().Pedido || "");
       if (enviadosIds.has(id)) {
-        promises.push(deleteDoc(doc.ref));
+        promises.push(AppCasaRosa.deleteDoc(doc.ref));
       }
     });
 
@@ -229,8 +229,8 @@ window.escapeHTML = window.AppCasaRosa.escapeHTML;
   // Atualizar pedido específico
   window.AppCasaRosa.atualizarPedido = async function(id, dados) {
   try {
-    const ref = doc(db, "pedidos_pendentes", id);
-    await updateDoc(ref, dados);
+   const ref = AppCasaRosa.doc(AppCasaRosa.db, "pedidos_pendentes", id);
+    await AppCasaRosa.updateDoc(ref, dados);
   } catch (e) {
     alert("Erro ao atualizar pedido: " + (e.message || e));
   }
@@ -585,7 +585,7 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
     if (!motivo) return;
    
     // Obtem o documento atual
-    const ref = doc(db, "pedidos_pendentes", id);
+     const ref = AppCasaRosa.doc(AppCasaRosa.db, "pedidos_pendentes", id);
     const snap = await getDoc(ref);
     if (!snap.exists()) {
       alert("Pedido não encontrado.");
@@ -594,10 +594,10 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
    const dadosPedido = snap.data();
 
     // Remove dos pendentes
-    await deleteDoc(ref);
+   await AppCasaRosa.deleteDoc(ref);
 
     // Registra o cancelamento em coleção própria
-    await addDoc(collection(db, "pedidos_cancelados"), {
+   await AppCasaRosa.addDoc(collection(db, "pedidos_cancelados"), {
       ...dadosPedido,
       pedidoId: id,
       motivo,
@@ -1777,7 +1777,7 @@ async function cancelarPedido(pedidoId) {
   if (!motivo) return;
 
   try {
-    const pedidoRef = doc(db, "pedidos_pendentes", pedidoId);
+    const pedidoRef = AppCasaRosa.doc(AppCasaRosa.db, "pedidos_pendentes", pedidoId);
     const snapshot = await getDoc(pedidoRef);
 
     if (!snapshot.exists()) {
@@ -1788,10 +1788,10 @@ async function cancelarPedido(pedidoId) {
     const dadosPedido = snapshot.data();
 
     // Remove o pedido da coleção de pendentes
-    await deleteDoc(pedidoRef);
+    await AppCasaRosa.deleteDoc(pedidoRef);
 
     // Registra o pedido completo como cancelado
-    await addDoc(collection(db, "pedidos_cancelados"), {
+    await AppCasaRosa.addDoc(collection(db, "pedidos_cancelados"), {
       ...dadosPedido,
       pedidoId,
       motivo,
@@ -3278,7 +3278,7 @@ if (!pedidosExtraidos.length) {
     // 💾 Salva apenas os pedidos novos
     await Promise.all(novosFiltrados.map(p => adicionarPedido(p)));
 
-    await addDoc(collection(db, "pdf_etiquetas"), {
+     await AppCasaRosa.addDoc(collection(db, "pdf_etiquetas"), {
       nome: file.name,
       dataImportacao: new Date().toISOString()
     });
@@ -3598,7 +3598,7 @@ async function exportarDashboardPDF() {
   AppCasaRosa.exportarDashboardPDF = exportarDashboardPDF;
 async function adicionarPedido(pedido) {
   try {
-    await addDoc(collection(db, "pedidos_pendentes"), pedido);
+     await AppCasaRosa.addDoc(collection(db, "pedidos_pendentes"), pedido);
   } catch (erro) {
     console.error("Erro ao adicionar pedido:", erro);
   }
@@ -3625,7 +3625,7 @@ async function apagarTudo() {
   for (const nome of colecoes) {
     const ref = collection(db, nome);
     const snap = await getDocs(ref);
-    const promises = snap.docs.map(doc => deleteDoc(doc.ref));
+    const promises = snap.docs.map(doc => AppCasaRosa.deleteDoc(doc.ref));
     await Promise.all(promises);
     console.log(`Coleção ${nome} apagada.`);
   }
@@ -4134,7 +4134,7 @@ AppCasaRosa.adicionarMetaManual = async function(event) {
     return;
   }
 
-  await addDoc(collection(db, "metas_mensais"), {
+  await AppCasaRosa.addDoc(collection(db, "metas_mensais"), {
     produto,
     valor,
     mes,
@@ -4253,7 +4253,7 @@ AppCasaRosa.renderizarMetasManuais = async function() {
 };
 AppCasaRosa.removerMetaManual = async function(id) {
   if (!confirm("Deseja remover esta meta?")) return;
-  await deleteDoc(doc(db, "metas_mensais", id));
+ await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "metas_mensais", id));
   AppCasaRosa.renderizarMetasManuais();
 };
 
@@ -4553,7 +4553,7 @@ AppCasaRosa.excluirSkuEquivalente = async function(base) {
     const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes"));
     snap.forEach(docItem => {
       if (docItem.data().base === base) {
-        deleteDoc(doc(db, "skus_equivalentes", docItem.id));
+       AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "skus_equivalentes", docItem.id));
       }
     });
 
@@ -4612,7 +4612,7 @@ AppCasaRosa.excluirSkuEquivalenteAdmin = async function(base) {
     const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes_admin"));
     snap.forEach(docItem => {
       if (docItem.data().base === base) {
-        deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "skus_equivalentes_admin", docItem.id));
+        AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "skus_equivalentes_admin", docItem.id));
       }
     });
     if (AppCasaRosa.carregarSkusEquivalentesAdmin) {
@@ -4629,7 +4629,7 @@ AppCasaRosa.excluirMeta = async function(id) {
   if (!confirm("Deseja realmente excluir esta meta?")) return;
 
   try {
-    await deleteDoc(doc(db, "metas_mensais", id));
+   await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "metas_mensais", id));
     if (AppCasaRosa.registrarLog) {
       await AppCasaRosa.registrarLog("Excluiu Meta", { metaId: id });
     } else {
@@ -4657,7 +4657,7 @@ AppCasaRosa.editarMeta = async function(id, valorAtual) {
   }
 
   try {
-    await updateDoc(doc(db, "metas_mensais", id), { valor: novoValor });
+    await AppCasaRosa.updateDoc(AppCasaRosa.doc(AppCasaRosa.db, "metas_mensais", id), { valor: novoValor });
     if (AppCasaRosa.registrarLog) {
       await AppCasaRosa.registrarLog("Editou Meta", { metaId: id, valor: novoValor });
     } else {
@@ -4696,7 +4696,7 @@ AppCasaRosa.registrarLog = async function(acao, detalhes = {}) {
   };
 
   try {
-    await addDoc(collection(db, "logs"), log);
+    await AppCasaRosa.addDoc(collection(db, "logs"), log);
     console.log("🔎 Log registrado:", log);
   } catch (e) {
     console.error("Erro ao registrar log:", e);
@@ -4810,7 +4810,7 @@ AppCasaRosa.salvarProduto = async function(event) {
   const sobra = parseInt(document.getElementById("sobraIdeal").value);
   const valor = parseFloat(document.getElementById("valorProduto").value);
   if (!nome || isNaN(sobra) || isNaN(valor)) return;
-  await addDoc(collection(db, "produtos"), { nome, sobraIdeal: sobra, valor });
+ await AppCasaRosa.addDoc(collection(db, "produtos"), { nome, sobraIdeal: sobra, valor });
   if (AppCasaRosa.registrarLog) {
     await AppCasaRosa.registrarLog("Adicionou Produto", { nome, valor });
   } else {
@@ -4825,7 +4825,7 @@ window.salvarProduto = AppCasaRosa.salvarProduto;
 
 AppCasaRosa.excluirProduto = async function(id) {
   if (!confirm("Excluir produto?")) return;
-  await deleteDoc(doc(db, "produtos", id));
+ await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "produtos", id));
   if (AppCasaRosa.registrarLog) {
     await AppCasaRosa.registrarLog("Excluiu Produto", { id });
   } else {
