@@ -996,6 +996,10 @@ body.dark-mode button {
     <p><strong>Pedidos Enviados:</strong><br>
       <input type="file" id="arquivoEnviados" accept=".xlsx">
     </p>
+    <p><strong>Planilha Mercado Livre:</strong><br>
+      <input type="file" id="arquivoMercadoLivre" accept=".xlsx">
+    </p>
+    <button onclick="AppCasaRosa.importarPlanilhaMercadoLivre()">📥 Importar ML</button>
     <p><strong>Filtrar por data:</strong><br>
       <input type="date" id="filtroData">
     </p>
@@ -1429,6 +1433,32 @@ body.dark-mode button {
     }
     return "";
   }
+     function parseDataPortugues(texto, anoPadrao) {
+    if (!texto) return null;
+    try {
+      const meses = {
+        janeiro: 0, fevereiro: 1, marco: 2, março: 2, abril: 3,
+        maio: 4, junho: 5, julho: 6, agosto: 7, setembro: 8,
+        outubro: 9, novembro: 10, dezembro: 11
+      };
+      const str = texto
+        .toLowerCase()
+        .replace(/hs\.?/g, "")
+        .replace("|", "")
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+        .trim();
+      const m = str.match(/(\d{1,2}) de ([a-zç]+)(?: de (\d{4}))?(?:.*?(\d{1,2}:\d{2}))?/);
+      if (!m) return null;
+      const dia = parseInt(m[1], 10);
+      const mes = meses[m[2].replace("ç", "c")] ?? 0;
+      const ano = m[3] ? parseInt(m[3], 10) : (anoPadrao || new Date().getFullYear());
+      const [h, min] = (m[4] || "00:00").split(":").map(n => parseInt(n, 10));
+      return new Date(ano, mes, dia, h, min);
+    } catch (_) {
+      return null;
+    }
+  }
+    
 AppCasaRosa.atualizarResumoVendasMensal = function() {
   const enviados = AppCasaRosa.enviadosList || [];
   const mesSelecionado  = document.getElementById("filtroMesDashboard")?.value;
@@ -1639,6 +1669,86 @@ async function processarArquivos() {
 
 // 🧩 REGISTRA A FUNÇÃO PARA O HTML USAR
 AppCasaRosa.processarArquivos = processarArquivos;
+async function importarPlanilhaMercadoLivre() {
+  const input = document.getElementById('arquivoMercadoLivre');
+  if (!input || !input.files.length) {
+    alert('Selecione a planilha do Mercado Livre.');
+    return;
+  }
+
+  const [pendentesSnap, enviadosSnap, canceladosSnap] = await Promise.all([
+    AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_pendentes')),
+    AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_enviados')),
+    AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_cancelados')),
+  ]);
+
+  const idsExistentes = new Set();
+  [...pendentesSnap.docs, ...enviadosSnap.docs, ...canceladosSnap.docs].forEach(doc => {
+    const id = (doc.data().pedidoId || doc.data().Pedido || '').toString().trim().toUpperCase();
+    idsExistentes.add(id);
+  });
+
+  await new Promise(resolve => {
+    lerArquivo(input, async dados => {
+      for (const linha of dados) {
+        const pedidoId = (linha['N.º de venda'] || '').toString().trim().toUpperCase();
+        if (!pedidoId || idsExistentes.has(pedidoId)) continue;
+
+        const estado = (linha['Estado'] || '').trim();
+        const sku = linha['SKU'] || '';
+        const rastreio = linha['Número de rastreamento'] || '';
+        const pagObj = parseDataPortugues(linha['Data da venda']);
+        const dataPagamento = pagObj ? pagObj.toISOString() : new Date().toISOString();
+
+        const base = {
+          pedidoId,
+          Loja: 'ML',
+          SKU: sku,
+          Rastreio: rastreio,
+          dataPagamento,
+          status: 'novo'
+        };
+
+        try {
+          if (/Venda cancelada/i.test(estado)) {
+            const pendenteDoc = pendentesSnap.docs.find(d => (d.data().pedidoId || d.data().Pedido || '').toUpperCase() === pedidoId);
+            if (pendenteDoc) await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, 'pedidos_pendentes', pendenteDoc.id));
+            await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_cancelados'), {
+              ...base,
+              status: 'cancelado',
+              motivo: 'Cancelado automaticamente via planilha ML',
+              dataCancelamento: new Date().toISOString()
+            });
+          } else if (/A caminho|Entregue/i.test(estado)) {
+            const envioObj = parseDataPortugues(linha['Data a caminho'], pagObj && pagObj.getFullYear());
+            const dataEnvio = envioObj ? envioObj.toISOString() : new Date().toISOString();
+
+            const pendenteDoc = pendentesSnap.docs.find(d => (d.data().pedidoId || d.data().Pedido || '').toUpperCase() === pedidoId);
+            if (pendenteDoc) await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, 'pedidos_pendentes', pendenteDoc.id));
+
+            await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_enviados'), {
+              ...base,
+              dataEnvio,
+              status: 'enviado'
+            });
+          } else {
+            await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_pendentes'), base);
+          }
+        } catch (e) {
+          console.error('Erro ao importar pedido ML:', pedidoId, e);
+        }
+      }
+
+      alert('✅ Planilha do Mercado Livre importada com sucesso!');
+      await carregarEnviadosFirebase();
+      if (AppCasaRosa.carregarPendentesFirebase) {
+        await AppCasaRosa.carregarPendentesFirebase();
+      }
+      resolve();
+    });
+  });
+}
+AppCasaRosa.importarPlanilhaMercadoLivre = importarPlanilhaMercadoLivre;
 
 async function carregarEnviadosFirebase() {
   const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados"));
