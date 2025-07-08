@@ -396,10 +396,10 @@ window.AppCasaRosa.identificarLoja = function(texto) {
 <td><input type="checkbox" class="selecionar-pendente" data-id="${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}" /></td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : escapeHTML(pedido)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>
-  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : escapeHTML(vendedor)}</td>
-  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pagamento) : escapeHTML(pagamento)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : escapeHTML(rastreio)}</td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : escapeHTML(vendedor)}</td>
   <td><button class="danger" onclick="AppCasaRosa.cancelarPedido ? AppCasaRosa.cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}') : cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')">❌ Cancelar</button></td>
 </tr>
 `;
@@ -542,12 +542,12 @@ window.AppCasaRosa.removerMeta = function(loja) {
     html += `
   <tr>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : escapeHTML(pedido)}</td>
-    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>
-    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : escapeHTML(vendedor)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>   
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : escapeHTML(rastreio)}</td>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pag) : escapeHTML(pag)}</td>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(envio) : escapeHTML(envio)}</td>
+     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : escapeHTML(vendedor)}</td>
     <td>
       <button class="danger" onclick="AppCasaRosa.cancelarPedido ? AppCasaRosa.cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}') : cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')">❌ Cancelar</button>
     </td>
