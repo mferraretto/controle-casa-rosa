@@ -372,6 +372,7 @@ window.AppCasaRosa.identificarLoja = function(texto) {
           <th>Pedido</th>
           <th>Loja</th>
           <th>Produto</th>
+          <th>Vendedor</th>
           <th>Pagamento</th>
           <th>Rastreio</th>
           <th>Ações</th>
@@ -383,6 +384,7 @@ window.AppCasaRosa.identificarLoja = function(texto) {
   lista.forEach(p => {
     const pedido   = p.Pedido || p.pedidoId || "";
     const loja     = p.Loja || "";
+    const vendedor = p.Vendedor || "";
     const produto  = p.SKU || "";
     const pagamento = p.dataPagamento
       ? new Date(p.dataPagamento).toLocaleString()
@@ -394,6 +396,7 @@ window.AppCasaRosa.identificarLoja = function(texto) {
 <td><input type="checkbox" class="selecionar-pendente" data-id="${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}" /></td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : escapeHTML(pedido)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : escapeHTML(vendedor)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pagamento) : escapeHTML(pagamento)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : escapeHTML(rastreio)}</td>
@@ -416,6 +419,7 @@ window.AppCasaRosa.renderizarCardsPendentes = function(lista) {
   lista.forEach(p => {
     const pedido   = p.Pedido || p.pedidoId || "";
     const loja     = p.Loja || "";
+    const vendedor = p.Vendedor || "";
     const produto  = p.SKU || "";
     const pagamento = p.dataPagamento ? new Date(p.dataPagamento).toLocaleDateString() : "";
     const rastreio = p.Rastreio || "";
@@ -424,6 +428,7 @@ window.AppCasaRosa.renderizarCardsPendentes = function(lista) {
     div.innerHTML = `
       <strong>Pedido:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : pedido}<br/>
       <strong>Loja:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : loja}<br/>
+       <strong>Vendedor:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : vendedor}<br/>
       <strong>Produto:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : produto}<br/>
       <strong>Pagamento:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pagamento) : pagamento}<br/>
       <strong>Rastreio:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : rastreio}<br/>
@@ -514,6 +519,7 @@ window.AppCasaRosa.removerMeta = function(loja) {
         <tr>
           <th>Pedido</th>
           <th>Loja</th>
+           <th>Vendedor</th>
           <th>Produto</th>
           <th>Rastreio</th>
           <th>Pagamento</th>
@@ -527,6 +533,7 @@ window.AppCasaRosa.removerMeta = function(loja) {
   lista.forEach(p => {
     const pedido   = p.pedidoId || "-";
     const loja     = p.Loja || "-";
+    const vendedor = p.Vendedor || "-";
     const produto  = p.SKU || "-";
     const rastreio = p.Rastreio || "-";
     const pag      = p.dataPagamento ? new Date(p.dataPagamento).toLocaleDateString() : "-";
@@ -536,6 +543,7 @@ window.AppCasaRosa.removerMeta = function(loja) {
   <tr>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : escapeHTML(pedido)}</td>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : escapeHTML(vendedor)}</td>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : escapeHTML(rastreio)}</td>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pag) : escapeHTML(pag)}</td>
@@ -581,6 +589,7 @@ window.AppCasaRosa.atualizarTabelaEnviados = function() {
     const tr = document.createElement("tr");
     tr.innerHTML = `
       <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Loja || "") : escapeHTML(p.Loja || "")}</td>
+       <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Vendedor || "") : escapeHTML(p.Vendedor || "")}</td>
       <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.motivo || "") : escapeHTML(p.motivo || "")}</td>
     `;
     tbody.appendChild(tr);
@@ -1138,6 +1147,7 @@ body.dark-mode button {
       <thead>
         <tr>
           <th>Loja</th>
+          <th>Vendedor</th>
           <th>Motivo</th>
         </tr>
       </thead>
@@ -1598,6 +1608,7 @@ async function processarArquivos() {
             dataPagamento: p["Impressão da Etiqueta"]
               ? new Date(p["Impressão da Etiqueta"]).toISOString()
               : new Date().toISOString(),
+             Vendedor: "Vendedor",
             status: "novo"
           };
 
@@ -1684,6 +1695,7 @@ async function processarArquivos() {
               Rastreio: rastreio,
               dataPagamento,
               dataEnvio,
+               Vendedor: "Vendedor",
               status: "enviado"
             });
 
@@ -1741,6 +1753,7 @@ async function importarPlanilhaMercadoLivre() {
           SKU: sku,
           Rastreio: rastreio,
           dataPagamento,
+          Vendedor: "Fabrica ML",
           status: 'novo'
         };
 
