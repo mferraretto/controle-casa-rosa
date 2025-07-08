@@ -139,6 +139,8 @@
           AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
             AppCasaRosa.carregarSkusEquivalentesAdmin && AppCasaRosa.carregarSkusEquivalentesAdmin();
           AppCasaRosa.carregarLojasRegistradas && AppCasaRosa.carregarLojasRegistradas();
+          if (AppCasaRosa.carregarEnviadosFirebase) AppCasaRosa.carregarEnviadosFirebase();
+          if (AppCasaRosa.atualizarTabelaEnviados) AppCasaRosa.atualizarTabelaEnviados();
         } else {
           loginTela.style.display = "flex";
           sistemaTela.style.display = "none";
@@ -196,13 +198,12 @@ window.AppCasaRosa.historicoList = [];
 window.AppCasaRosa.produtosMap = {};
 
 // Listener "Pedidos Enviados"
-onSnapshot(collection(db, "pedidos_enviados"), (snapshot) => {
-  window.AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-  // Use window. se a função também for global
-  if (window.AppCasaRosa.atualizarTabelasEViewsEnviados) {
-    window.AppCasaRosa.atualizarTabelasEViewsEnviados();
-  }
-});
+  onSnapshot(collection(db, "pedidos_enviados"), (snapshot) => {
+    window.AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (window.AppCasaRosa.atualizarTabelaEnviados) {
+      window.AppCasaRosa.atualizarTabelaEnviados();
+    }
+  });
     // Listener "Pedidos Cancelados" - popula canceladosList em tempo real
 onSnapshot(collection(db, "pedidos_cancelados"), (snapshot) => {
   window.AppCasaRosa.canceladosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -550,6 +551,27 @@ window.AppCasaRosa.removerMeta = function(loja) {
   container.innerHTML = html;
 };
 
+window.AppCasaRosa.atualizarTabelaEnviados = function() {
+  const lista = AppCasaRosa.enviadosList || [];
+  const lojaFiltro = (document.getElementById('filtroLojaRelatorio')?.value || '').trim().toLowerCase();
+  const mesSelecionado = document.getElementById('filtroMesRelatorio')?.value;
+  const dataInicio = document.getElementById('filtroDataInicioEnviados')?.value;
+  const dataFim = document.getElementById('filtroDataFimEnviados')?.value;
+  const filtrados = lista.filter(p => {
+    const loja = (p.Loja || '').trim().toLowerCase();
+    if (lojaFiltro && loja !== lojaFiltro) return false;
+    const dataEnvio = p.dataEnvio?.split('T')[0];
+    if (!dataEnvio) return false;
+    if (mesSelecionado) {
+      if (!dataEnvio.startsWith(mesSelecionado)) return false;
+    } else {
+      if (dataInicio && dataEnvio < dataInicio) return false;
+      if (dataFim && dataEnvio > dataFim) return false;
+    }
+    return true;
+  });
+  AppCasaRosa.renderizarTabelaEnviados(filtrados);
+};
 
   // Renderização da tabela de “Cancelados”
  window.AppCasaRosa.renderizarTabelaCancelados = function(lista) {
@@ -1029,10 +1051,16 @@ body.dark-mode button {
     <h2>✅ Pedidos Enviados</h2>
     <div style="margin:1rem 0; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
       <label><strong>📆 Mês:</strong>
-        <input type="month" id="filtroMesRelatorio">
+        <input type="month" id="filtroMesRelatorio" onchange="AppCasaRosa.atualizarTabelaEnviados()">
+      </label>
+      <label><strong>📅 Início:</strong>
+        <input type="date" id="filtroDataInicioEnviados" onchange="AppCasaRosa.atualizarTabelaEnviados()">
+      </label>
+      <label><strong>📅 Fim:</strong>
+        <input type="date" id="filtroDataFimEnviados" onchange="AppCasaRosa.atualizarTabelaEnviados()">
       </label>
       <label><strong>🏪 Loja:</strong>
-        <select id="filtroLojaRelatorio">
+         <select id="filtroLojaRelatorio" onchange="AppCasaRosa.atualizarTabelaEnviados()">
           <option value="">Todas</option>
         </select>
       </label>
@@ -1764,9 +1792,10 @@ async function carregarEnviadosFirebase() {
 
   AppCasaRosa.enviadosList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-  atualizarTabelas();
+  if (AppCasaRosa.atualizarTabelaEnviados) AppCasaRosa.atualizarTabelaEnviados();
   gerarGraficoMediaVendas();
 }
+    window.AppCasaRosa.carregarEnviadosFirebase = carregarEnviadosFirebase;
 
 // ✅ Cole esta em seu lugar:
 // Cancela um pedido: atualiza status no pedido original e registra em “pedidos_cancelados”
@@ -2556,9 +2585,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Ajusta o filtro de data da aba “Importados” para hoje
   const hoje = new Date().toISOString().split("T")[0];
-  const inputFiltroData = document.getElementById("filtroData");
-  if (inputFiltroData) inputFiltroData.value = hoje;
+ const inputFiltroData = document.getElementById("filtroData");
+    if (inputFiltroData) inputFiltroData.value = hoje;
 
+    const ini = document.getElementById("filtroDataInicioEnviados");
+    const fim = document.getElementById("filtroDataFimEnviados");
+    if (ini && fim) {
+      ini.value = hoje;
+      fim.value = hoje;
+    }
+    if (AppCasaRosa.atualizarTabelaEnviados) AppCasaRosa.atualizarTabelaEnviados();
   // Filtro Multiloja na aba "A Enviar"
   const tabEnviar = document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]");
   if (tabEnviar) {
