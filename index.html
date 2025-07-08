@@ -1758,19 +1758,11 @@ async function importarPlanilhaMercadoLivre() {
 AppCasaRosa.importarPlanilhaMercadoLivre = importarPlanilhaMercadoLivre;
 
 async function carregarEnviadosFirebase() {
-  const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados"));
-  const hoje = new Date();
-  const tresDiasAtras = new Date();
-  tresDiasAtras.setDate(hoje.getDate() - 3);
+  const snap = await AppCasaRosa.getDocs(
+    AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados")
+  );
 
-  const todos = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-  const recentes = todos.filter(p => {
-    if (!p.dataEnvio) return false;
-    const dt = new Date(p.dataEnvio.split("T")[0]);
-    return dt >= tresDiasAtras;
-  });
-
-  AppCasaRosa.enviadosList = recentes;
+  AppCasaRosa.enviadosList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
   atualizarTabelas();
   gerarGraficoMediaVendas();
