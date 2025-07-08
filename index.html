@@ -2446,7 +2446,7 @@ function exportarPedidosAEnviar() {
   XLSX.writeFile(wb, "pedidos_a_enviar.xlsx");
 }
     AppCasaRosa.exportarPedidosAEnviar = exportarPedidosAEnviar;
-    async function excluirPedidosSelecionados() {
+   async function excluirPedidosSelecionados() {
   const checkboxes = Array.from(document.querySelectorAll('#tabelaPendentes tbody input.selecionar-pendente:checked'));
   if (!checkboxes.length) {
     alert('Selecione ao menos um pedido.');
