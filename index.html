@@ -1698,12 +1698,13 @@ async function importarPlanilhaMercadoLivre() {
         const estado = (linha['Estado'] || '').trim();
         const sku = linha['SKU'] || '';
         const rastreio = linha['Número de rastreamento'] || '';
+         const lojaML = normalizarCampo(linha, ['Canal de venda']).trim() || 'ML';
         const pagObj = parseDataPortugues(linha['Data da venda']);
         const dataPagamento = pagObj ? pagObj.toISOString() : new Date().toISOString();
 
         const base = {
           pedidoId,
-          Loja: 'ML',
+          Loja: lojaML,
           SKU: sku,
           Rastreio: rastreio,
           dataPagamento,
