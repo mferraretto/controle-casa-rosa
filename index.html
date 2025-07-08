@@ -1131,6 +1131,9 @@ body.dark-mode button {
 <button onclick="AppCasaRosa.excluirPedidosSelecionados()" style="background:#dc3545;color:white;margin-left:1rem;margin-bottom:1rem;">
   🗑️ Excluir Selecionados
 </button>
+    <button onclick="AppCasaRosa.alterarVendedorPedidosSelecionados()" style="background:#ffc107;color:black;margin-left:1rem;margin-bottom:1rem;">
+  ✏️ Alterar Vendedor
+</button>
 <div id="tabelaPendentes"></div>
  <div id="cardsPendentes" class="cards-pendentes" style="display:none;"></div>     
   </div>
@@ -2505,6 +2508,34 @@ function exportarPedidosAEnviar() {
   }
 }
 AppCasaRosa.excluirPedidosSelecionados = excluirPedidosSelecionados;
+async function alterarVendedorPedidosSelecionados() {
+  const checkboxes = Array.from(document.querySelectorAll('#tabelaPendentes tbody input.selecionar-pendente:checked'));
+  if (!checkboxes.length) {
+    alert('Selecione ao menos um pedido.');
+    return;
+  }
+
+  const novoVendedor = prompt('Digite o nome do novo vendedor:');
+  if (!novoVendedor) return;
+
+  const ids = checkboxes.map(cb => cb.dataset.id);
+  try {
+    const promises = ids.map(id => AppCasaRosa.updateDoc(AppCasaRosa.doc(AppCasaRosa.db, 'pedidos_pendentes', id), { Vendedor: novoVendedor }));
+    await Promise.all(promises);
+    alert('Vendedor alterado com sucesso.');
+    if (Array.isArray(AppCasaRosa.importadosList)) {
+      AppCasaRosa.importadosList = AppCasaRosa.importadosList.map(p =>
+        ids.includes(p.id) ? { ...p, Vendedor: novoVendedor } : p
+      );
+    }
+    if (typeof AppCasaRosa.carregarPendentesFirebase === 'function') {
+      AppCasaRosa.carregarPendentesFirebase();
+    }
+  } catch (e) {
+    alert('Erro ao alterar vendedor: ' + (e.message || e));
+  }
+}
+AppCasaRosa.alterarVendedorPedidosSelecionados = alterarVendedorPedidosSelecionados;
 
 function marcarTodosPendentes(checked) {
   document.querySelectorAll('#tabelaPendentes tbody input.selecionar-pendente').forEach(cb => {
