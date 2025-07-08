@@ -562,12 +562,15 @@ window.AppCasaRosa.removerMeta = function(loja) {
 window.AppCasaRosa.atualizarTabelaEnviados = function() {
   const lista = AppCasaRosa.enviadosList || [];
   const lojaFiltro = (document.getElementById('filtroLojaRelatorio')?.value || '').trim().toLowerCase();
+  const vendedorFiltro = (document.getElementById('filtroVendedorRelatorio')?.value || '').trim().toLowerCase();
   const mesSelecionado = document.getElementById('filtroMesRelatorio')?.value;
   const dataInicio = document.getElementById('filtroDataInicioEnviados')?.value;
   const dataFim = document.getElementById('filtroDataFimEnviados')?.value;
   const filtrados = lista.filter(p => {
     const loja = (p.Loja || '').trim().toLowerCase();
+    const vendedor = (p.Vendedor || '').trim().toLowerCase();
     if (lojaFiltro && loja !== lojaFiltro) return false;
+    if (vendedorFiltro && vendedor !== vendedorFiltro) return false;
     const dataEnvio = p.dataEnvio?.split('T')[0];
     if (!dataEnvio) return false;
     if (mesSelecionado) {
@@ -1073,6 +1076,11 @@ body.dark-mode button {
           <option value="">Todas</option>
         </select>
       </label>
+       <label><strong>👥 Vendedor:</strong>
+         <select id="filtroVendedorRelatorio" onchange="AppCasaRosa.atualizarTabelaEnviados()">
+          <option value="">Todos</option>
+        </select>
+      </label>
       <button onclick="AppCasaRosa.exportarRelatorioMensal()">📤 CSV</button>
       <button onclick="AppCasaRosa.exportarRelatorioMensalExcel()">📥 Excel</button>
       <button onclick="AppCasaRosa.exportarRelatorioPDF()">📄 PDF</button>
@@ -1096,6 +1104,8 @@ body.dark-mode button {
 <select id="filtroMultiloja" multiple onchange="AppCasaRosa.atualizarDashboardPendentes()"></select>
    <label>🔍 Filtrar por Produto:</label>
 <select id="filtroMultiproduto" multiple onchange="AppCasaRosa.atualizarDashboardPendentes()"></select>
+  <label>👥 Vendedor:</label>
+<select id="filtroVendedorPendentes" multiple onchange="AppCasaRosa.atualizarDashboardPendentes()"></select>
   <div style="flex-basis: 100%;">
     <button onclick="
     document.getElementById('filtroMultiloja').selectedIndex = -1;
@@ -1212,6 +1222,10 @@ body.dark-mode button {
      <select id="filtroLojaDashboard" multiple onchange="AppCasaRosa.atualizarDashboardPorDataLoja()">
         <!-- options preenchidas dinamicamente -->
       </select>
+    </label>
+    <label>
+      👥 Vendedor:
+      <select id="filtroVendedorDashboard" multiple onchange="AppCasaRosa.atualizarDashboardPorDataLoja()"></select>
     </label>
   </div>
 
@@ -1394,6 +1408,12 @@ body.dark-mode button {
       🏪 Loja:
      <select id="filtroLojaMetas" onchange="AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioSku();">
         <option value="">Todas</option>
+      </select>
+      </label>
+    <label>
+      👥 Vendedor:
+      <select id="filtroVendedorMetas" onchange="AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioSku();">
+        <option value="">Todos</option>
       </select>
     </label>
        <label>
@@ -1856,6 +1876,7 @@ window.AppCasaRosa.atualizarDashboardPorDataLoja = function() {
   const dataSelecionadaStr = document.getElementById("filtroDataDashboard").value;
   const considerarMes = document.getElementById("filtroMesInteiroDashboard").checked;
   const lojasSelecionadas = Array.from(document.getElementById("filtroLojaDashboard").selectedOptions).map(opt => opt.value.toLowerCase());
+  const vendedoresSelecionados = Array.from(document.getElementById("filtroVendedorDashboard")?.selectedOptions || []).map(opt => opt.value.toLowerCase());
   const mesSelecionadoStr = document.getElementById("filtroMesDashboard")?.value;
   const [anoDash, mesDash] = mesSelecionadoStr ? mesSelecionadoStr.split("-").map(Number) : [];
   const dataSelecionada = dataSelecionadaStr ? new Date(dataSelecionadaStr) : null;
@@ -1867,6 +1888,7 @@ window.AppCasaRosa.atualizarDashboardPorDataLoja = function() {
   // 👉 Cálculo para pendentes
   pendentes.forEach(e => {
     const loja = (e.Loja || "").trim().toLowerCase();
+       const vendedor = (e.Vendedor || '').trim().toLowerCase();
     const pagStr = e.dataPagamento?.split("T")[0];
     if (!pagStr) return;
 
@@ -1874,6 +1896,7 @@ window.AppCasaRosa.atualizarDashboardPorDataLoja = function() {
     if (isNaN(pag)) return;
 
    if (lojasSelecionadas.length && !lojasSelecionadas.includes(loja)) return;
+  if (vendedoresSelecionados.length && !vendedoresSelecionados.includes(vendedor)) return;
     if (mesSelecionadoStr) {
       if (pag.getFullYear() !== anoDash || (pag.getMonth() + 1) !== mesDash) return;
     } else if (dataSelecionada) {
@@ -1893,6 +1916,7 @@ window.AppCasaRosa.atualizarDashboardPorDataLoja = function() {
   // 👉 Cálculo para enviados
   enviados.forEach(p => {
     const loja = (p.Loja || "").trim().toLowerCase();
+        const vendedor = (p.Vendedor || '').trim().toLowerCase();
     const envioStr = p.dataEnvio?.split("T")[0];
     const pagStr   = p.dataPagamento?.split("T")[0];
     if (!envioStr || !pagStr) return;
@@ -1902,6 +1926,7 @@ window.AppCasaRosa.atualizarDashboardPorDataLoja = function() {
     if (isNaN(envio) || isNaN(pag)) return;
 
     if (lojasSelecionadas.length && !lojasSelecionadas.includes(loja)) return;
+    if (vendedoresSelecionados.length && !vendedoresSelecionados.includes(vendedor)) return;
     if (mesSelecionadoStr) {
       if (envio.getFullYear() !== anoDash || (envio.getMonth() + 1) !== mesDash) return;
     } else if (dataSelecionada) {
@@ -2010,12 +2035,13 @@ document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]").addEventList
   const pendentes = AppCasaRosa.importadosList || [];
   const lojas = [...new Set(pendentes.map(p => p.Loja).filter(Boolean))].sort();
   const produtos = [...new Set(pendentes.map(p => AppCasaRosa.obterSkuPrincipal(p.SKU)).filter(Boolean))].sort();
+  const vendedores = [...new Set(pendentes.map(p => p.Vendedor).filter(Boolean))].sort();
   const selectLoja = document.getElementById("filtroMultiloja");
   const selectProduto = document.getElementById("filtroMultiproduto");
-
+const selectVendedor = document.getElementById("filtroVendedorPendentes");
   selectLoja.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
   selectProduto.innerHTML = produtos.map(p => `<option value="${p}">${p}</option>`).join("");
-
+if (selectVendedor) selectVendedor.innerHTML = vendedores.map(v => `<option value="${v}">${v}</option>`).join("");
   if (typeof AppCasaRosa.atualizarDashboardPendentes === "function") AppCasaRosa.atualizarDashboardPendentes();
 });
 function calcularHorasUteis(dataInicio, dataFim) {
@@ -2600,6 +2626,18 @@ AppCasaRosa.preencherFiltroLojaDashboard = function() {
       `<option value="${loja}">${capitalizeWords(loja)}</option>`
     ).join('');
 };
+    // Preenche vendedores do dashboard
+AppCasaRosa.preencherFiltroVendedorDashboard = function() {
+  const enviados  = AppCasaRosa.enviadosList   || [];
+  const pendentes = AppCasaRosa.importadosList || [];
+  const vendedores = [...enviados, ...pendentes]
+    .map(p => (p.Vendedor || '').trim())
+    .filter(Boolean);
+  const unicos = [...new Set(vendedores)].sort();
+  const select = document.getElementById('filtroVendedorDashboard');
+  if (!select) return;
+  select.innerHTML = unicos.map(v => `<option value="${v.toLowerCase()}">${v}</option>`).join('');
+};
 // Preenche o select de lojas no relatório mensal
 AppCasaRosa.preencherFiltroLojaRelatorio = function() {
   const enviados = AppCasaRosa.enviadosList || [];
@@ -2616,14 +2654,26 @@ AppCasaRosa.preencherFiltroLojaRelatorio = function() {
     '<option value="">Todas</option>' +
     lojasUnicas.map(l => `<option value="${l}">${capitalizeWords(l)}</option>`).join('');
 };
-
+// Preenche vendedores do relatório mensal
+AppCasaRosa.preencherFiltroVendedorRelatorio = function() {
+  const enviados = AppCasaRosa.enviadosList || [];
+  const vendedores = enviados.map(p => (p.Vendedor || '').trim()).filter(Boolean);
+  const unicos = [...new Set(vendedores)].sort();
+  const select = document.getElementById('filtroVendedorRelatorio');
+  if (!select) return;
+  select.innerHTML = '<option value="">Todos</option>' +
+    unicos.map(v => `<option value="${v.toLowerCase()}">${v}</option>`).join('');
+};
 // Dispara ao carregar a página
 document.addEventListener("DOMContentLoaded", () => {
   if (typeof AppCasaRosa.atualizarResumoVendasMensal === "function") AppCasaRosa.atualizarResumoVendasMensal();
   if (typeof AppCasaRosa.atualizarDashboardPorDataLoja === "function") AppCasaRosa.atualizarDashboardPorDataLoja();
   if (typeof AppCasaRosa.preencherFiltroLojaDashboard === "function") AppCasaRosa.preencherFiltroLojaDashboard();
+  if (typeof AppCasaRosa.preencherFiltroVendedorDashboard === "function") AppCasaRosa.preencherFiltroVendedorDashboard();
   if (typeof AppCasaRosa.preencherFiltroLojaRelatorio === "function") AppCasaRosa.preencherFiltroLojaRelatorio();
+    if (typeof AppCasaRosa.preencherFiltroVendedorRelatorio === "function") AppCasaRosa.preencherFiltroVendedorRelatorio();
    if (typeof AppCasaRosa.preencherFiltroLojaMetas === "function") AppCasaRosa.preencherFiltroLojaMetas();
+    if (typeof AppCasaRosa.preencherFiltroVendedorMetas === "function") AppCasaRosa.preencherFiltroVendedorMetas();
   if (typeof AppCasaRosa.carregarProdutos === "function") AppCasaRosa.carregarProdutos();
   if (typeof AppCasaRosa.atualizarRelatorioMetas === "function") AppCasaRosa.atualizarRelatorioMetas();
 
@@ -2711,7 +2761,8 @@ AppCasaRosa.preencherFiltroProdutosDashboard = function() {
   function exportarRelatorioMensal() {
     const enviados = AppCasaRosa.enviadosList || [];
     const mesSelecionado = document.getElementById("filtroMesRelatorio")?.value;
-     const lojaSelecionada = (document.getElementById("filtroLojaRelatorio")?.value || "").trim().toLowerCase();
+    const lojaSelecionada = (document.getElementById("filtroLojaRelatorio")?.value || "").trim().toLowerCase();
+    const vendedorSelecionado = (document.getElementById("filtroVendedorRelatorio")?.value || "").trim().toLowerCase();
     if (!mesSelecionado) {
       alert("Selecione um mês para gerar o relatório.");
       return;
@@ -2725,7 +2776,9 @@ AppCasaRosa.preencherFiltroProdutosDashboard = function() {
       const [y, m] = p.dataEnvio.split("T")[0].split("-").map(Number);
       if (y !== ano || m !== mes) return;
       const loja = (p.Loja || "").trim().toLowerCase();
+            const vendedor = (p.Vendedor || '').trim().toLowerCase();
       if (lojaSelecionada && loja !== lojaSelecionada) return;
+      if (vendedorSelecionado && vendedor !== vendedorSelecionado) return;
      const chave = `${p.SKU || "Produto desconhecido"} | ${(p.Loja || "Loja desconhecida").trim()}`;
       resumo[chave] = (resumo[chave] || 0) + 1;
     });
@@ -2751,6 +2804,7 @@ AppCasaRosa.exportarRelatorioMensal = exportarRelatorioMensal;
     const enviados = AppCasaRosa.enviadosList || [];
     const mesSelecionado = document.getElementById("filtroMesRelatorio")?.value;
     const lojaSelecionada = (document.getElementById("filtroLojaRelatorio")?.value || "").trim().toLowerCase();
+        const vendedorSelecionado = (document.getElementById("filtroVendedorRelatorio")?.value || "").trim().toLowerCase();
     if (!mesSelecionado) {
       alert("Selecione um mês para gerar o relatório.");
       return;
@@ -2764,7 +2818,9 @@ AppCasaRosa.exportarRelatorioMensal = exportarRelatorioMensal;
       const [y, m] = p.dataEnvio.split("T")[0].split("-").map(Number);
       if (y !== ano || m !== mes) return;
       const loja = (p.Loja || "").trim().toLowerCase();
+            const vendedor = (p.Vendedor || '').trim().toLowerCase();
       if (lojaSelecionada && loja !== lojaSelecionada) return;
+      if (vendedorSelecionado && vendedor !== vendedorSelecionado) return;
       const chave = `${p.SKU || "Produto desconhecido"} | ${(p.Loja || "Loja desconhecida").trim()}`;
       resumo[chave] = (resumo[chave] || 0) + 1;
     });
@@ -2789,6 +2845,7 @@ AppCasaRosa.exportarRelatorioMensalExcel = exportarRelatorioMensalExcel;
   const dataSel = document.getElementById('filtroDataMetas')?.value;
   const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
   const lojaSel = document.getElementById('filtroLojaMetas')?.value;
+      const vendedorSel = document.getElementById('filtroVendedorMetas')?.value;
   const produtoSel = document.getElementById('filtroProdutoMetas')?.value;
   const resumo = {};
   enviados.forEach(p => {
@@ -2804,7 +2861,9 @@ AppCasaRosa.exportarRelatorioMensalExcel = exportarRelatorioMensalExcel;
       }
     }
     const loja = p.Loja || 'Loja desconhecida';
+    const vendedor = p.Vendedor || '';
     if (lojaSel && loja !== lojaSel) return;
+    if (vendedorSel && vendedor !== vendedorSel) return;
     const produto = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU) : (p.SKU || 'Produto desconhecido');
     if (produtoSel && produto !== produtoSel) return;
     if (!resumo[loja]) resumo[loja] = {};
@@ -2843,6 +2902,7 @@ AppCasaRosa.exportarVendasMetasExcel = exportarVendasMetasExcel;
   const dataSel = document.getElementById('filtroDataMetas')?.value;
   const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
   const lojaSel = document.getElementById('filtroLojaMetas')?.value;
+    const vendedorSel = document.getElementById('filtroVendedorMetas')?.value;
   const produtoSel = document.getElementById('filtroProdutoMetas')?.value;
   const resumo = {};
   enviados.forEach(p => {
@@ -2858,7 +2918,9 @@ AppCasaRosa.exportarVendasMetasExcel = exportarVendasMetasExcel;
       }
     }
     const loja = p.Loja || 'Loja desconhecida';
+        const vendedor = p.Vendedor || '';
     if (lojaSel && loja !== lojaSel) return;
+    if (vendedorSel && vendedor !== vendedorSel) return;
     const produto = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU) : (p.SKU || 'Produto desconhecido');
     if (produtoSel && produto !== produtoSel) return;
     resumo[produto] = (resumo[produto] || 0) + 1;
@@ -2897,6 +2959,7 @@ async function exportarRelatorioPDF() {
   const enviados = AppCasaRosa.enviadosList || [];
   const mesSelecionado = document.getElementById("filtroMesRelatorio")?.value;
   const lojaSelecionada = (document.getElementById("filtroLojaRelatorio")?.value || "").toLowerCase();
+  const vendedorSelecionado = (document.getElementById("filtroVendedorRelatorio")?.value || "").toLowerCase();
   if (!mesSelecionado) {
     alert("Selecione um mês para gerar o relatório.");
     return;
@@ -2911,7 +2974,9 @@ async function exportarRelatorioPDF() {
     const [y, m] = p.dataEnvio.split("T")[0].split("-").map(Number);
     if (y !== anoSel || m !== mesSel) return;
     const lojaLower = (p.Loja || "").toLowerCase();
+    const vendedorLower = (p.Vendedor || '').toLowerCase();
     if (lojaSelecionada && lojaLower !== lojaSelecionada) return;
+    if (vendedorSelecionado && vendedorLower !== vendedorSelecionado) return;
     const produto = p.SKU || "Produto desconhecido";
     const loja    = p.Loja || "Loja desconhecida";
     const chave   = `${produto} | ${loja}`;
@@ -3759,7 +3824,9 @@ AppCasaRosa.atualizarDashboardPendentes = function() {
   const lojasSelecionadas = Array.from(
     document.getElementById("filtroMultiloja").selectedOptions
   ).map(opt => opt.value);
-
+const vendedoresSelecionados = Array.from(
+    document.getElementById("filtroVendedorPendentes")?.selectedOptions || []
+  ).map(opt => opt.value);
   const produtosSelecionados = Array.from(
     document.getElementById("filtroMultiproduto").selectedOptions
   ).map(opt => opt.value);
@@ -3774,11 +3841,12 @@ AppCasaRosa.atualizarDashboardPendentes = function() {
 
     const loja = p.Loja || "";
     const produto = p.SKU || "";
+    const vendedor = p.Vendedor || "";
 
     const lojaOk = !lojasSelecionadas.length || lojasSelecionadas.includes(loja);
     const produtoOk = !produtosSelecionados.length || produtosSelecionados.includes(produto);
-    if (!lojaOk || !produtoOk) return false;
-
+    const vendedorOk = !vendedoresSelecionados.length || vendedoresSelecionados.includes(vendedor);
+    if (!lojaOk || !produtoOk || !vendedorOk) return false;
     const dataPag = new Date(p.dataPagamento);
     if (isNaN(dataPag)) return false;
 
@@ -3798,10 +3866,12 @@ AppCasaRosa.atualizarDashboardPendentes = function() {
   enviados.forEach(p => {
     const loja = p.Loja || "";
     const produto = p.SKU || "";
+    const vendedor = p.Vendedor || "";
 
     const lojaOk = !lojasSelecionadas.length || lojasSelecionadas.includes(loja);
     const produtoOk = !produtosSelecionados.length || produtosSelecionados.includes(produto);
-    if (!lojaOk || !produtoOk) return;
+    const vendedorOk = !vendedoresSelecionados.length || vendedoresSelecionados.includes(vendedor);
+    if (!lojaOk || !produtoOk || !vendedorOk) return;
 
     const dt = new Date(p.dataEnvio?.split("T")[0]);
     dt.setHours(0, 0, 0, 0);
@@ -3826,11 +3896,19 @@ AppCasaRosa.atualizarDashboardPendentes = function() {
 AppCasaRosa.inicializarFiltroMultiloja = function() {
   const pendentes = AppCasaRosa.importadosList || [];
   const lojas = [...new Set(pendentes.map(p => p.Loja).filter(Boolean))].sort();
+  const vendedores = [...new Set(pendentes.map(p => p.Vendedor).filter(Boolean))].sort();
 
   const select = document.getElementById("filtroMultiloja");
+  const selectVend = document.getElementById("filtroVendedorPendentes");
   select.innerHTML = lojas.map(l => `<option value="${l}">${l}</option>`).join("");
-
+if (selectVend) selectVend.innerHTML = vendedores.map(v => `<option value="${v}">${v}</option>`).join("");
   AppCasaRosa.atualizarDashboardPendentes();
+};
+  AppCasaRosa.preencherFiltroVendedorPendentes = function() {
+  const pendentes = AppCasaRosa.importadosList || [];
+  const vendedores = [...new Set(pendentes.map(p => p.Vendedor).filter(Boolean))].sort();
+  const selectVend = document.getElementById('filtroVendedorPendentes');
+  if (selectVend) selectVend.innerHTML = vendedores.map(v => `<option value="${v}">${v}</option>`).join('');
 };
 
 // Registre o evento usando o namespace
@@ -3850,8 +3928,17 @@ document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]")
       placeholder: 'Selecione lojas',
       width: '100%'
     });
+    $('#filtroVendedorPendentes').select2({
+      placeholder: 'Selecione vendedores',
+      width: '100%'
+    });
     $('#filtroLojaDashboard').select2({
       placeholder: 'Selecione lojas',
+      allowClear: true,
+      width: 'resolve'
+    });
+    $('#filtroVendedorDashboard').select2({
+      placeholder: 'Selecione vendedores',
       allowClear: true,
       width: 'resolve'
     });
@@ -3863,9 +3950,27 @@ document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]")
         AppCasaRosa.gerarResumoVendasPorProduto();
       }
     });
+    $('#filtroVendedorDashboard').on('change', function() {
+      if (typeof AppCasaRosa.atualizarDashboardPorDataLoja === 'function') {
+        AppCasaRosa.atualizarDashboardPorDataLoja();
+      }
+      if (typeof AppCasaRosa.gerarResumoVendasPorProduto === 'function') {
+        AppCasaRosa.gerarResumoVendasPorProduto();
+      }
+    });
     $('#filtroMultiproduto').select2({
       placeholder: 'Selecione produtos',
       width: '100%'
+    });
+    $('#filtroVendedorRelatorio').select2({
+      placeholder: 'Todos',
+      allowClear: true,
+      width: 'resolve'
+    });
+    $('#filtroVendedorMetas').select2({
+      placeholder: 'Todos',
+      allowClear: true,
+      width: 'resolve'
     });
   });
 // 🧹 Função para verificar e remover pedidos duplicados (em qualquer aba)
@@ -4384,6 +4489,13 @@ AppCasaRosa.preencherFiltroLojaMetas = function() {
   if (!select) return;
   select.innerHTML = '<option value="">Todas</option>' + lojas.map(l => `<option value="${l}">${l}</option>`).join('');
 };
+  AppCasaRosa.preencherFiltroVendedorMetas = function() {
+  const enviados = AppCasaRosa.enviadosList || [];
+  const vendedores = [...new Set(enviados.map(p => (p.Vendedor || '').trim()).filter(Boolean))].sort();
+  const select = document.getElementById('filtroVendedorMetas');
+  if (!select) return;
+  select.innerHTML = '<option value="">Todos</option>' + vendedores.map(v => `<option value="${v}">${v}</option>`).join('');
+};
 AppCasaRosa.preencherFiltroProdutoMetas = function() {
   const enviados = AppCasaRosa.enviadosList || [];
   const produtos = new Set();
@@ -4410,6 +4522,7 @@ AppCasaRosa.atualizarRelatorioMetas = function() {
   const dataSel = document.getElementById('filtroDataMetas')?.value;
   const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
   const lojaSel = document.getElementById('filtroLojaMetas')?.value;
+  const vendedorSel = document.getElementById('filtroVendedorMetas')?.value;
  const produtoSel = document.getElementById('filtroProdutoMetas')?.value;
   const resumo = {};
   enviados.forEach(p => {
@@ -4425,7 +4538,9 @@ AppCasaRosa.atualizarRelatorioMetas = function() {
       }
     }
     const loja = p.Loja || 'Loja desconhecida';
+        const vendedor = p.Vendedor || '';
     if (lojaSel && loja !== lojaSel) return;
+    if (vendedorSel && vendedor !== vendedorSel) return;
    const produto = AppCasaRosa.obterSkuAdmin ? AppCasaRosa.obterSkuAdmin(p.SKU) : (p.SKU || 'Produto desconhecido');
     if (produtoSel && produto !== produtoSel) return;
     if (!resumo[loja]) resumo[loja] = {};
