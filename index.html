@@ -1712,7 +1712,7 @@ async function importarPlanilhaMercadoLivre() {
         };
 
         try {
-          if (/Venda cancelada/i.test(estado)) {
+         if (/Venda cancelada|Reclamação encerrada com reembolso parcial|Reclamação encerrada com reembolso para o comprador|Cancelada pelo comprador|Cancelada/i.test(estado)) {
             const pendenteDoc = pendentesSnap.docs.find(d => (d.data().pedidoId || d.data().Pedido || '').toUpperCase() === pedidoId);
             if (pendenteDoc) await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, 'pedidos_pendentes', pendenteDoc.id));
             await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_cancelados'), {
@@ -1721,7 +1721,7 @@ async function importarPlanilhaMercadoLivre() {
               motivo: 'Cancelado automaticamente via planilha ML',
               dataCancelamento: new Date().toISOString()
             });
-          } else if (/A caminho|Entregue/i.test(estado)) {
+          } else if (/A caminho|Entregue|Devolução em preparação/i.test(estado)) {
             const envioObj = parseDataPortugues(linha['Data a caminho'], pagObj && pagObj.getFullYear());
             const dataEnvio = envioObj ? envioObj.toISOString() : new Date().toISOString();
 
