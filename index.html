@@ -367,6 +367,7 @@ window.AppCasaRosa.identificarLoja = function(texto) {
     <div style="overflow-x:auto;"><table>
       <thead>
         <tr>
+         <th><input type="checkbox" id="selecionarPendentesTodos" onchange="AppCasaRosa.marcarTodosPendentes(this.checked)" /></th>
           <th>Pedido</th>
           <th>Loja</th>
           <th>Produto</th>
@@ -389,6 +390,7 @@ window.AppCasaRosa.identificarLoja = function(texto) {
 
     html += `
 <tr>
+<td><input type="checkbox" class="selecionar-pendente" data-id="${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}" /></td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : escapeHTML(pedido)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
@@ -1088,7 +1090,10 @@ body.dark-mode button {
 </div>
  <button onclick="AppCasaRosa.exportarPedidosAEnviar()" style="background:#0d6efd;color:white;margin-bottom:1rem;">
   📥 Exportar para Excel
-</button> 
+</button>
+<button onclick="AppCasaRosa.excluirPedidosSelecionados()" style="background:#dc3545;color:white;margin-left:1rem;margin-bottom:1rem;">
+  🗑️ Excluir Selecionados
+</button>
 <div id="tabelaPendentes"></div>
  <div id="cardsPendentes" class="cards-pendentes" style="display:none;"></div>     
   </div>
@@ -2130,7 +2135,7 @@ const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
 
 
   else if (destinoId === "tabelaPendentes") {
-  cols = ["Pedido", "Loja", "Produto", "Pagamento", "Rastreio", "Ações"];
+   cols = ["", "Pedido", "Loja", "Produto", "Pagamento", "Rastreio", "Ações"];
   const grupos = agruparPorData(dados, "dataPagamento");
   Object.keys(grupos).sort().forEach(data => {
     rowsHtml += `<tr style="background:#e9ecef;font-weight:bold;">
@@ -2147,6 +2152,7 @@ const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
       if (dias >= 3) style = "background:#f8d7da;";
       else if (dias === 2) style = "background:#fff3cd;";
       rowsHtml += `<tr style="${style}">
+      <td><input type="checkbox" class="selecionar-pendente" data-id="${p.id}" /></td>
         <td>${pedido}</td>
         <td>${loja}</td>
         <td>${produto}</td>
@@ -2176,7 +2182,12 @@ const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
   }
 
   // monta o HTML completo
-  const thead = `<thead><tr>${cols.map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
+   let thead;
+  if (destinoId === "tabelaPendentes") {
+    thead = `<thead><tr><th><input type="checkbox" id="selecionarPendentesTodos" onchange="AppCasaRosa.marcarTodosPendentes(this.checked)" /></th>${cols.slice(1).map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
+  } else {
+    thead = `<thead><tr>${cols.map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
+  }
   const tbody = `<tbody>${rowsHtml}</tbody>`;
   container.innerHTML = `
   <div style="overflow-x: auto; margin-top: 1rem;">
@@ -2435,6 +2446,38 @@ function exportarPedidosAEnviar() {
   XLSX.writeFile(wb, "pedidos_a_enviar.xlsx");
 }
     AppCasaRosa.exportarPedidosAEnviar = exportarPedidosAEnviar;
+    async function excluirPedidosSelecionados() {
+  const checkboxes = Array.from(document.querySelectorAll('#tabelaPendentes tbody input.selecionar-pendente:checked'));
+  if (!checkboxes.length) {
+    alert('Selecione ao menos um pedido.');
+    return;
+  }
+  if (!confirm(`Deseja excluir ${checkboxes.length} pedido(s) selecionado(s)?`)) return;
+
+  const ids = checkboxes.map(cb => cb.dataset.id);
+  try {
+    const promises = ids.map(id => AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, 'pedidos_pendentes', id)));
+    await Promise.all(promises);
+    alert('Pedidos excluídos com sucesso.');
+    if (Array.isArray(AppCasaRosa.importadosList)) {
+      const set = new Set(ids);
+      AppCasaRosa.importadosList = AppCasaRosa.importadosList.filter(p => !set.has(p.id));
+    }
+    if (typeof AppCasaRosa.atualizarDashboardPendentes === 'function') {
+      AppCasaRosa.atualizarDashboardPendentes();
+    }
+  } catch (e) {
+    alert('Erro ao excluir pedidos: ' + (e.message || e));
+  }
+}
+AppCasaRosa.excluirPedidosSelecionados = excluirPedidosSelecionados;
+
+function marcarTodosPendentes(checked) {
+  document.querySelectorAll('#tabelaPendentes tbody input.selecionar-pendente').forEach(cb => {
+    cb.checked = checked;
+  });
+}
+AppCasaRosa.marcarTodosPendentes = marcarTodosPendentes;
 // 2) Exporta os pedidos cancelados para CSV usando os campos do Firestore
 function exportarCanceladosCSV() {
   const dados = AppCasaRosa.canceladosList || [];
