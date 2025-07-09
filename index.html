@@ -1440,10 +1440,7 @@ body.dark-mode header#topBar button {
       📅 Data:
   <input id="filtroDataDashboard" />
     </label>
-    <label>
-      📊 Mês:
-        <input type="month" id="filtroMesDashboard" onchange="AppCasaRosa.atualizarDashboardPorDataLoja()" />
-    </label>
+   
     <label>
        <input type="checkbox" id="filtroMesInteiroDashboard" onchange="AppCasaRosa.atualizarDashboardPorDataLoja()" />
       🔄 Considerar mês inteiro
@@ -1741,8 +1738,11 @@ body.dark-mode header#topBar button {
     
 AppCasaRosa.atualizarResumoVendasMensal = function() {
   const enviados = AppCasaRosa.enviadosList || [];
-  const mesSelecionado  = document.getElementById("filtroMesDashboard")?.value;
- const lojasSelecionadas = Array.from(document.getElementById("filtroLojaDashboard")?.selectedOptions || []).map(o => o.value.toLowerCase());
+   const dashElem = document.getElementById("filtroDataDashboard");
+  const datasFiltro = dashElem && dashElem._flatpickr ? dashElem._flatpickr.selectedDates : [];
+  const inicio = datasFiltro[0];
+  const fim = datasFiltro[1] || datasFiltro[0];
+  const lojasSelecionadas = Array.from(document.getElementById("filtroLojaDashboard")?.selectedOptions || []).map(o => o.value.toLowerCase());
 
   // ✅ Função para obter SKU base
   AppCasaRosa.obterSkuBase = function(sku) {
@@ -1762,8 +1762,7 @@ AppCasaRosa.atualizarResumoVendasMensal = function() {
     const dt = new Date(p.dataEnvio.split("T")[0]);
     if (!dt || isNaN(dt)) return;
 
-    const dataStr = `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}`;
-    if (mesSelecionado && dataStr !== mesSelecionado) return;
+if (inicio && (dt < inicio || dt > fim)) return;
 
     const loja = (p.Loja || "").toLowerCase();
     if (lojasSelecionadas.length && !lojasSelecionadas.includes(loja)) return;
@@ -2088,18 +2087,13 @@ window.AppCasaRosa.atualizarDashboardPorDataLoja = function() {
   const enviados = window.AppCasaRosa.enviadosList || [];
   const pendentes = window.AppCasaRosa.importadosList || [];
 
-const dashElem = document.getElementById("filtroDataDashboard");
+  const dashElem = document.getElementById("filtroDataDashboard");
   const datasFiltro = dashElem && dashElem._flatpickr ? dashElem._flatpickr.selectedDates : [];
-  const datasFiltroStr = datasFiltro.map(d => d.toISOString().split("T")[0]);
-  const mesesFiltro = datasFiltro.map(d => d.toISOString().slice(0,7));
-  const considerarMes = document.getElementById("filtroMesInteiroDashboard").checked;
+   const inicio = datasFiltro[0];
+  const fim = datasFiltro[1] || datasFiltro[0];
   const lojasSelecionadas = Array.from(document.getElementById("filtroLojaDashboard").selectedOptions).map(opt => opt.value.toLowerCase());
   const vendedoresSelecionados = Array.from(document.getElementById("filtroVendedorDashboard")?.selectedOptions || []).map(opt => opt.value.toLowerCase());
-  const mesSelecionadoStr = document.getElementById("filtroMesDashboard")?.value;
-  const [anoDash, mesDash] = mesSelecionadoStr ? mesSelecionadoStr.split("-").map(Number) : [];
-const dataSelecionada = datasFiltro[0] || null;
-  const ano = dataSelecionada ? dataSelecionada.getFullYear() : null;
-  const mes = dataSelecionada ? dataSelecionada.getMonth() + 1 : null;
+
 
   let totalEnviar = 0, totalEnviados = 0, totalAtrasados = 0, totalRisco = 0, enviadosComAtraso = 0;
 
@@ -2115,15 +2109,7 @@ const dataSelecionada = datasFiltro[0] || null;
 
    if (lojasSelecionadas.length && !lojasSelecionadas.includes(loja)) return;
   if (vendedoresSelecionados.length && !vendedoresSelecionados.includes(vendedor)) return;
-    if (mesSelecionadoStr) {
-      if (pag.getFullYear() !== anoDash || (pag.getMonth() + 1) !== mesDash) return;
-    } else if (datasFiltroStr.length) {
-      if (considerarMes) {
-        if (!mesesFiltro.includes(pagStr.slice(0,7))) return;
-      } else {
-        if (!datasFiltroStr.includes(pagStr)) return;
-      }
-    }
+   if (inicio && (pag < inicio || pag > fim)) return;
 
     const uteis = calcularDiasUteis(pag, new Date());
     totalEnviar++;
@@ -2145,16 +2131,7 @@ const dataSelecionada = datasFiltro[0] || null;
 
     if (lojasSelecionadas.length && !lojasSelecionadas.includes(loja)) return;
     if (vendedoresSelecionados.length && !vendedoresSelecionados.includes(vendedor)) return;
-    if (mesSelecionadoStr) {
-      if (envio.getFullYear() !== anoDash || (envio.getMonth() + 1) !== mesDash) return;
-    } else if (datasFiltroStr.length) {
-      if (considerarMes) {
-        if (!mesesFiltro.includes(envioStr.slice(0,7))) return;
-      } else {
-      if (!datasFiltroStr.includes(envioStr)) return;
-      }
-    }
-
+    if (inicio && (envio < inicio || envio > fim)) return;
     totalEnviados++;
     const horasUteis = calcularHorasUteis(pag, envio);
     const atraso = horasUteis > 36;
@@ -2180,6 +2157,15 @@ const dataSelecionada = datasFiltro[0] || null;
   if (typeof window.AppCasaRosa.gerarResumoVendasPorProduto === "function") window.AppCasaRosa.gerarResumoVendasPorProduto();
   if (typeof window.AppCasaRosa.preencherFiltroProdutosDashboard === "function") window.AppCasaRosa.preencherFiltroProdutosDashboard();
   
+};
+window.AppCasaRosa.aplicarMesInteiroDashboard = function() {
+  const chk = document.getElementById("filtroMesInteiroDashboard");
+  const fp = document.getElementById("filtroDataDashboard")?._flatpickr;
+  if (!chk || !fp || !chk.checked || !fp.selectedDates.length) return;
+  const base = fp.selectedDates[0];
+  const inicio = new Date(base.getFullYear(), base.getMonth(), 1);
+  const fim = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+  fp.setDate([inicio, fim], true);
 };
 
 function atualizarTabelas() {
@@ -2494,9 +2480,11 @@ function calcularDashboard() {
   hoje.setHours(0, 0, 0, 0);
   
 // Filtros selecionados
-  const mesSelecionado  = document.getElementById("filtroMesDashboard")?.value;
- const lojasSelecionadas = Array.from(document.getElementById("filtroLojaDashboard")?.selectedOptions || []).map(o => o.value.toLowerCase());
-  const [anoSel, mesSel] = mesSelecionado?.split("-").map(Number) || [];
+ const dashElem = document.getElementById("filtroDataDashboard");
+  const datasFiltro = dashElem && dashElem._flatpickr ? dashElem._flatpickr.selectedDates : [];
+  const inicio = datasFiltro[0];
+  const fim = datasFiltro[1] || datasFiltro[0];
+  const lojasSelecionadas = Array.from(document.getElementById("filtroLojaDashboard")?.selectedOptions || []).map(o => o.value.toLowerCase());
   
   function diasUteisEntre(dataInicial, dataFinal) {
     let count = 0;
@@ -2538,7 +2526,7 @@ const pendentes = pendentesBase.filter(p => {
   const hojeStr = hoje.toISOString().split("T")[0];
   const enviadosHoje = enviados.filter(p => {
     const envStr = p.dataEnvio?.split("T")[0];
-    const dataSelecionadaStr = document.getElementById("filtroDataDashboard")?.value;
+    return envStr === hojeStr;
 
   }).length;
 
@@ -2547,8 +2535,9 @@ const pendentes = pendentesBase.filter(p => {
 
   const enviadosFiltradosNoMes = enviados.filter(p => {
     if (!p.dataEnvio) return false;
-    const [ano, mes] = p.dataEnvio.split("T")[0].split("-").map(Number);
-    if (ano !== anoSel || mes !== mesSel) return false;
+     const dt = new Date(p.dataEnvio.split("T")[0]);
+    if (isNaN(dt)) return false;
+    if (inicio && (dt < inicio || dt > fim)) return false;
     const loja = (p.Loja || "").toLowerCase();
       if (lojasSelecionadas.length && !lojasSelecionadas.includes(loja)) return false;
     return true;
@@ -2909,16 +2898,20 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   const filtroMesInteiroDashboard = document.getElementById("filtroMesInteiroDashboard");
-  if (filtroMesInteiroDashboard && typeof AppCasaRosa.atualizarDashboardPorDataLoja === "function")
-      filtroMesInteiroDashboard.addEventListener("change", AppCasaRosa.atualizarDashboardPorDataLoja);
+if (filtroMesInteiroDashboard)
+    filtroMesInteiroDashboard.addEventListener("change", () => {
+      AppCasaRosa.aplicarMesInteiroDashboard();
+      AppCasaRosa.atualizarDashboardPorDataLoja();
+    });
 
- 
-  if (filtroMesInteiroDashboard && typeof atualizarDashboardPorDataLoja === "function")
-    filtroMesInteiroDashboard.addEventListener("change", atualizarDashboardPorDataLoja);
-
-  const mesDash = document.getElementById("filtroMesDashboard");
-  if (mesDash && typeof AppCasaRosa.atualizarDashboardPorDataLoja === "function")
-      mesDash.addEventListener("change", AppCasaRosa.atualizarDashboardPorDataLoja);
+  const filtroDataDash = document.getElementById("filtroDataDashboard");
+  if (filtroDataDash)
+    filtroDataDash.addEventListener("change", () => {
+      if (document.getElementById("filtroMesInteiroDashboard")?.checked) {
+        AppCasaRosa.aplicarMesInteiroDashboard();
+      }
+      AppCasaRosa.atualizarDashboardPorDataLoja();
+    });
 });
 AppCasaRosa.preencherFiltroProdutosDashboard = function() {
   const enviados = AppCasaRosa.enviadosList || [];
@@ -2980,7 +2973,7 @@ AppCasaRosa.preencherFiltroProdutosDashboard = function() {
     Object.entries(resumo).forEach(([chave, qtd]) => linhas.push([chave, qtd]));
 
     if (linhas.length === 1) {
-      alert("Nenhum produto vendido nesse mês.");
+      alert("Nenhum produto vendido no período.");
       return;
     }
 
@@ -3002,10 +2995,7 @@ function exportarRelatorioMensalExcel() {
     if (!datasSel.length) {
       alert("Selecione um período para gerar o relatório.");
       }
-    if (!mesSelecionado) {
-      alert("Selecione um mês para gerar o relatório.");
-      return;
-    }
+  
 
     const inicio = datasSel[0];
     const fim = datasSel[1] || datasSel[0];
@@ -3024,7 +3014,7 @@ function exportarRelatorioMensalExcel() {
     });
 
     if (Object.keys(resumo).length === 0) {
-      alert("Nenhum produto vendido nesse mês.");
+      alert("Nenhum produto vendido no período.");
       return;
     }
 
@@ -3191,7 +3181,7 @@ const filtro = document.getElementById("filtroDataEnviados");
   });
 
   if (Object.keys(resumo).length === 0) {
-    alert("Nenhum produto vendido nesse mês.");
+    alert("Nenhum produto vendido no período.");
     return;
   }
 
@@ -3946,8 +3936,8 @@ async function exportarDashboardPDF() {
 
   const lojasSelecionadas = Array.from(document.getElementById("filtroLojaDashboard")?.selectedOptions || []).map(o => o.value);
   const loja = lojasSelecionadas.join(', ') || "Todas";
-  const mes = document.getElementById("filtroMesDashboard")?.value || "Não selecionado";
-
+ const datasSel = document.getElementById("filtroDataDashboard")?._flatpickr?.selectedDates || [];
+  const periodo = datasSel.length ? datasSel.map(d => d.toISOString().split('T')[0]).join(' a ') : "Não selecionado";
    const aEnviar = document.getElementById("valor-a-enviar-dashboard").textContent;
   const enviados = document.getElementById("valor-enviados-dashboard").textContent;
   const enviadosAtraso = document.getElementById("valor-enviados-atraso-dashboard")?.textContent || "0";
@@ -3959,7 +3949,7 @@ async function exportarDashboardPDF() {
   doc.text("Relatório do Dashboard", 14, 20);
   doc.setFontSize(12);
   doc.text(`Loja: ${loja}`, 14, 28);
-  doc.text(`Mês: ${mes}`, 14, 34);
+  doc.text(`Período: ${periodo}`, 14, 34);
 
   // Tabela de resumo
   const col1 = 14;
