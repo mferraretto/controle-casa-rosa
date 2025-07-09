@@ -1053,7 +1053,7 @@ details.dropdown {
     border-left-color: #34d399;
     color: #065f46;
   }
-  card-comatraso {
+  .card-comatraso {
     background-color: #fdf4ff;
     border-left-color: #d946ef;
     color: #9333ea;
@@ -3001,6 +3001,7 @@ function exportarRelatorioMensalExcel() {
        const vendedorSelecionado = (document.getElementById("filtroVendedorRelatorio")?.value || "").trim().toLowerCase();
     if (!datasSel.length) {
       alert("Selecione um período para gerar o relatório.");
+      }
     if (!mesSelecionado) {
       alert("Selecione um mês para gerar o relatório.");
       return;
