@@ -212,6 +212,12 @@ window.AppCasaRosa.produtosMap = {};
     if (window.AppCasaRosa.atualizarTabelaEnviados) {
       window.AppCasaRosa.atualizarTabelaEnviados();
     }
+    if (window.AppCasaRosa.preencherFiltroLojaRelatorio) {
+      window.AppCasaRosa.preencherFiltroLojaRelatorio();
+    }
+    if (window.AppCasaRosa.preencherFiltroVendedorRelatorio) {
+      window.AppCasaRosa.preencherFiltroVendedorRelatorio();
+    }
   });
     // Listener "Pedidos Cancelados" - popula canceladosList em tempo real
 onSnapshot(collection(db, "pedidos_cancelados"), (snapshot) => {
@@ -1293,10 +1299,8 @@ body.dark-mode header#topBar button {
   <label>👥 Vendedor:</label>
 <select id="filtroVendedorPendentes" multiple onchange="AppCasaRosa.atualizarDashboardPendentes()"></select>
   <div style="flex-basis: 100%;">
-    <button onclick="
-    document.getElementById('filtroMultiloja').selectedIndex = -1;
-    document.getElementById('filtroMultiproduto').selectedIndex = -1;
-    AppCasaRosa.atualizarDashboardPendentes();">
+    <button onclick="AppCasaRosa.limparFiltrosPendentes()">
+
     🔄 Limpar Filtros
 </button>
   </div>
@@ -2015,6 +2019,8 @@ async function carregarEnviadosFirebase() {
   AppCasaRosa.enviadosList = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
   if (AppCasaRosa.atualizarTabelaEnviados) AppCasaRosa.atualizarTabelaEnviados();
+   if (AppCasaRosa.preencherFiltroLojaRelatorio) AppCasaRosa.preencherFiltroLojaRelatorio();
+  if (AppCasaRosa.preencherFiltroVendedorRelatorio) AppCasaRosa.preencherFiltroVendedorRelatorio();
   gerarGraficoMediaVendas();
 }
     window.AppCasaRosa.carregarEnviadosFirebase = carregarEnviadosFirebase;
@@ -4081,11 +4087,29 @@ AppCasaRosa.inicializarFiltroMultiloja = function() {
 if (selectVend) selectVend.innerHTML = vendedores.map(v => `<option value="${v}">${v}</option>`).join("");
   AppCasaRosa.atualizarDashboardPendentes();
 };
-  AppCasaRosa.preencherFiltroVendedorPendentes = function() {
+AppCasaRosa.preencherFiltroVendedorPendentes = function() {
   const pendentes = AppCasaRosa.importadosList || [];
   const vendedores = [...new Set(pendentes.map(p => p.Vendedor).filter(Boolean))].sort();
   const selectVend = document.getElementById('filtroVendedorPendentes');
   if (selectVend) selectVend.innerHTML = vendedores.map(v => `<option value="${v}">${v}</option>`).join('');
+};
+// Limpa selects da aba "A Enviar" considerando o uso do Select2
+AppCasaRosa.limparFiltrosPendentes = function() {
+  if (window.$) {
+    $('#filtroMultiloja').val(null).trigger('change');
+    $('#filtroMultiproduto').val(null).trigger('change');
+    $('#filtroVendedorPendentes').val(null).trigger('change');
+  } else {
+    const multiloja = document.getElementById('filtroMultiloja');
+    const multiproduto = document.getElementById('filtroMultiproduto');
+    const vendedor = document.getElementById('filtroVendedorPendentes');
+    if (multiloja) multiloja.selectedIndex = -1;
+    if (multiproduto) multiproduto.selectedIndex = -1;
+    if (vendedor) vendedor.selectedIndex = -1;
+  }
+  if (typeof AppCasaRosa.atualizarDashboardPendentes === 'function') {
+    AppCasaRosa.atualizarDashboardPendentes();
+  }
 };
 
 // Registre o evento usando o namespace
