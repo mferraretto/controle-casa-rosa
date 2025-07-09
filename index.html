@@ -708,6 +708,8 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
       --accent-magenta: #d81b60;
     --accent-green: #2e7d32;
     --accent-pink: #EF5DA8;
+          --accent-magenta-light: #ffd6e8;
+
 
   }
 
@@ -762,7 +764,7 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
     padding: 0.4rem 0.75rem;
   }
   header#topBar button:hover {
-    background: #f5f5f5;
+    background: var(--accent-magenta-light);
   }
 
    nav#sidebar {
@@ -801,8 +803,7 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
   }
 
   .tab:hover {
-      background-color: #e2e8f0;
-
+      background-color: var(--accent-magenta-light);
   }
 
   .tab.active {
@@ -876,7 +877,7 @@ details.dropdown {
   }
 
   tr:nth-child(even) {
-   background-color: #FAFAFA;
+   background-color: var(--accent-magenta-light);
   }
 
   tr:nth-child(odd) {
@@ -884,7 +885,7 @@ details.dropdown {
   }
 
   tr:hover {
-    background-color: #f1f1f1;
+    background-color: var(--accent-magenta-light);
     transition: background 0.2s ease;
   }
 
@@ -1530,7 +1531,7 @@ body.dark-mode header#topBar button {
 </div>
 
   <!-- Peças Vendidas no Mês -->
-  <div id="card-vendas-mensais" style="background:#f8f9fa; border:1px solid #dee2e6; padding:1.5rem; border-radius:0.75rem; margin-top:1.5rem;">
+  <div id="card-vendas-mensais" style="background:#ffd6e8; border:1px solid #dee2e6; padding:1.5rem; border-radius:0.75rem; margin-top:1.5rem;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
       <h3 style="margin:0; color:#343a40;">📦 Peças Vendidas no Mês:</h3>
       <div>
@@ -1568,7 +1569,7 @@ body.dark-mode header#topBar button {
   <h3 style="margin-top:2rem;">🧾 Agrupamentos Salvos</h3>
   <div style="overflow-x:auto;"><table border="1" cellpadding="5" id="tabelaSkus" style="border-collapse:collapse;margin-top:0.5rem;width:100%;">
     <thead>
-      <tr style="background:#f0f0f0;"><th>SKU Base</th><th>Equivalentes</th><th>Ações</th></tr>
+      <tr style="background:#ffd6e8;"><th>SKU Base</th><th>Equivalentes</th><th>Ações</th></tr>
     </thead>
     <tbody></tbody>
   </table></div>
@@ -1665,7 +1666,7 @@ body.dark-mode header#topBar button {
   <div style="overflow-x:auto;">
     <table border="1" cellpadding="5" id="tabelaProdutos" style="border-collapse:collapse; width:100%;">
       <thead>
-        <tr style="background:#f0f0f0;"><th>Produto</th><th>Sobra Ideal</th><th>Valor</th><th>Ações</th></tr>
+        <tr style="background:#ffd6e8;"><th>Produto</th><th>Sobra Ideal</th><th>Valor</th><th>Ações</th></tr>
       </thead>
       <tbody></tbody>
     </table>
@@ -1684,7 +1685,7 @@ body.dark-mode header#topBar button {
   <div style="overflow-x:auto;">
     <table border="1" cellpadding="5" id="tabelaSkusAdmin" style="border-collapse:collapse;margin-top:0.5rem;width:100%;">
       <thead>
-        <tr style="background:#f0f0f0;"><th>SKU Base</th><th>Equivalentes</th><th>Ações</th></tr>
+        <tr style="background:#ffd6e8;"><th>SKU Base</th><th>Equivalentes</th><th>Ações</th></tr>
       </thead>
       <tbody></tbody>
     </table>
