@@ -667,19 +667,25 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
     font-family: 'Inter', sans-serif;
     background: #f3f4f6;
     color: #212529;
-    padding: 1rem;
+   padding: 1rem 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
   }
 
   h1 {
     text-align: center;
     color: #dc3545;
   }
-    #topBar {
+  #topBar {
     display: flex;
     justify-content: flex-end;
     align-items: center;
     gap: 0.5rem;
-    margin: 0.5rem 1rem;
+    margin: 0.5rem 0;
   }
 
   .tabs {
@@ -687,7 +693,7 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
     justify-content: center;
     flex-wrap: wrap;
     gap: 0.5rem;
-    margin: 0.5rem auto;
+   margin: 0.5rem 0;
   }
 
   .tab {
@@ -1019,6 +1025,7 @@ body.dark-mode button {
 </style> 
 </head>
 <body>
+  <div class="container">
   <h2 style="text-align:center; font-size:1.8rem; color:#dc3545; margin:1rem 0;">
     📊 Controle Pedidos Casa Rosa
   </h2>
@@ -5133,6 +5140,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 </script>
+    </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 </body>
 
