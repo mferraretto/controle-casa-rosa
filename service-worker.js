@@ -1,4 +1,4 @@
-const CACHE_NAME = "casa-rosa-cache-v1";
+const CACHE_NAME = "casa-rosa-cache-v2";
 
 self.addEventListener("install", function(event) {
   event.waitUntil(
@@ -9,7 +9,7 @@ self.addEventListener("install", function(event) {
         "./manifest.json",
         "./icon-192.png",
          "./icon-512.png",
-        "./libs/jquery-3.6.0.min.js",
+         "./libs/jquery-3.6.0.min.js"
       ]);
     })
   );
