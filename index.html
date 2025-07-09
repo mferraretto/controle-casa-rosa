@@ -666,8 +666,13 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
 };
 </script>
 
-
+  
  <style>
+    :root {
+    --accent-pink: #EF5DA8;
+    --accent-green: #66BB6A;
+  }
+
   body {
    font-family: 'Montserrat', 'Poppins', sans-serif;
     background: #f3f4f6;
@@ -709,7 +714,7 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
 
   header#topBar button {
     background: #fff;
-    color: #C62828;
+    color: var(--accent-pink);
     border: 1px solid #ccc;
     border-radius: 0.25rem;
     padding: 0.5rem 1rem;
@@ -748,7 +753,7 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
     left: 0;
     width: 0;
     height: 3px;
-    background: #E53935;
+    background: var(--accent-pink);
     transition: width 0.3s ease;
   }
 
@@ -761,10 +766,10 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
   }
 
   .tab.active {
-   background-color: #E53935;
+  background-color: var(--accent-pink);
     color: white;
     font-weight: 600;
-   border-color: #E53935;
+  border-color: var(--accent-pink);
   }
 details.dropdown {
     position: relative;
@@ -777,7 +782,7 @@ details.dropdown {
     display: none;
   }
   details.dropdown[open] summary {
-   background-color: #C62828;
+   background-color: var(--accent-pink);
     color: white;
   }
   .submenu {
@@ -841,7 +846,7 @@ details.dropdown {
   button {
     margin: 0.5rem 0.25rem;
     padding: 0.5rem 1rem;
-    background: #198754;
+    background: var(--accent-green);
     color: white;
     border: none;
     border-radius: 0.25rem;
@@ -849,7 +854,7 @@ details.dropdown {
   }
 .acao-btn {
     background: transparent;
-    color: #C62828;
+    color: var(--accent-pink);
     border: none;
     padding: 0.25rem 0.5rem;
     cursor: pointer;
@@ -861,7 +866,7 @@ details.dropdown {
   }
 
   .danger {
-    background: #C62828;
+    background: var(--accent-pink);
   }
 
   .dashboard-header {
@@ -916,7 +921,7 @@ details.dropdown {
 
   .filtros-dashboard label strong i {
     background: #ffffff;
-  color: #C62828;
+  color: var(--accent-pink);
     padding: 0.45rem;
     border-radius: 50%;
     margin-right: 0.5rem;
@@ -1047,7 +1052,7 @@ details.dropdown {
   }
 body.dark-mode {
   background-color: #121212;
-  color: #f5f5f5;
+ color: #E0E0E0;
 }
 
 body.dark-mode .tab-content,
@@ -1057,7 +1062,7 @@ body.dark-mode #card-vendas-mensais,
 body.dark-mode .dashboard-header {
   background-color: #1e1e1e;
   border-color: #333;
-  color: #f5f5f5;
+  color: #E0E0E0;
 }
 
 body.dark-mode button {
@@ -4424,13 +4429,12 @@ AppCasaRosa.alternarTema = function() {
 
   body.classList.toggle("dark-mode");
 
-  if (body.classList.contains("dark-mode")) {
-    botao.textContent = "🌞 Modo Claro";
-    localStorage.setItem("tema", "escuro");
-  } else {
-    botao.textContent = "🌙 Modo Escuro";
-    localStorage.setItem("tema", "claro");
+  if (botao) {
+    const modoClaro = "🌞 Modo Claro";
+    const modoEscuro = "🌙 Modo Escuro";
+    botao.textContent = body.classList.contains("dark-mode") ? modoClaro : modoEscuro;
   }
+  localStorage.setItem("tema", body.classList.contains("dark-mode") ? "escuro" : "claro");
 };
 
 // Ao carregar, aplica o tema salvo (pode ser colocado fora ou dentro do namespace)
@@ -4441,7 +4445,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (temaSalvo === "escuro") {
     body.classList.add("dark-mode");
-    if (botao) botao.textContent = "🌞 Modo Claro";
+   }
+
+  if (botao) {
+    const modoClaro = "🌞 Modo Claro";
+    const modoEscuro = "🌙 Modo Escuro";
+    botao.textContent = body.classList.contains("dark-mode") ? modoClaro : modoEscuro;
   }
 });
 AppCasaRosa.gerarRelatorioDetalhado = function() {
