@@ -1197,15 +1197,15 @@ body.dark-mode header#topBar button {
     <nav id="sidebar">
 
     <ul class="tabs">
-      <li class="tab" onclick="abrirAba('dashboard')"><i class="fas fa-chart-bar"></i> Dashboard</li>
-      <li class="tab active" onclick="abrirAba('importados')"><i class="fas fa-file-import"></i> Importados</li>
+      <li class="tab" onclick="abrirAba('dashboard')"><i class="fas fa-chart-bar"></i>Dashboard</li>
+      <li class="tab active" onclick="abrirAba('importados')"><i class="fas fa-file-import"></i>Importados</li>
       <li>
         <details class="dropdown">
           <summary class="tab">Pedidos</summary>
           <ul class="submenu">
-            <li class="tab" onclick="abrirAba('cancelados')"><i class="fas fa-ban"></i> Cancelados</li>
-            <li class="tab" onclick="abrirAba('a_enviar')"><i class="fas fa-clock"></i> A Enviar</li>
-            <li class="tab" onclick="abrirAba('enviados')"><i class="fas fa-truck"></i> Enviados</li>
+            <li class="tab" onclick="abrirAba('cancelados')"><i class="fas fa-ban"></i>Cancelados</li>
+            <li class="tab" onclick="abrirAba('a_enviar')"><i class="fas fa-clock"></i>A Enviar</li>
+            <li class="tab" onclick="abrirAba('enviados')"><i class="fas fa-truck"></i>Enviados</li>
           </ul>
         </details>
       </li>
@@ -3012,7 +3012,7 @@ function exportarRelatorioMensalExcel() {
 
     enviados.forEach(p => {
       if (!p.dataEnvio) return;
-      onst envioStr = p.dataEnvio.split('T')[0];
+      const envioStr = p.dataEnvio.split('T')[0];
       if (envioStr < inicio || envioStr > fim) return;
       const loja = (p.Loja || "").trim().toLowerCase();
             const vendedor = (p.Vendedor || '').trim().toLowerCase();
