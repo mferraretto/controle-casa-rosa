@@ -591,6 +591,7 @@ window.AppCasaRosa.removerMeta = function(loja) {
 
 window.AppCasaRosa.atualizarTabelaEnviados = function() {
   const lista = AppCasaRosa.enviadosList || [];
+    const hojeStr = new Date().toISOString().split('T')[0];
   const lojaFiltro = (document.getElementById('filtroLojaRelatorio')?.value || '').trim().toLowerCase();
   const vendedorFiltro = (document.getElementById('filtroVendedorRelatorio')?.value || '').trim().toLowerCase();
   const mesSelecionado = document.getElementById('filtroMesRelatorio')?.value;
@@ -612,8 +613,12 @@ window.AppCasaRosa.atualizarTabelaEnviados = function() {
     if (mesSelecionado) {
       if (!dataEnvio.startsWith(mesSelecionado)) return false;
     } else {
-    if (datasInicio.length && !datasInicio.includes(dataEnvio)) return false;
-      if (datasFim.length && !datasFim.includes(dataEnvio)) return false;
+    if (!datasInicio.length && !datasFim.length) {
+        if (dataEnvio !== hojeStr) return false;
+      } else {
+        if (datasInicio.length && !datasInicio.includes(dataEnvio)) return false;
+        if (datasFim.length && !datasFim.includes(dataEnvio)) return false;
+      }
     }
     return true;
   });
@@ -5289,8 +5294,15 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   <script>
   document.addEventListener('DOMContentLoaded', () => {
-    flatpickr('#filtroDataInicioEnviados', { dateFormat: 'Y-m-d' });
-    flatpickr('#filtroDataFimEnviados', { dateFormat: 'Y-m-d' });
+    const hoje = new Date().toISOString().split('T')[0];
+    flatpickr('#filtroDataInicioEnviados', {
+      dateFormat: 'Y-m-d',
+      defaultDate: hoje
+    });
+    flatpickr('#filtroDataFimEnviados', {
+      dateFormat: 'Y-m-d',
+      defaultDate: hoje
+    });
     flatpickr('#filtroDataDashboard', { dateFormat: 'Y-m-d', mode: 'range' });
     flatpickr('#filtroData', { dateFormat: 'Y-m-d', mode: 'range' });
     flatpickr('#filtroDataMetas', { dateFormat: 'Y-m-d', mode: 'range' });
