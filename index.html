@@ -2991,10 +2991,12 @@ function exportarRelatorioMensalExcel() {
     const filtro = document.getElementById("filtroDataEnviados");
     const datasSel = filtro && filtro._flatpickr ? filtro._flatpickr.selectedDates.map(d => d.toISOString().split('T')[0]) : [];
     const lojaSelecionada = (document.getElementById("filtroLojaRelatorio")?.value || "").trim().toLowerCase();
-       const vendedorSelecionado = (document.getElementById("filtroVendedorRelatorio")?.value || "").trim().toLowerCase();
+    const vendedorSelecionado = (document.getElementById("filtroVendedorRelatorio")?.value || "").trim().toLowerCase();
     if (!datasSel.length) {
       alert("Selecione um período para gerar o relatório.");
-      }
+      return;
+    }
+    const mesSelecionado = document.getElementById('filtroMesDashboard')?.value;
   
 
     const inicio = datasSel[0];
