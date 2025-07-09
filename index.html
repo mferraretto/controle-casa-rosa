@@ -705,8 +705,10 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
   
  <style>
     :root {
+      --accent-magenta: #d81b60;
+    --accent-green: #2e7d32;
     --accent-pink: #EF5DA8;
-    --accent-green: #66BB6A;
+
   }
 
   body {
@@ -724,7 +726,7 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
 
   h1 {
     text-align: center;
-    color: #C62828;
+    color: var(--accent-magenta);
   }
   header#topBar {
     display: flex;
@@ -733,7 +735,7 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
     gap: 0.5rem;
     margin: 0.5rem 0;
     padding: 0.5rem 1rem;
-    background: #C62828;
+    background: var(--accent-magenta);
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
 
@@ -863,7 +865,7 @@ details.dropdown {
   }
 
   th {
-     background: #C62828;
+     background: var(--accent-magenta);
     color: white;
   }
 
@@ -899,7 +901,7 @@ details.dropdown {
   }
 
   .acao-btn:hover {
-    color: #b71c1c;
+    color: var(--accent-magenta);
   }
 
   .danger {
@@ -1030,7 +1032,7 @@ details.dropdown {
 
   .card-enviados {
     background-color: #e8f5e9;
-    color: #155724;
+    color: var(--accent-green);
   }
 
   .card-status strong {
@@ -1107,7 +1109,7 @@ body.dark-mode button {
   color: #fff;
 }
 body.dark-mode header#topBar {
-  background: #C62828;
+  background: var(--accent-magenta);
 }
 
 body.dark-mode header#topBar h2 {
@@ -1115,7 +1117,7 @@ body.dark-mode header#topBar h2 {
 }
 
 body.dark-mode header#topBar button {
-  background: #C62828;
+  background: var(--accent-magenta);
   color: #fff;
   border-color: #fff;
 }
@@ -1201,7 +1203,7 @@ body.dark-mode header#topBar button {
   <input type="email" id="emailLogin" placeholder="Email" style="padding:0.5rem;" />
   <input type="password" id="senhaLogin" placeholder="Senha" style="padding:0.5rem;" />
 <button onclick="AppCasaRosa.fazerLogin()" style="padding:0.5rem;">Entrar</button>
-  <div id="erroLogin" style="color:red;"></div>
+  <div id="erroLogin" style="color:var(--accent-magenta);"></div>
 </div>
 <div id="sistema" style="display:none;">
 
@@ -1222,7 +1224,7 @@ body.dark-mode header#topBar button {
       <input id="filtroData">
     </p>
     <button onclick="AppCasaRosa.processarArquivos()">📥 Importar e Comparar</button>
-<button onclick="AppCasaRosa.apagarTudo()" style="background:red;color:white;font-weight:bold;">🧨 Apagar TODOS os dados</button>
+<button onclick="AppCasaRosa.apagarTudo()" style="background:var(--accent-magenta);color:white;font-weight:bold;">🧨 Apagar TODOS os dados</button>
 <button onclick="AppCasaRosa.removerPendentesJaEnviados()">...</button>
   <button onclick="AppCasaRosa.verificarEDeduplicarPedidos()" style="background:#ffc107;color:#000;font-weight:bold;">🔍 Verificar e Limpar Duplicados</button>
 
@@ -1328,7 +1330,7 @@ body.dark-mode header#topBar button {
  <button onclick="AppCasaRosa.exportarPedidosAEnviar()" style="background:#0d6efd;color:white;margin-bottom:1rem;">
   📥 Exportar para Excel
 </button>
-<button onclick="AppCasaRosa.excluirPedidosSelecionados()" style="background:#dc3545;color:white;margin-left:1rem;margin-bottom:1rem;">
+<button onclick="AppCasaRosa.excluirPedidosSelecionados()" style="background:var(--accent-magenta);color:white;margin-left:1rem;margin-bottom:1rem;">
   🗑️ Excluir Selecionados
 </button>
     <button onclick="AppCasaRosa.alterarVendedorPedidosSelecionados()" style="background:#ffc107;color:black;margin-left:1rem;margin-bottom:1rem;">
@@ -1553,7 +1555,7 @@ body.dark-mode header#topBar button {
       <label>📅 Mês:</label><br />
       <input type="month" id="inputMesMeta" required style="width:150px;" />
     </div>
-    <button type="submit" style="background:#198754; color:white; padding:0.5rem 1rem; border:none; border-radius:6px;">
+    <button type="submit" style="background:var(--accent-green); color:white; padding:0.5rem 1rem; border:none; border-radius:6px;">
       ➕ Adicionar Meta
     </button>
   </form>
@@ -2355,7 +2357,7 @@ function calcularHorasUteis(dataInicio, dataFim) {
       </tr>`;
     });
 
-const thead = `<thead style="background:#C62828;color:#fff;"><tr>${cols.map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
+const thead = `<thead style="background:var(--accent-magenta);color:#fff;"><tr>${cols.map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
     const tbody = `<tbody>${rowsHtml}</tbody>`;
 
     container.innerHTML = `
@@ -2618,7 +2620,7 @@ AppCasaRosa.gerarResumoVendasPorProduto = function () {
       });
       card.innerHTML = `
         <div style="font-weight:bold;font-size:1.1rem;color:#212529;">${produto}</div>
-        <div style="font-size:1.25rem;color:#dc3545;margin-top:0.5rem;">${qtd}</div>
+        <div style="font-size:1.25rem;color:var(--accent-magenta);margin-top:0.5rem;">${qtd}</div>
         <div style="font-size:0.8rem;color:#6c757d;">vendidos</div>
       `;
       container.appendChild(card);
@@ -3363,6 +3365,9 @@ function gerarGraficoStatus(pendentes, enviados) {
   });
 
   const ctx = document.getElementById('graficoStatus').getContext('2d');
+   const estilo = getComputedStyle(document.documentElement);
+  const magenta = estilo.getPropertyValue('--accent-magenta').trim();
+  const verde = estilo.getPropertyValue('--accent-green').trim();
   if (AppCasaRosa.statusChart) AppCasaRosa.statusChart.destroy();
 
   AppCasaRosa.statusChart = new Chart(ctx, {
@@ -3375,8 +3380,8 @@ function gerarGraficoStatus(pendentes, enviados) {
       ],
       datasets: [{
         data: [risco, atrasados, enviadosHoje],
-        backgroundColor: ['#ffc107', '#dc3545', '#198754'],
-        borderColor: ['#ffc107', '#dc3545', '#198754'],
+        backgroundColor: ['#ffc107', magenta, verde],
+        borderColor: ['#ffc107', magenta, verde],
         borderWidth: 1
       }]
     },
@@ -4613,8 +4618,10 @@ AppCasaRosa.renderizarMetasManuais = async function() {
         const metaDiaria = Math.ceil(meta.valor / diasDoMes);
         const projecao = Math.round((vendidosTotal / diaHoje) * diasDoMes);
         const percentual = Math.round((vendidosTotal / meta.valor) * 100);
-        const cor = percentual >= 66 ? '#198754' : percentual >= 33 ? '#ffc107' : '#dc3545';
-
+        const estiloMeta = getComputedStyle(document.documentElement);
+        const verdeMeta = estiloMeta.getPropertyValue('--accent-green').trim();
+        const magentaMeta = estiloMeta.getPropertyValue('--accent-magenta').trim();
+        const cor = percentual >= 66 ? verdeMeta : percentual >= 33 ? '#ffc107' : magentaMeta;
         return `
           <tr>
             <td>${meta.produto}</td>
@@ -4673,7 +4680,7 @@ AppCasaRosa.renderizarMetasManuais = async function() {
     });
 
   } catch (e) {
-    container.innerHTML = "<p style='color:red;'>Erro ao carregar metas.</p>";
+    container.innerHTML = "<p style='color:var(--accent-magenta);'>Erro ao carregar metas.</p>";
     console.error(e);
   }
 };
@@ -4884,10 +4891,12 @@ window.AppCasaRosa.atualizarCardsMetas = async function() {
     const percentual = Math.round((vendido / metaMensal) * 100);
     const atraso = metaAteHoje - vendido;
 
-    const cor = percentual >= 100 ? '#198754' :
+   const estiloCard = getComputedStyle(document.documentElement);
+    const verdeCard = estiloCard.getPropertyValue('--accent-green').trim();
+    const magentaCard = estiloCard.getPropertyValue('--accent-magenta').trim();
+    const cor = percentual >= 100 ? verdeCard :
                 percentual >= 50  ? '#0d6efd' :
-                '#dc3545';
-
+                magentaCard;
     const card = document.createElement("div");
     card.style = `
       background:white;
@@ -4921,7 +4930,7 @@ window.AppCasaRosa.atualizarCardsMetas = async function() {
           ${percentual}%
         </div>
       </div>
-      ${atraso > 0 ? `<div style="color:#dc3545; font-weight:bold; margin-top:0.5rem;">🚨 Atraso de ${atraso} unidades</div>` : ""}
+      ${atraso > 0 ? `<div style="color:var(--accent-magenta); font-weight:bold; margin-top:0.5rem;">🚨 Atraso de ${atraso} unidades</div>` : ""}
       <div style="margin-top:0.75rem;">
         <button onclick="AppCasaRosa.editarMeta('${meta.id}', ${meta.valor})" style="margin-right: 0.5rem;">✏️ Editar</button>
         <button onclick="AppCasaRosa.excluirMeta('${meta.id}')">🗑️ Excluir</button>
