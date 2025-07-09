@@ -406,7 +406,11 @@ window.AppCasaRosa.identificarLoja = function(texto) {
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pagamento) : escapeHTML(pagamento)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : escapeHTML(rastreio)}</td>
   <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : escapeHTML(vendedor)}</td>
-  <td><button class="danger" onclick="AppCasaRosa.cancelarPedido ? AppCasaRosa.cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}') : cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')">❌ Cancelar</button></td>
+ <td>
+    <button title="Editar" class="acao-btn" onclick="AppCasaRosa.editarPedido && AppCasaRosa.editarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')"><i class='fa fa-edit'></i></button>
+    <button title="Visualizar" class="acao-btn" onclick="AppCasaRosa.visualizarPedido && AppCasaRosa.visualizarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')"><i class='fa fa-eye'></i></button>
+    <button class="danger" title="Cancelar" onclick="AppCasaRosa.cancelarPedido ? AppCasaRosa.cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}') : cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')">❌</button>
+  </td>
 </tr>
 `;
   });
@@ -555,8 +559,9 @@ window.AppCasaRosa.removerMeta = function(loja) {
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(envio) : escapeHTML(envio)}</td>
      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : escapeHTML(vendedor)}</td>
     <td>
-      <button class="danger" onclick="AppCasaRosa.cancelarPedido ? AppCasaRosa.cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}') : cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')">❌ Cancelar</button>
-    </td>
+<button title="Editar" class="acao-btn" onclick="AppCasaRosa.editarPedido && AppCasaRosa.editarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')"><i class='fa fa-edit'></i></button>
+      <button title="Visualizar" class="acao-btn" onclick="AppCasaRosa.visualizarPedido && AppCasaRosa.visualizarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')"><i class='fa fa-eye'></i></button>
+      <button class="danger" title="Cancelar" onclick="AppCasaRosa.cancelarPedido ? AppCasaRosa.cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}') : cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')">❌</button>    </td>
   </tr>
 `;
   });
@@ -678,7 +683,7 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
 
   h1 {
     text-align: center;
-    color: #dc3545;
+    color: #C62828;
   }
   header#topBar {
     display: flex;
@@ -687,14 +692,14 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
     gap: 0.5rem;
     margin: 0.5rem 0;
     padding: 0.5rem 1rem;
-    background: #fff;
+    background: #C62828;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   }
 
   header#topBar h2 {
     margin: 0;
     font-size: 1.8rem;
-    color: #dc3545;
+    color: #fff;
   }
 
   header#topBar .header-actions {
@@ -704,7 +709,7 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
 
   header#topBar button {
     background: #fff;
-    color: #333;
+    color: #C62828;
     border: 1px solid #ccc;
     border-radius: 0.25rem;
     padding: 0.5rem 1rem;
@@ -772,7 +777,7 @@ details.dropdown {
     display: none;
   }
   details.dropdown[open] summary {
-    background-color: #dc3545;
+   background-color: #C62828;
     color: white;
   }
   .submenu {
@@ -816,12 +821,21 @@ details.dropdown {
   }
 
   th {
-    background: #dc3545;
+     background: #C62828;
     color: white;
   }
 
   tr:nth-child(even) {
-    background-color: #f2f2f2;
+   background-color: #FAFAFA;
+  }
+
+  tr:nth-child(odd) {
+    background-color: #FFFFFF;
+  }
+
+  tr:hover {
+    background-color: #f1f1f1;
+    transition: background 0.2s ease;
   }
 
   button {
@@ -833,9 +847,21 @@ details.dropdown {
     border-radius: 0.25rem;
     cursor: pointer;
   }
+.acao-btn {
+    background: transparent;
+    color: #C62828;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .acao-btn:hover {
+    color: #b71c1c;
+  }
 
   .danger {
-    background: #dc3545;
+    background: #C62828;
   }
 
   .dashboard-header {
@@ -890,7 +916,7 @@ details.dropdown {
 
   .filtros-dashboard label strong i {
     background: #ffffff;
-    color: #dc3545;
+  color: #C62828;
     padding: 0.45rem;
     border-radius: 50%;
     margin-right: 0.5rem;
@@ -1039,7 +1065,7 @@ body.dark-mode button {
   color: #fff;
 }
 body.dark-mode header#topBar {
-  background: #333;
+  background: #C62828;
 }
 
 body.dark-mode header#topBar h2 {
@@ -1047,9 +1073,9 @@ body.dark-mode header#topBar h2 {
 }
 
 body.dark-mode header#topBar button {
-  background: #333;
+  background: #C62828;
   color: #fff;
-  border-color: #666;
+  border-color: #fff;
 }
   
 </style>
@@ -2282,7 +2308,7 @@ const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
       </tr>`;
     });
 
-    const thead = `<thead style="background:#dc3545;color:#fff;"><tr>${cols.map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
+const thead = `<thead style="background:#C62828;color:#fff;"><tr>${cols.map(h => `<th>${h}</th>`).join("")}</tr></thead>`;
     const tbody = `<tbody>${rowsHtml}</tbody>`;
 
     container.innerHTML = `
@@ -2315,7 +2341,11 @@ const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
         <td>${rastreio}</td>
         <td>${pag}</td>
         <td>${envio}</td>
-        <td><button class="danger" onclick="cancelarPedido('${p.id}')">❌ Cancelar</button></td>
+       <td>
+          <button title="Editar" class="acao-btn" onclick="AppCasaRosa.editarPedido && AppCasaRosa.editarPedido('${p.id}')"><i class='fa fa-edit'></i></button>
+          <button title="Visualizar" class="acao-btn" onclick="AppCasaRosa.visualizarPedido && AppCasaRosa.visualizarPedido('${p.id}')"><i class='fa fa-eye'></i></button>
+          <button class="danger" title="Cancelar" onclick="cancelarPedido('${p.id}')">❌</button>
+        </td>
       </tr>`;
     });
   });
@@ -2346,7 +2376,11 @@ const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
         <td>${produto}</td>
         <td>${pag}</td>
         <td>${rastreio}</td>
-        <td><button class="danger" onclick="cancelarPedido('${p.id}')">❌ Cancelar</button></td>
+    <td>
+          <button title="Editar" class="acao-btn" onclick="AppCasaRosa.editarPedido && AppCasaRosa.editarPedido('${p.id}')"><i class='fa fa-edit'></i></button>
+          <button title="Visualizar" class="acao-btn" onclick="AppCasaRosa.visualizarPedido && AppCasaRosa.visualizarPedido('${p.id}')"><i class='fa fa-eye'></i></button>
+          <button class="danger" title="Cancelar" onclick="cancelarPedido('${p.id}')">❌</button>
+        </td>
       </tr>`;
     });
   });
@@ -5219,7 +5253,15 @@ document.addEventListener("DOMContentLoaded", () => {
     AppCasaRosa.atualizarResumoVendasMensal();
   }
 });
+</script>
+<script>
+  AppCasaRosa.editarPedido = function(id) {
+    alert('Editar pedido ' + id);
+  };
 
+  AppCasaRosa.visualizarPedido = function(id) {
+    alert('Visualizar pedido ' + id);
+  };
 </script>
     </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
