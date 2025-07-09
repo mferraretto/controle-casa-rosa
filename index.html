@@ -5242,16 +5242,16 @@ AppCasaRosa.carregarLogs = async function() {
   const logs = snap.docs.map(doc => doc.data());
 
   const container = document.getElementById("tabelaLogs");
-container.innerHTML = logs.slice(0, 100).map(log => {
+  container.innerHTML = logs.slice(0, 100).map(log => {
     const horarioCompleto = new Date(log.timestamp)
       .toLocaleString('pt-BR', { hour12: false });
-    return 
+    return `
       <div style="border-bottom:1px solid #ddd; padding:0.5rem 0;">
-      <strong>${log.usuario}</strong> – ${log.acao}<br>
-      <small>${horarioCompleto}</small><br>
-      <pre style="background:#f8f8f8;padding:0.5rem;border-radius:5px;">${JSON.stringify(log.detalhes, null, 2)}</pre>
-    </div>
-  `;
+         <strong>${log.usuario}</strong> – ${log.acao}<br>
+        <small>${horarioCompleto}</small><br>
+        <pre style="background:#f8f8f8;padding:0.5rem;border-radius:5px;">${JSON.stringify(log.detalhes, null, 2)}</pre>
+      </div>
+    `;
   }).join("");
 };
 
