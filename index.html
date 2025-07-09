@@ -3430,9 +3430,10 @@ renderTabela = function(destinoId, dados) {
 </script>
   <script>
     window.AppCasaRosa = window.AppCasaRosa || {};
-  function considerar(loja) {
+function considerar(loja) {
  const lojasSelecionadas = Array.from(selectLoja.selectedOptions).map(opt => opt.value);
 const lojaOk = !lojasSelecionadas.length || lojasSelecionadas.includes(loja);
+  return lojaOk;
   }
     </script>
 <script>
