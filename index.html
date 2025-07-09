@@ -1086,8 +1086,7 @@ body.dark-mode header#topBar button {
 </style>
 
 
-<!-- certifique-se de que pdf.js já está carregado -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.13.216/pdf.min.js"></script>
+
 
   <link rel="manifest" href="manifest.json">
   <script>
@@ -2244,10 +2243,10 @@ function calcularHorasUteis(dataInicio, dataFim) {
 
   // Aplica o filtro
   const filtrados = todosPedidos.filter(p => {
-    const loja    = p.Loja || "";
-const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
-    const lojaOk    = !lojaSelecionada    || loja    === lojaSelecionada;
-    const produtoOk = !produtoSelecionado || produto === produtoSelecionado;
+   const loja = p.Loja || "";
+    const sku = AppCasaRosa.obterSkuPrincipal(p.SKU || "Desconhecido");
+    const lojaOk = !lojaSelecionada || loja === lojaSelecionada;
+    const produtoOk = !produtoSelecionado || sku === produtoSelecionado;
     return lojaOk && produtoOk;
   });
 
