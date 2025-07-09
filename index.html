@@ -259,6 +259,22 @@ window.escapeHTML = window.AppCasaRosa.escapeHTML;
  window.AppCasaRosa.normalizarId = function(id) {
   return (id || '').toString().trim().toLowerCase().replace(/^0+/, '');
 };
+  // Utilitário para calcular dias úteis entre datas
+  function calcularDiasUteis(dataInicial, dataFinal) {
+    let d1 = new Date(dataInicial);
+    let d2 = new Date(dataFinal);
+    d1.setHours(0, 0, 0, 0);
+    d2.setHours(0, 0, 0, 0);
+    if (d1 > d2) return 0;
+    let count = 0;
+    while (d1 <= d2) {
+      const dia = d1.getDay();
+      if (dia !== 0 && dia !== 6) count++;
+      d1.setDate(d1.getDate() + 1);
+    }
+    return Math.max(0, count - 1);
+  }
+  window.AppCasaRosa.calcularDiasUteis = calcularDiasUteis;
   // Função genérica de renderização de tabela
 window.AppCasaRosa.renderTabela = function(id, lista) {
   // Exemplo: redireciona para a função de tabela pendentes, se for esse o caso
@@ -2598,21 +2614,7 @@ AppCasaRosa.gerarResumoVendasPorProduto = function () {
     });
 };
 
-// 1) Dias úteis entre duas datas (exclui início ou fim conforme necessidade)
-function calcularDiasUteis(dataInicial, dataFinal) {
-  let d1 = new Date(dataInicial);
-  let d2 = new Date(dataFinal);
-  d1.setHours(0, 0, 0, 0);
-  d2.setHours(0, 0, 0, 0);
-  if (d1 > d2) return 0;
-  let count = 0;
-  while (d1 <= d2) {
-    const dia = d1.getDay();
-    if (dia !== 0 && dia !== 6) count++;
-    d1.setDate(d1.getDate() + 1);
-  }
-  return Math.max(0, count - 1);
-}
+
 function atualizarResumoPedidosAEviar() {
   const pendentes = AppCasaRosa.importadosList || [];
   const enviados  = AppCasaRosa.enviadosList   || [];
