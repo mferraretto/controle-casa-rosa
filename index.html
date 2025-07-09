@@ -5354,9 +5354,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const hoje = new Date().toISOString().split('T')[0];
     flatpickr('#filtroDataEnviados', {
       dateFormat: 'Y-m-d',
-            mode: 'range',
-      defaultDate: hoje
+     mode: 'range',
+      defaultDate: hoje,
+      onChange: AppCasaRosa.atualizarTabelaEnviados
     });
+    document.getElementById('filtroDataEnviados')
+      .addEventListener('change', AppCasaRosa.atualizarTabelaEnviados);
     flatpickr('#filtroDataDashboard', { dateFormat: 'Y-m-d', mode: 'range' });
     flatpickr('#filtroData', { dateFormat: 'Y-m-d', mode: 'range' });
     flatpickr('#filtroDataMetas', { dateFormat: 'Y-m-d', mode: 'range' });
