@@ -578,10 +578,14 @@ window.AppCasaRosa.atualizarTabelaEnviados = function() {
   const lojaFiltro = (document.getElementById('filtroLojaRelatorio')?.value || '').trim().toLowerCase();
   const vendedorFiltro = (document.getElementById('filtroVendedorRelatorio')?.value || '').trim().toLowerCase();
   const mesSelecionado = document.getElementById('filtroMesRelatorio')?.value;
-   const datasInicio = document.getElementById('filtroDataInicioEnviados')._flatpickr.selectedDates
-      .map(d => d.toISOString().split('T')[0]);
-  const datasFim = document.getElementById('filtroDataFimEnviados')._flatpickr.selectedDates
-      .map(d => d.toISOString().split('T')[0]);
+ const inicioElem = document.getElementById('filtroDataInicioEnviados');
+  const datasInicio = inicioElem && inicioElem._flatpickr
+    ? inicioElem._flatpickr.selectedDates.map(d => d.toISOString().split('T')[0])
+    : [];
+  const fimElem = document.getElementById('filtroDataFimEnviados');
+  const datasFim = fimElem && fimElem._flatpickr
+    ? fimElem._flatpickr.selectedDates.map(d => d.toISOString().split('T')[0])
+    : [];
   const filtrados = lista.filter(p => {
     const loja = (p.Loja || '').trim().toLowerCase();
     const vendedor = (p.Vendedor || '').trim().toLowerCase();
@@ -2034,9 +2038,11 @@ window.AppCasaRosa.atualizarDashboardPorDataLoja = function() {
   const enviados = window.AppCasaRosa.enviadosList || [];
   const pendentes = window.AppCasaRosa.importadosList || [];
 
- const datasFiltro = document.getElementById("filtroDataDashboard")._flatpickr.selectedDates;
+const dashElem = document.getElementById("filtroDataDashboard");
+  const datasFiltro = dashElem && dashElem._flatpickr ? dashElem._flatpickr.selectedDates : [];
   const datasFiltroStr = datasFiltro.map(d => d.toISOString().split("T")[0]);
-  const mesesFiltro = datasFiltro.map(d => d.toISOString().slice(0,7));  const considerarMes = document.getElementById("filtroMesInteiroDashboard").checked;
+  const mesesFiltro = datasFiltro.map(d => d.toISOString().slice(0,7));
+  const considerarMes = document.getElementById("filtroMesInteiroDashboard").checked;
   const lojasSelecionadas = Array.from(document.getElementById("filtroLojaDashboard").selectedOptions).map(opt => opt.value.toLowerCase());
   const vendedoresSelecionados = Array.from(document.getElementById("filtroVendedorDashboard")?.selectedOptions || []).map(opt => opt.value.toLowerCase());
   const mesSelecionadoStr = document.getElementById("filtroMesDashboard")?.value;
@@ -2135,8 +2141,10 @@ function atualizarTabelas() {
   const cancelados  = AppCasaRosa.canceladosList  || [];
   const historico   = AppCasaRosa.historicoList   || [...importar, ...enviados];
 
-const datasFiltro = document.getElementById("filtroData")._flatpickr.selectedDates
-      .map(d => d.toISOString().split("T")[0]);
+const filtroElem = document.getElementById("filtroData");
+  const datasFiltro = filtroElem && filtroElem._flatpickr
+    ? filtroElem._flatpickr.selectedDates.map(d => d.toISOString().split("T")[0])
+    : [];
   const lojaFiltro    = document.getElementById("filtroLoja")?.value.toLowerCase()  || "";
   const produtoFiltro = document.getElementById("filtroProduto")?.value.toLowerCase() || "";
 
@@ -2848,7 +2856,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (typeof AppCasaRosa.carregarProdutos === "function") AppCasaRosa.carregarProdutos();
   if (typeof AppCasaRosa.atualizarRelatorioMetas === "function") AppCasaRosa.atualizarRelatorioMetas();
 
-https://chatgpt.com/codex/tasks/task_e_686e68679528832a84c86e11817257e3
   // Filtro Multiloja na aba "A Enviar"
   const tabEnviar = document.querySelector("li.tab[onclick=\"abrirAba('a_enviar')\"]");
   if (tabEnviar) {
@@ -2996,8 +3003,10 @@ AppCasaRosa.exportarRelatorioMensal = exportarRelatorioMensal;
 AppCasaRosa.exportarRelatorioMensalExcel = exportarRelatorioMensalExcel;
     function exportarVendasMetasExcel() {
   const enviados = AppCasaRosa.enviadosList || [];
-const datasSel = document.getElementById('filtroDataMetas')._flatpickr.selectedDates
-      .map(d => d.toISOString().split('T')[0]);
+const metasElem = document.getElementById('filtroDataMetas');
+  const datasSel = metasElem && metasElem._flatpickr
+    ? metasElem._flatpickr.selectedDates.map(d => d.toISOString().split('T')[0])
+    : [];
       const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
   const lojaSel = document.getElementById('filtroLojaMetas')?.value;
       const vendedorSel = document.getElementById('filtroVendedorMetas')?.value;
@@ -3055,8 +3064,10 @@ if (datasSel.length) {
 AppCasaRosa.exportarVendasMetasExcel = exportarVendasMetasExcel;
   function exportarVendasSkuExcel() {
   const enviados = AppCasaRosa.enviadosList || [];
- const datasSel = document.getElementById('filtroDataMetas')._flatpickr.selectedDates
-      .map(d => d.toISOString().split('T')[0]);
+const metasElem2 = document.getElementById('filtroDataMetas');
+  const datasSel = metasElem2 && metasElem2._flatpickr
+    ? metasElem2._flatpickr.selectedDates.map(d => d.toISOString().split('T')[0])
+    : [];
     const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
   const lojaSel = document.getElementById('filtroLojaMetas')?.value;
     const vendedorSel = document.getElementById('filtroVendedorMetas')?.value;
@@ -3265,7 +3276,6 @@ function atualizarResumoCancelados() {
   document.getElementById("cancelados-mes").textContent  = totalMes;
 }
   
-</script>
 <script>
   window.AppCasaRosa = window.AppCasaRosa || {};
 
@@ -3306,7 +3316,7 @@ function atualizarFiltroLoja() {
       produtos.map(p => `<option value="${p}">${p}</option>`).join('');
   }
 }
-</script>
+
 <script>
   window.AppCasaRosa = window.AppCasaRosa || {};
 function gerarGraficoStatus(pendentes, enviados) {
@@ -4681,8 +4691,10 @@ AppCasaRosa.preencherFiltroProdutoMetas = function() {
 };
 AppCasaRosa.atualizarRelatorioMetas = function() {
   const enviados = AppCasaRosa.enviadosList || [];
- const datasSel = document.getElementById('filtroDataMetas')._flatpickr.selectedDates
-      .map(d => d.toISOString().split('T')[0]);
+const metasElem3 = document.getElementById('filtroDataMetas');
+  const datasSel = metasElem3 && metasElem3._flatpickr
+      ? metasElem3._flatpickr.selectedDates.map(d => d.toISOString().split('T')[0])
+      : [];
   const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
   const lojaSel = document.getElementById('filtroLojaMetas')?.value;
   const vendedorSel = document.getElementById('filtroVendedorMetas')?.value;
@@ -4741,8 +4753,10 @@ AppCasaRosa.atualizarRelatorioMetas = function() {
 
 AppCasaRosa.atualizarRelatorioSku = function() {
   const enviados = AppCasaRosa.enviadosList || [];
-  const datasSel = document.getElementById('filtroDataMetas')._flatpickr.selectedDates
-      .map(d => d.toISOString().split('T')[0]);
+  const metasElem4 = document.getElementById('filtroDataMetas');
+  const datasSel = metasElem4 && metasElem4._flatpickr
+      ? metasElem4._flatpickr.selectedDates.map(d => d.toISOString().split('T')[0])
+      : [];
   const considerarMes = document.getElementById('filtroMesInteiroMetas')?.checked;
   const lojaSel = document.getElementById('filtroLojaMetas')?.value;
   const produtoSel = document.getElementById('filtroProdutoMetas')?.value;
@@ -5269,6 +5283,15 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 </script>
     </div>
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    flatpickr('#filtroDataInicioEnviados', { dateFormat: 'Y-m-d' });
+    flatpickr('#filtroDataFimEnviados', { dateFormat: 'Y-m-d' });
+    flatpickr('#filtroDataDashboard', { dateFormat: 'Y-m-d', mode: 'range' });
+    flatpickr('#filtroData', { dateFormat: 'Y-m-d', mode: 'range' });
+    flatpickr('#filtroDataMetas', { dateFormat: 'Y-m-d', mode: 'range' });
+  });
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
 </body>
 
