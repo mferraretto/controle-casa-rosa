@@ -53,3 +53,7 @@ As long as the page is served over HTTP(s), simply loading `index.html` will reg
 - **Blocked network requests?** Some features fetch resources from CDNs (e.g., Firebase, Font Awesome). Make sure your network allows these domains if you see console errors.
 
 Enjoy managing your orders with Casa Rosa!
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
