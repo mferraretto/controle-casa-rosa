@@ -600,15 +600,8 @@ window.AppCasaRosa.atualizarTabelaEnviados = function() {
     const hojeStr = new Date().toISOString().split('T')[0];
   const lojaFiltro = (document.getElementById('filtroLojaRelatorio')?.value || '').trim().toLowerCase();
   const vendedorFiltro = (document.getElementById('filtroVendedorRelatorio')?.value || '').trim().toLowerCase();
-  const mesSelecionado = document.getElementById('filtroMesRelatorio')?.value;
- const inicioElem = document.getElementById('filtroDataInicioEnviados');
-  const datasInicio = inicioElem && inicioElem._flatpickr
-    ? inicioElem._flatpickr.selectedDates.map(d => d.toISOString().split('T')[0])
-    : [];
-  const fimElem = document.getElementById('filtroDataFimEnviados');
-  const datasFim = fimElem && fimElem._flatpickr
-    ? fimElem._flatpickr.selectedDates.map(d => d.toISOString().split('T')[0])
-    : [];
+  const filtroElem = document.getElementById('filtroDataEnviados');
+  const datasSel = filtroElem && filtroElem._flatpickr ? filtroElem._flatpickr.selectedDates : [];
   const filtrados = lista.filter(p => {
     const loja = (p.Loja || '').trim().toLowerCase();
     const vendedor = (p.Vendedor || '').trim().toLowerCase();
@@ -616,15 +609,13 @@ window.AppCasaRosa.atualizarTabelaEnviados = function() {
     if (vendedorFiltro && vendedor !== vendedorFiltro) return false;
     const dataEnvio = p.dataEnvio?.split('T')[0];
     if (!dataEnvio) return false;
-    if (mesSelecionado) {
-      if (!dataEnvio.startsWith(mesSelecionado)) return false;
+   if (!datasSel.length) {
+      if (dataEnvio !== hojeStr) return false;
     } else {
-    if (!datasInicio.length && !datasFim.length) {
-        if (dataEnvio !== hojeStr) return false;
-      } else {
-        if (datasInicio.length && !datasInicio.includes(dataEnvio)) return false;
-        if (datasFim.length && !datasFim.includes(dataEnvio)) return false;
-      }
+    const data = new Date(dataEnvio);
+      const inicio = datasSel[0];
+      const fim = datasSel[1] || datasSel[0];
+      if (data < inicio || data > fim) return false;
     }
     return true;
   });
@@ -1292,19 +1283,10 @@ body.dark-mode header#topBar button {
   <div id="enviados" class="tab-content">
     <h2>✅ Pedidos Enviados</h2>
     <div style="margin:1rem 0; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
-        <div class="filter-card">
-        <label><strong>📆 Mês:</strong>
-          <input type="month" id="filtroMesRelatorio" placeholder="📆" onchange="AppCasaRosa.atualizarTabelaEnviados()">
-        </label>
-      </div>
+        
       <div class="filter-card">
-        <label><strong>📅 Início:</strong>
-          <input id="filtroDataInicioEnviados" placeholder="📅">
-        </label>
-      </div>
-      <div class="filter-card">
-        <label><strong>📅 Fim:</strong>
-          <input id="filtroDataFimEnviados" placeholder="📅">
+        <label><strong>📅 Período:</strong>
+          <input id="filtroDataEnviados" placeholder="📅">
         </label>
       </div>
       <div class="filter-card">
@@ -2967,21 +2949,23 @@ AppCasaRosa.preencherFiltroProdutosDashboard = function() {
   // Exporta relatório mensal de “Pedidos Enviados” para CSV
   function exportarRelatorioMensal() {
     const enviados = AppCasaRosa.enviadosList || [];
-    const mesSelecionado = document.getElementById("filtroMesRelatorio")?.value;
+ const filtro = document.getElementById("filtroDataEnviados");
+    const datasSel = filtro && filtro._flatpickr ? filtro._flatpickr.selectedDates.map(d => d.toISOString().split("T")[0]) : [];
     const lojaSelecionada = (document.getElementById("filtroLojaRelatorio")?.value || "").trim().toLowerCase();
     const vendedorSelecionado = (document.getElementById("filtroVendedorRelatorio")?.value || "").trim().toLowerCase();
-    if (!mesSelecionado) {
-      alert("Selecione um mês para gerar o relatório.");
+   if (!datasSel.length) {
+      alert("Selecione um período para gerar o relatório.");
       return;
     }
 
-    const [ano, mes] = mesSelecionado.split("-").map(Number);
+     const inicio = datasSel[0];
+    const fim = datasSel[1] || datasSel[0];
     const resumo = {};
 
     enviados.forEach(p => {
       if (!p.dataEnvio) return;
-      const [y, m] = p.dataEnvio.split("T")[0].split("-").map(Number);
-      if (y !== ano || m !== mes) return;
+      const dataStr = p.dataEnvio.split("T")[0];
+      if (dataStr < inicio || dataStr > fim) return;
       const loja = (p.Loja || "").trim().toLowerCase();
             const vendedor = (p.Vendedor || '').trim().toLowerCase();
       if (lojaSelecionada && loja !== lojaSelecionada) return;
@@ -3002,28 +2986,32 @@ AppCasaRosa.preencherFiltroProdutosDashboard = function() {
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-   link.download = `relatorio_vendas_${mesSelecionado}.csv`;
-  link.click();
+    link.download = `relatorio_vendas_${inicio}_a_${fim}.csv`;
+    link.click();
 }
 AppCasaRosa.exportarRelatorioMensal = exportarRelatorioMensal;
 // Exporta o relatório mensal para Excel
-  function exportarRelatorioMensalExcel() {
+function exportarRelatorioMensalExcel() {
     const enviados = AppCasaRosa.enviadosList || [];
-    const mesSelecionado = document.getElementById("filtroMesRelatorio")?.value;
+    const filtro = document.getElementById("filtroDataEnviados");
+    const datasSel = filtro && filtro._flatpickr ? filtro._flatpickr.selectedDates.map(d => d.toISOString().split('T')[0]) : [];
     const lojaSelecionada = (document.getElementById("filtroLojaRelatorio")?.value || "").trim().toLowerCase();
-        const vendedorSelecionado = (document.getElementById("filtroVendedorRelatorio")?.value || "").trim().toLowerCase();
+       const vendedorSelecionado = (document.getElementById("filtroVendedorRelatorio")?.value || "").trim().toLowerCase();
+    if (!datasSel.length) {
+      alert("Selecione um período para gerar o relatório.");
     if (!mesSelecionado) {
       alert("Selecione um mês para gerar o relatório.");
       return;
     }
 
-    const [ano, mes] = mesSelecionado.split("-").map(Number);
+    const inicio = datasSel[0];
+    const fim = datasSel[1] || datasSel[0];
     const resumo = {};
 
     enviados.forEach(p => {
       if (!p.dataEnvio) return;
-      const [y, m] = p.dataEnvio.split("T")[0].split("-").map(Number);
-      if (y !== ano || m !== mes) return;
+      onst envioStr = p.dataEnvio.split('T')[0];
+      if (envioStr < inicio || envioStr > fim) return;
       const loja = (p.Loja || "").trim().toLowerCase();
             const vendedor = (p.Vendedor || '').trim().toLowerCase();
       if (lojaSelecionada && loja !== lojaSelecionada) return;
@@ -3042,9 +3030,8 @@ AppCasaRosa.exportarRelatorioMensal = exportarRelatorioMensal;
 
     const wb = XLSX.utils.book_new();
     const ws = XLSX.utils.aoa_to_sheet(linhas);
-     XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
-    XLSX.writeFile(wb, `relatorio_vendas_${mesSelecionado}.xlsx`);
-  XLSX.writeFile(wb, `relatorio_vendas_${mesSelecionado}.xlsx`);
+    XLSX.utils.book_append_sheet(wb, ws, "Relatorio");
+    XLSX.writeFile(wb, `relatorio_vendas_${inicio}_a_${fim}.xlsx`);
 }
 AppCasaRosa.exportarRelatorioMensalExcel = exportarRelatorioMensalExcel;
     function exportarVendasMetasExcel() {
@@ -3172,22 +3159,24 @@ async function exportarRelatorioPDF() {
 
   // 1) Pega os dados em memória e o mês selecionado
   const enviados = AppCasaRosa.enviadosList || [];
-  const mesSelecionado = document.getElementById("filtroMesRelatorio")?.value;
+const filtro = document.getElementById("filtroDataEnviados");
+  const datasSel = filtro && filtro._flatpickr ? filtro._flatpickr.selectedDates.map(d => d.toISOString().split("T")[0]) : [];
   const lojaSelecionada = (document.getElementById("filtroLojaRelatorio")?.value || "").toLowerCase();
   const vendedorSelecionado = (document.getElementById("filtroVendedorRelatorio")?.value || "").toLowerCase();
-  if (!mesSelecionado) {
-    alert("Selecione um mês para gerar o relatório.");
+ if (!datasSel.length) {
+    alert("Selecione um período para gerar o relatório.");
     return;
   }
 
-  const [anoSel, mesSel] = mesSelecionado.split("-").map(Number);
+ const inicio = datasSel[0];
+  const fim = datasSel[1] || datasSel[0];
   const resumo = {};
 
   // 2) Agrupa por “Produto | Loja” apenas no mês/ano escolhidos
   enviados.forEach(p => {
     if (!p.dataEnvio) return;
-    const [y, m] = p.dataEnvio.split("T")[0].split("-").map(Number);
-    if (y !== anoSel || m !== mesSel) return;
+   const envioStr = p.dataEnvio.split("T")[0];
+    if (envioStr < inicio || envioStr > fim) return;
     const lojaLower = (p.Loja || "").toLowerCase();
     const vendedorLower = (p.Vendedor || '').toLowerCase();
     if (lojaSelecionada && lojaLower !== lojaSelecionada) return;
@@ -3205,7 +3194,7 @@ async function exportarRelatorioPDF() {
 
   // 3) Cabeçalho e logo (opcional)
   const nomeLoja     = "Casa Rosa Bela";
-  const mesFormatado = `${String(mesSel).padStart(2, "0")}/${anoSel}`;
+const mesFormatado = `${inicio} a ${fim}`;
   const logoUrl      = "https://i.imgur.com/y3c6tLx.png";
   const img = new Image();
   img.crossOrigin = "anonymous";
@@ -3241,7 +3230,7 @@ async function exportarRelatorioPDF() {
   });
 
   // 5) Gera o download
-  doc.save(`relatorio_vendas_${mesSelecionado}.pdf`);
+  doc.save(`relatorio_vendas_${inicio}_a_${fim}.pdf`);
 }
 AppCasaRosa.exportarRelatorioPDF = exportarRelatorioPDF;
 // Gera o gráfico de cancelamentos por dia do mês atual
@@ -5360,12 +5349,9 @@ document.addEventListener("DOMContentLoaded", () => {
   <script>
   document.addEventListener('DOMContentLoaded', () => {
     const hoje = new Date().toISOString().split('T')[0];
-    flatpickr('#filtroDataInicioEnviados', {
+    flatpickr('#filtroDataEnviados', {
       dateFormat: 'Y-m-d',
-      defaultDate: hoje
-    });
-    flatpickr('#filtroDataFimEnviados', {
-      dateFormat: 'Y-m-d',
+            mode: 'range',
       defaultDate: hoje
     });
     flatpickr('#filtroDataDashboard', { dateFormat: 'Y-m-d', mode: 'range' });
