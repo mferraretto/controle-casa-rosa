@@ -2186,7 +2186,7 @@ window.AppCasaRosa = window.AppCasaRosa || {};
 window.AppCasaRosa.atualizarTabelas = atualizarTabelas;
 
 // Preenche os filtros ao abrir a aba 'Novos a Enviar'
-document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]").addEventListener("click", () => {
+document.querySelector("li.tab[onclick=\"abrirAba('a_enviar')\"]").addEventListener("click", () => {
   const pendentes = AppCasaRosa.importadosList || [];
   const lojas = [...new Set(pendentes.map(p => p.Loja).filter(Boolean))].sort();
   const produtos = [...new Set(pendentes.map(p => AppCasaRosa.obterSkuPrincipal(p.SKU)).filter(Boolean))].sort();
@@ -2853,7 +2853,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (AppCasaRosa.atualizarTabelaEnviados) AppCasaRosa.atualizarTabelaEnviados();
   // Filtro Multiloja na aba "A Enviar"
-  const tabEnviar = document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]");
+  const tabEnviar = document.querySelector("li.tab[onclick=\"abrirAba('a_enviar')\"]");
   if (tabEnviar) {
     tabEnviar.addEventListener("click", () => {
       const pendentes = AppCasaRosa.importadosList || [];
@@ -3948,7 +3948,7 @@ async function adicionarPedido(pedido) {
   }
 }
 
- const abaEnviar = document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]");
+ const abaEnviar = document.querySelector("li.tab[onclick=\"abrirAba('a_enviar')\"]");
 if (abaEnviar) {
     abaEnviar.addEventListener("click", () => {
       AppCasaRosa.carregarPendentesFirebase();
@@ -4075,7 +4075,7 @@ if (selectVend) selectVend.innerHTML = vendedores.map(v => `<option value="${v}"
 };
 
 // Registre o evento usando o namespace
-document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]")
+document.querySelector("li.tab[onclick=\"abrirAba('a_enviar')\"]")
   .addEventListener("click", AppCasaRosa.inicializarFiltroMultiloja);
 
 </script>
