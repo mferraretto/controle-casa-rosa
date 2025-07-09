@@ -912,7 +912,17 @@ details.dropdown {
     font-size: 0.95rem;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
   }
+ .filter-card {
+    padding: 0.75rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background: #fff;
+  }
 
+  .filter-card input,
+  .filter-card select {
+    padding: 0.5rem 0.75rem;
+  }
   .cards-status {
     display: flex;
     flex-wrap: wrap;
@@ -1167,25 +1177,35 @@ body.dark-mode header#topBar button {
   <div id="enviados" class="tab-content">
     <h2>✅ Pedidos Enviados</h2>
     <div style="margin:1rem 0; display:flex; gap:1rem; flex-wrap:wrap; align-items:center;">
-      <label><strong>📆 Mês:</strong>
-        <input type="month" id="filtroMesRelatorio" onchange="AppCasaRosa.atualizarTabelaEnviados()">
-      </label>
-      <label><strong>📅 Início:</strong>
-        <input type="date" id="filtroDataInicioEnviados" onchange="AppCasaRosa.atualizarTabelaEnviados()">
-      </label>
-      <label><strong>📅 Fim:</strong>
-        <input type="date" id="filtroDataFimEnviados" onchange="AppCasaRosa.atualizarTabelaEnviados()">
-      </label>
-      <label><strong>🏪 Loja:</strong>
-         <select id="filtroLojaRelatorio" onchange="AppCasaRosa.atualizarTabelaEnviados()">
-          <option value="">Todas</option>
-        </select>
-      </label>
+        <div class="filter-card">
+        <label><strong>📆 Mês:</strong>
+          <input type="month" id="filtroMesRelatorio" placeholder="📆" onchange="AppCasaRosa.atualizarTabelaEnviados()">
+        </label>
+      </div>
+      <div class="filter-card">
+        <label><strong>📅 Início:</strong>
+          <input type="date" id="filtroDataInicioEnviados" placeholder="📅" onchange="AppCasaRosa.atualizarTabelaEnviados()">
+        </label>
+      </div>
+      <div class="filter-card">
+        <label><strong>📅 Fim:</strong>
+          <input type="date" id="filtroDataFimEnviados" placeholder="📅" onchange="AppCasaRosa.atualizarTabelaEnviados()">
+        </label>
+      </div>
+      <div class="filter-card">
+        <label><strong>🏪 Loja:</strong>
+           <select id="filtroLojaRelatorio" data-placeholder="🏪" onchange="AppCasaRosa.atualizarTabelaEnviados()">
+            <option value="">Todas</option>
+          </select>
+        </label>
+      </div>
+      <div class="filter-card">
        <label><strong>👥 Vendedor:</strong>
-         <select id="filtroVendedorRelatorio" onchange="AppCasaRosa.atualizarTabelaEnviados()">
-          <option value="">Todos</option>
-        </select>
-      </label>
+           <select id="filtroVendedorRelatorio" data-placeholder="👥" onchange="AppCasaRosa.atualizarTabelaEnviados()">
+            <option value="">Todos</option>
+          </select>
+        </label>
+      </div>
       <button onclick="AppCasaRosa.exportarRelatorioMensal()">📤 CSV</button>
       <button onclick="AppCasaRosa.exportarRelatorioMensalExcel()">📥 Excel</button>
       <button onclick="AppCasaRosa.exportarRelatorioPDF()">📄 PDF</button>
@@ -4068,7 +4088,7 @@ document.querySelector("div.tab[onclick=\"abrirAba('a_enviar')\"]")
       width: '100%'
     });
     $('#filtroVendedorRelatorio').select2({
-      placeholder: 'Todos',
+     placeholder: '👥 Todos',
       allowClear: true,
       width: 'resolve'
     });
