@@ -1034,6 +1034,11 @@ details.dropdown {
     background-color: #e8f5e9;
     color: var(--accent-green);
   }
+   .card-comatraso {
+    background-color: #fde4f6;
+    color: #a40d67;
+  }
+
 
   .card-status strong {
     display: flex;
@@ -1105,7 +1110,7 @@ body.dark-mode .dashboard-header {
 }
 
 body.dark-mode button {
-  background-color: #333;
+  background-color: var(--accent-green);
   color: #fff;
 }
 body.dark-mode header#topBar {
@@ -1424,11 +1429,11 @@ body.dark-mode header#topBar button {
   <!-- Cards de Resumo -->
   <div class="cards-status">
     <div class="card-status card-novos">
-      <span>📦 Novos A Enviar:</span>
+      <span>Pedidos a enviar:</span>
       <div id="valor-a-enviar-dashboard">0</div>
     </div>
     <div class="card-status card-enviados">
-      <span>✅ Enviados no mês:</span>
+      <span>Pedidos enviados:</span>
       <div id="valor-enviados-dashboard">0</div>
     </div>
     <div class="card-status card-comatraso">
@@ -1436,15 +1441,15 @@ body.dark-mode header#topBar button {
       <div id="valor-enviados-atraso-dashboard">0</div>
     </div>
     <div class="card-status card-atraso">
-      <span>⏰ Atrasados:</span>
+      <span>Pedidos a enviar atrasados:</span>
       <div id="valor-atrasados-dashboard">0</div>
     </div>
     <div class="card-status card-risco">
-      <span>⚠️ Em risco:</span>
+      <span>Pedido em risco de atraso:</span>
       <div id="valor-risco-dashboard">0</div>
     </div>
 <div class="card-status card-percentual-atraso">
-  <strong>📉 % Atrasados:</strong><br />
+  <strong>Porcentagem de pedido atrasados:</strong><br />
   <span id="percentual-atrasados">0%</span>
 </div>
   </div>
@@ -1465,41 +1470,6 @@ body.dark-mode header#topBar button {
     </div>
     <div id="vendas-por-produto" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:1rem;"></div>
   </div>
-<h3 style="margin-top:2rem;">📈 Vendas por Dia no Mês</h3>
-<div style="position:relative; height:300px;">
-  <canvas id="graficoVendasPorDia"></canvas>
-</div>
-<div style="display:flex; align-items:center; justify-content:space-between; margin-top:2rem;">
-  <h3 style="margin:0;">🏆 Comparativo de Vendas</h3>
-  <select id="tipoComparativo" onchange="renderizarGraficoTopComparativo()" style="padding:0.25rem 0.5rem;">
-    <option value="produtos">Produtos Mais Vendidos</option>
-    <option value="lojas">Lojas com Mais Pedidos</option>
-  </select>
-</div>
-<div style="position:relative; height:300px;">
-  <canvas id="graficoTopProdutos"></canvas>
-</div>
-
-<!-- 📈 Gráfico de Média Diária de Vendas -->
-<div id="grafico-media-vendas" style="margin-top:2rem;">
-  <h3>📈 Média Diária de Vendas</h3>
-  <div style="margin-bottom:1rem;">
-    <label><input type="radio" name="tipoMedia" value="produto" checked onchange="gerarGraficoMediaVendas()"> Por Produto</label>
-    <label style="margin-left:1rem;"><input type="radio" name="tipoMedia" value="loja" onchange="gerarGraficoMediaVendas()"> Por Loja</label>
-  </div>
-  <div style="position:relative; height:300px;">
-    <canvas id="graficoMediaPorDia"></canvas>
-  </div>
-</div>
-
-<h3 style="margin-top:2rem;">⏱️ Tempo Médio de Envio por Loja</h3>
-<div style="position:relative; height:300px;">
-  <canvas id="graficoTempoEnvio"></canvas>
-</div>
-<h3 style="margin-top:2rem;">📈 Relatório por Loja + Produto</h3>
-<div id="tabela-detalhada-vendas" style="overflow-x:auto; margin-bottom:2rem;"></div>
-<button onclick="AppCasaRosa.exportarRelatorioDetalhadoExcel()">📥 Exportar Excel</button>
-<button onclick="AppCasaRosa.exportarRelatorioDetalhadoPDF()">📄 Exportar PDF</button>
 
   <!-- Gráfico de Status e Lembrete -->
   <div style="display:flex; gap:2rem; flex-wrap:wrap; justify-content:center; margin-top:2rem;">
@@ -1665,10 +1635,6 @@ body.dark-mode header#topBar button {
       AppCasaRosa.preencherFiltroLojaDashboard();
       AppCasaRosa.gerarResumoVendasPorProduto();
       AppCasaRosa.preencherFiltroProdutosDashboard();
-      AppCasaRosa.renderizarGraficoVendasPorDia();
-      AppCasaRosa.renderizarGraficoTopComparativo();
-      AppCasaRosa.renderizarGraficoTempoEnvio();
-      AppCasaRosa.gerarRelatorioDetalhado();
     } else if (id === "aba-metas") {
             AppCasaRosa.preencherFiltroProdutoMetas();
       AppCasaRosa.atualizarRelatorioMetas();
@@ -2023,7 +1989,7 @@ async function carregarEnviadosFirebase() {
   if (AppCasaRosa.atualizarTabelaEnviados) AppCasaRosa.atualizarTabelaEnviados();
    if (AppCasaRosa.preencherFiltroLojaRelatorio) AppCasaRosa.preencherFiltroLojaRelatorio();
   if (AppCasaRosa.preencherFiltroVendedorRelatorio) AppCasaRosa.preencherFiltroVendedorRelatorio();
-  gerarGraficoMediaVendas();
+
 }
     window.AppCasaRosa.carregarEnviadosFirebase = carregarEnviadosFirebase;
 
@@ -2158,10 +2124,7 @@ const dataSelecionada = datasFiltro[0] || null;
   if (typeof window.AppCasaRosa.atualizarResumoVendasMensal === "function") window.AppCasaRosa.atualizarResumoVendasMensal();
   if (typeof window.AppCasaRosa.gerarResumoVendasPorProduto === "function") window.AppCasaRosa.gerarResumoVendasPorProduto();
   if (typeof window.AppCasaRosa.preencherFiltroProdutosDashboard === "function") window.AppCasaRosa.preencherFiltroProdutosDashboard();
-  if (typeof window.AppCasaRosa.renderizarGraficoVendasPorDia === "function") window.AppCasaRosa.renderizarGraficoVendasPorDia();
-  if (typeof window.AppCasaRosa.renderizarGraficoTopComparativo === "function") window.AppCasaRosa.renderizarGraficoTopComparativo();
-  if (typeof window.AppCasaRosa.renderizarGraficoTempoEnvio === "function") window.AppCasaRosa.renderizarGraficoTempoEnvio();
-  if (typeof window.AppCasaRosa.gerarRelatorioDetalhado === "function") window.AppCasaRosa.gerarRelatorioDetalhado();
+  
 };
 
 function atualizarTabelas() {
@@ -2220,10 +2183,7 @@ if (datasFiltro.length) {
   if (typeof AppCasaRosa.atualizarResumoVendasMensal === "function") AppCasaRosa.atualizarResumoVendasMensal();
   if (typeof AppCasaRosa.gerarResumoVendasPorProduto === "function") AppCasaRosa.gerarResumoVendasPorProduto();
   if (typeof AppCasaRosa.preencherFiltroProdutosDashboard === "function") AppCasaRosa.preencherFiltroProdutosDashboard();
-  if (typeof AppCasaRosa.renderizarGraficoVendasPorDia === "function") AppCasaRosa.renderizarGraficoVendasPorDia();
-  if (typeof AppCasaRosa.renderizarGraficoTopComparativo === "function") AppCasaRosa.renderizarGraficoTopComparativo();
-  if (typeof AppCasaRosa.renderizarGraficoTempoEnvio === "function") AppCasaRosa.renderizarGraficoTempoEnvio();
-  if (typeof AppCasaRosa.gerarRelatorioDetalhado === "function") AppCasaRosa.gerarRelatorioDetalhado();
+ 
 }
 
 // Exponha a função no escopo global:
@@ -3904,11 +3864,11 @@ function exportarDashboardExcel() {
 
   const dados = [
     ["Indicador", "Quantidade"],
-    ["📦 A Enviar", aEnviar],
-    ["✅ Enviados no mês", enviados],
-    ["🚨 Enviados com Atraso", enviadosAtraso],
-    ["⏰ Atrasados", atrasados],
-    ["⚠️ Em risco", risco]
+   ["Pedidos a enviar", aEnviar],
+    ["Pedidos enviados", enviados],
+    ["Enviados com Atraso", enviadosAtraso],
+    ["Pedidos a enviar atrasados", atrasados],
+    ["Pedido em risco de atraso", risco]
   ];
 
   const wb = XLSX.utils.book_new();
@@ -3927,7 +3887,7 @@ async function exportarDashboardPDF() {
 
    const aEnviar = document.getElementById("valor-a-enviar-dashboard").textContent;
   const enviados = document.getElementById("valor-enviados-dashboard").textContent;
-  const enviadosAtraso = document.getElementById("valor-enviados-atrasados-dashboard")?.textContent || "0";
+  const enviadosAtraso = document.getElementById("valor-enviados-atraso-dashboard")?.textContent || "0";
   const atrasados = document.getElementById("valor-atrasados-dashboard").textContent;
   const risco = document.getElementById("valor-risco-dashboard").textContent;
 
@@ -3949,11 +3909,11 @@ async function exportarDashboardPDF() {
   y += 8;
 
   const dados = [
-    ["A Enviar", aEnviar],
-    ["Enviados no mês", enviados],
+  ["Pedidos a enviar", aEnviar],
+    ["Pedidos enviados", enviados],
     ["Enviados com Atraso", enviadosAtraso],
-    ["Atrasados", atrasados],
-    ["Em risco", risco]
+    ["Pedidos a enviar atrasados", atrasados],
+    ["Pedido em risco de atraso", risco]
   ];
 
   dados.forEach(([titulo, valor]) => {
