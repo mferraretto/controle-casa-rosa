@@ -8,7 +8,10 @@ self.addEventListener("install", function(event) {
         "./index.html",
         "./manifest.json",
         "./icon-192.png",
-        "./icon-512.png"
+         "./icon-512.png",
+        "./libs/jquery-3.6.0.min.js",
+        "./libs/select2.min.js",
+        "./libs/select2.min.css"
       ]);
     })
   );
