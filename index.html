@@ -79,7 +79,14 @@
     window.AppCasaRosa.signInWithEmailAndPassword = signInWithEmailAndPassword;
     window.AppCasaRosa.signOut = signOut;
     window.AppCasaRosa.onAuthStateChanged = onAuthStateChanged;
-
+// Função global para registrar logs de forma segura
+    const registrarLog = async (acao, detalhes = {}) => {
+      if (typeof window.AppCasaRosa?.registrarLog === "function") {
+        return window.AppCasaRosa.registrarLog(acao, detalhes);
+      }
+      console.warn("registrarLog não disponível:", acao, detalhes);
+    };
+    window.registrarLog = registrarLog;
     // Observador de SKUs equivalentes
     window.AppCasaRosa.skusEquivalentes = {};
     onSnapshot(collection(db, "skus_equivalentes"), snap => {
@@ -180,6 +187,11 @@ async function removerPendentesJaEnviados() {
     });
 
     await Promise.all(promises);
+        if (AppCasaRosa.registrarLog) {
+      await AppCasaRosa.registrarLog("Removeu pendentes duplicados", { quantidade: promises.length });
+    } else if (typeof registrarLog === "function") {
+      await registrarLog("Removeu pendentes duplicados", { quantidade: promises.length });
+    }
     alert("✅ Pedidos duplicados removidos da aba 'Novos a Enviar'.");
     location.reload();
   } catch (e) {
@@ -247,6 +259,11 @@ window.escapeHTML = window.AppCasaRosa.escapeHTML;
   try {
    const ref = AppCasaRosa.doc(AppCasaRosa.db, "pedidos_pendentes", id);
     await AppCasaRosa.updateDoc(ref, dados);
+     if (AppCasaRosa.registrarLog) {
+      await AppCasaRosa.registrarLog("Atualizou Pedido", { id, dados });
+    } else if (typeof registrarLog === "function") {
+      await registrarLog("Atualizou Pedido", { id, dados });
+    }
   } catch (e) {
     alert("Erro ao atualizar pedido: " + (e.message || e));
   }
@@ -515,7 +532,7 @@ window.AppCasaRosa.renderizarTabelaMetas = function() {
     tbody.appendChild(linha);
   });
 };
-function salvarMetas() {
+async function salvarMetas() {
   const inputs = document.querySelectorAll("#tabela-metas input[data-loja]");
   inputs.forEach(input => {
     const loja = input.dataset.loja;
@@ -525,12 +542,22 @@ function salvarMetas() {
     }
   });
   localStorage.setItem("metasPorLoja", JSON.stringify(metasPorLoja));
+  if (AppCasaRosa.registrarLog) {
+    await AppCasaRosa.registrarLog("Salvou Metas", { metas: metasPorLoja });
+  } else if (typeof registrarLog === "function") {
+    await registrarLog("Salvou Metas", { metas: metasPorLoja });
+  }
   alert("🎯 Metas salvas com sucesso!");
 }
 
-window.AppCasaRosa.removerMeta = function(loja) {
+window.AppCasaRosa.removerMeta = async function(loja) {
   delete metasPorLoja[loja];
   localStorage.setItem("metasPorLoja", JSON.stringify(metasPorLoja));
+  if (AppCasaRosa.registrarLog) {
+    await AppCasaRosa.registrarLog("Removeu Meta", { loja });
+  } else if (typeof registrarLog === "function") {
+    await registrarLog("Removeu Meta", { loja });
+  }
   if (typeof AppCasaRosa.renderizarTabelaMetas === "function") {
     AppCasaRosa.renderizarTabelaMetas();
   } else if (typeof renderizarTabelaMetas === "function") {
@@ -677,7 +704,11 @@ window.AppCasaRosa.cancelarPedido = async function(id) {
       motivo,
       dataCancelamento: new Date().toISOString()
     });
-
+ if (AppCasaRosa.registrarLog) {
+      await AppCasaRosa.registrarLog("Cancelou Pedido", { id, motivo });
+    } else if (typeof registrarLog === "function") {
+      await registrarLog("Cancelou Pedido", { id, motivo });
+    }
     // Atualiza lista em memória e UI
     if (Array.isArray(AppCasaRosa.importadosList)) {
       AppCasaRosa.importadosList = AppCasaRosa.importadosList.filter(p => p.id !== id);
@@ -2719,6 +2750,11 @@ function exportarPedidosAEnviar() {
   try {
     const promises = ids.map(id => AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, 'pedidos_pendentes', id)));
     await Promise.all(promises);
+      if (AppCasaRosa.registrarLog) {
+      await AppCasaRosa.registrarLog('Excluiu Pedidos', { ids });
+    } else if (typeof registrarLog === 'function') {
+      await registrarLog('Excluiu Pedidos', { ids });
+    }
     alert('Pedidos excluídos com sucesso.');
     if (Array.isArray(AppCasaRosa.importadosList)) {
       const set = new Set(ids);
@@ -2746,6 +2782,11 @@ async function alterarVendedorPedidosSelecionados() {
   try {
     const promises = ids.map(id => AppCasaRosa.updateDoc(AppCasaRosa.doc(AppCasaRosa.db, 'pedidos_pendentes', id), { Vendedor: novoVendedor }));
     await Promise.all(promises);
+      if (AppCasaRosa.registrarLog) {
+      await AppCasaRosa.registrarLog('Alterou Vendedor', { ids, vendedor: novoVendedor });
+    } else if (typeof registrarLog === 'function') {
+      await registrarLog('Alterou Vendedor', { ids, vendedor: novoVendedor });
+    }
     alert('Vendedor alterado com sucesso.');
     if (Array.isArray(AppCasaRosa.importadosList)) {
       AppCasaRosa.importadosList = AppCasaRosa.importadosList.map(p =>
@@ -3983,6 +4024,11 @@ async function exportarDashboardPDF() {
 async function adicionarPedido(pedido) {
   try {
      await AppCasaRosa.addDoc(collection(db, "pedidos_pendentes"), pedido);
+       if (AppCasaRosa.registrarLog) {
+       await AppCasaRosa.registrarLog("Adicionou Pedido", { id: pedido.pedidoId || pedido.Pedido });
+     } else if (typeof registrarLog === "function") {
+       await registrarLog("Adicionou Pedido", { id: pedido.pedidoId || pedido.Pedido });
+     }
   } catch (erro) {
     console.error("Erro ao adicionar pedido:", erro);
   }
@@ -4012,6 +4058,11 @@ async function apagarTudo() {
     const promises = snap.docs.map(doc => AppCasaRosa.deleteDoc(doc.ref));
     await Promise.all(promises);
     console.log(`Coleção ${nome} apagada.`);
+  }
+if (AppCasaRosa.registrarLog) {
+    await AppCasaRosa.registrarLog("Apagou todos os dados", {});
+  } else if (typeof registrarLog === "function") {
+    await registrarLog("Apagou todos os dados", {});
   }
 
   alert("✅ Todos os dados foram apagados!");
@@ -4587,6 +4638,11 @@ AppCasaRosa.adicionarMetaManual = async function(event) {
     lojas: lojasSelecionadas,
     dataCadastro: new Date().toISOString()
   });
+if (AppCasaRosa.registrarLog) {
+    await AppCasaRosa.registrarLog("Adicionou Meta", { produto, valor, mes, lojas: lojasSelecionadas });
+  } else if (typeof registrarLog === "function") {
+    await registrarLog("Adicionou Meta", { produto, valor, mes, lojas: lojasSelecionadas });
+  }
 
   alert("✅ Meta adicionada com sucesso!");
   document.getElementById('inputProdutoMeta').value = "";
@@ -4702,6 +4758,11 @@ AppCasaRosa.renderizarMetasManuais = async function() {
 AppCasaRosa.removerMetaManual = async function(id) {
   if (!confirm("Deseja remover esta meta?")) return;
  await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "metas_mensais", id));
+   if (AppCasaRosa.registrarLog) {
+    await AppCasaRosa.registrarLog("Removeu Meta Manual", { id });
+  } else if (typeof registrarLog === "function") {
+    await registrarLog("Removeu Meta Manual", { id });
+  }
   AppCasaRosa.renderizarMetasManuais();
 };
 
@@ -4993,7 +5054,11 @@ AppCasaRosa.salvarSkuEquivalente = async function (event) {
       { base, equivalentes }
     );
   }
-
+if (AppCasaRosa.registrarLog) {
+    await AppCasaRosa.registrarLog("Salvou SKU Equivalente", { base, equivalentes });
+  } else if (typeof registrarLog === "function") {
+    await registrarLog("Salvou SKU Equivalente", { base, equivalentes });
+  }
   document.getElementById("formSkus").reset();
   AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
 };
@@ -5024,9 +5089,7 @@ AppCasaRosa.excluirSkuEquivalente = async function(base) {
       }
     });
 
-    await AppCasaRosa.registrarLog
-      ? AppCasaRosa.registrarLog("Excluiu agrupamento de SKU", { skuBase: base })
-      : registrarLog("Excluiu agrupamento de SKU", { skuBase: base });
+  await registrarLog("Excluiu agrupamento de SKU", { skuBase: base });
 
     if (AppCasaRosa.carregarSkusEquivalentes) {
       await AppCasaRosa.carregarSkusEquivalentes(); // Recarrega os dados sincronizados
@@ -5055,6 +5118,12 @@ AppCasaRosa.salvarSkuEquivalenteAdmin = async function(event) {
   } else {
     await AppCasaRosa.addDoc(AppCasaRosa.collection(AppCasaRosa.db, "skus_equivalentes_admin"), { base, equivalentes });
   }
+  
+  if (AppCasaRosa.registrarLog) {
+    await AppCasaRosa.registrarLog("Salvou SKU Equivalente Admin", { base, equivalentes });
+  } else if (typeof registrarLog === "function") {
+    await registrarLog("Salvou SKU Equivalente Admin", { base, equivalentes });
+  }
   document.getElementById("formSkusAdmin").reset();
   AppCasaRosa.carregarSkusEquivalentesAdmin && AppCasaRosa.carregarSkusEquivalentesAdmin();
 };
@@ -5082,6 +5151,11 @@ AppCasaRosa.excluirSkuEquivalenteAdmin = async function(base) {
         AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "skus_equivalentes_admin", docItem.id));
       }
     });
+     if (AppCasaRosa.registrarLog) {
+      await AppCasaRosa.registrarLog("Excluiu SKU Equivalente Admin", { base });
+    } else if (typeof registrarLog === "function") {
+      await registrarLog("Excluiu SKU Equivalente Admin", { base });
+    }
     if (AppCasaRosa.carregarSkusEquivalentesAdmin) {
       await AppCasaRosa.carregarSkusEquivalentesAdmin();
     }
@@ -5097,11 +5171,8 @@ AppCasaRosa.excluirMeta = async function(id) {
 
   try {
    await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "metas_mensais", id));
-    if (AppCasaRosa.registrarLog) {
-      await AppCasaRosa.registrarLog("Excluiu Meta", { metaId: id });
-    } else {
-      await registrarLog("Excluiu Meta", { metaId: id });
-    }
+     await registrarLog("Excluiu Meta", { metaId: id });
+
 
     alert("Meta excluída com sucesso.");
     if (AppCasaRosa.atualizarCardsMetas) {
@@ -5125,11 +5196,8 @@ AppCasaRosa.editarMeta = async function(id, valorAtual) {
 
   try {
     await AppCasaRosa.updateDoc(AppCasaRosa.doc(AppCasaRosa.db, "metas_mensais", id), { valor: novoValor });
-    if (AppCasaRosa.registrarLog) {
-      await AppCasaRosa.registrarLog("Editou Meta", { metaId: id, valor: novoValor });
-    } else {
-      await registrarLog("Editou Meta", { metaId: id, valor: novoValor });
-    }
+     await registrarLog("Editou Meta", { metaId: id, valor: novoValor });
+
 
     if (AppCasaRosa.renderizarMetasManuais) {
       AppCasaRosa.renderizarMetasManuais();
@@ -5174,13 +5242,17 @@ AppCasaRosa.carregarLogs = async function() {
   const logs = snap.docs.map(doc => doc.data());
 
   const container = document.getElementById("tabelaLogs");
-  container.innerHTML = logs.slice(0, 100).map(log => `
-    <div style="border-bottom:1px solid #ddd; padding:0.5rem 0;">
+container.innerHTML = logs.slice(0, 100).map(log => {
+    const horarioCompleto = new Date(log.timestamp)
+      .toLocaleString('pt-BR', { hour12: false });
+    return 
+      <div style="border-bottom:1px solid #ddd; padding:0.5rem 0;">
       <strong>${log.usuario}</strong> – ${log.acao}<br>
-      <small>${new Date(log.timestamp).toLocaleString()}</small><br>
+      <small>${horarioCompleto}</small><br>
       <pre style="background:#f8f8f8;padding:0.5rem;border-radius:5px;">${JSON.stringify(log.detalhes, null, 2)}</pre>
     </div>
-  `).join("");
+  `;
+  }).join("");
 };
 
 AppCasaRosa.carregarSkusEquivalentes = async function() {
@@ -5278,11 +5350,7 @@ AppCasaRosa.salvarProduto = async function(event) {
   const valor = parseFloat(document.getElementById("valorProduto").value);
   if (!nome || isNaN(sobra) || isNaN(valor)) return;
  await AppCasaRosa.addDoc(collection(db, "produtos"), { nome, sobraIdeal: sobra, valor });
-  if (AppCasaRosa.registrarLog) {
-    await AppCasaRosa.registrarLog("Adicionou Produto", { nome, valor });
-  } else {
-    await registrarLog("Adicionou Produto", { nome, valor });
-  }
+ await registrarLog("Adicionou Produto", { nome, valor });
   document.getElementById("formProduto").reset();
   if (AppCasaRosa.carregarProdutos) {
     AppCasaRosa.carregarProdutos();
@@ -5293,11 +5361,8 @@ window.salvarProduto = AppCasaRosa.salvarProduto;
 AppCasaRosa.excluirProduto = async function(id) {
   if (!confirm("Excluir produto?")) return;
  await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, "produtos", id));
-  if (AppCasaRosa.registrarLog) {
-    await AppCasaRosa.registrarLog("Excluiu Produto", { id });
-  } else {
-    await registrarLog("Excluiu Produto", { id });
-  }
+await registrarLog("Excluiu Produto", { id });
+
   if (AppCasaRosa.carregarProdutos) {
     AppCasaRosa.carregarProdutos();
   
