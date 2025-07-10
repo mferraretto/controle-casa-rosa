@@ -2030,10 +2030,10 @@ async function importarPlanilhaMercadoLivre() {
   });
 
   await new Promise(resolve => {
-    lerArquivo(input, async dados => {
-      for (const linha of dados) {
-        const pedidoId = (linha['N.º de venda'] || '').toString().trim().toUpperCase();
-        if (!pedidoId || idsExistentes.has(pedidoId)) continue;
+     lerArquivo(input, async dados => {
+        for (const linha of dados) {
+          const pedidoId = (linha['N.º de venda'] || '').toString().trim().toUpperCase();
+          if (!pedidoId) continue;
 
         const estado = (linha['Estado'] || '').trim();
         const sku = linha['SKU'] || '';
@@ -2053,6 +2053,7 @@ async function importarPlanilhaMercadoLivre() {
         ];
         const reclamacao = estadosReclamacao.some(e => estado.toLowerCase().includes(e.toLowerCase())) ? estado : '';
 
+        if (!reclamacao && idsExistentes.has(pedidoId)) continue;
 
         const base = {
           pedidoId,
@@ -2066,7 +2067,7 @@ async function importarPlanilhaMercadoLivre() {
           Reclamacao: reclamacao
         };
         
-if (reclamacao) {
+        if (reclamacao) {
           const jaExiste = reclamacoesSnap.docs.find(d =>
             (d.data().pedidoId || d.data().Pedido || '').toUpperCase() === pedidoId
           );
@@ -2075,6 +2076,10 @@ if (reclamacao) {
               ...base,
               status: 'reclamacao'
             });
+          }
+            const pendenteDoc = pendentesSnap.docs.find(d => (d.data().pedidoId || d.data().Pedido || '').toUpperCase() === pedidoId);
+          if (pendenteDoc) {
+            await AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, 'pedidos_pendentes', pendenteDoc.id));
           }
         }
 
