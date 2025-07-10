@@ -556,6 +556,7 @@ window.AppCasaRosa.removerMeta = function(loja) {
     <div style="overflow-x:auto;"><table>
       <thead>
         <tr>
+       <th><input type="checkbox" id="selecionarEnviadosTodos" onchange="AppCasaRosa.marcarTodosEnviados(this.checked)" /></th>
           <th>Pedido</th>
           <th>Loja</th>           
           <th>Produto</th>
@@ -582,6 +583,7 @@ window.AppCasaRosa.removerMeta = function(loja) {
 
     html += `
   <tr>
+  <td><input type="checkbox" class="selecionar-enviado" data-id="${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}" /></td>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : escapeHTML(pedido)}</td>
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>   
     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
@@ -1313,6 +1315,8 @@ body.dark-mode header#topBar button {
       <button onclick="AppCasaRosa.exportarRelatorioMensal()">📤 CSV</button>
       <button onclick="AppCasaRosa.exportarRelatorioMensalExcel()">📥 Excel</button>
       <button onclick="AppCasaRosa.exportarRelatorioPDF()">📄 PDF</button>
+       <button onclick="AppCasaRosa.excluirEnviadosSelecionados()" style="background:var(--accent-magenta);color:white;margin-left:1rem;">🗑️ Excluir Selecionados</button>
+      <button onclick="AppCasaRosa.alterarVendedorEnviadosSelecionados()" style="background:#ffc107;color:black;margin-left:1rem;">✏️ Alterar Vendedor</button>
     </div>
 <div id="tabela-enviados"></div>
 </div>
@@ -2792,6 +2796,68 @@ function marcarTodosPendentes(checked) {
   });
 }
 AppCasaRosa.marcarTodosPendentes = marcarTodosPendentes;
+    
+function marcarTodosEnviados(checked) {
+  document.querySelectorAll('#tabela-enviados tbody input.selecionar-enviado').forEach(cb => {
+    cb.checked = checked;
+  });
+}
+AppCasaRosa.marcarTodosEnviados = marcarTodosEnviados;
+
+async function excluirEnviadosSelecionados() {
+  const checkboxes = Array.from(document.querySelectorAll('#tabela-enviados tbody input.selecionar-enviado:checked'));
+  if (!checkboxes.length) {
+    alert('Selecione ao menos um pedido.');
+    return;
+  }
+  if (!confirm(`Deseja excluir ${checkboxes.length} pedido(s) selecionado(s)?`)) return;
+
+  const ids = checkboxes.map(cb => cb.dataset.id);
+  try {
+    const promises = ids.map(id => AppCasaRosa.deleteDoc(AppCasaRosa.doc(AppCasaRosa.db, 'pedidos_enviados', id)));
+    await Promise.all(promises);
+    alert('Pedidos excluídos com sucesso.');
+    if (Array.isArray(AppCasaRosa.enviadosList)) {
+      const set = new Set(ids);
+      AppCasaRosa.enviadosList = AppCasaRosa.enviadosList.filter(p => !set.has(p.id));
+    }
+    if (typeof AppCasaRosa.carregarEnviadosFirebase === 'function') {
+      AppCasaRosa.carregarEnviadosFirebase();
+    }
+  } catch (e) {
+    alert('Erro ao excluir pedidos: ' + (e.message || e));
+  }
+}
+AppCasaRosa.excluirEnviadosSelecionados = excluirEnviadosSelecionados;
+
+async function alterarVendedorEnviadosSelecionados() {
+  const checkboxes = Array.from(document.querySelectorAll('#tabela-enviados tbody input.selecionar-enviado:checked'));
+  if (!checkboxes.length) {
+    alert('Selecione ao menos um pedido.');
+    return;
+  }
+
+  const novoVendedor = prompt('Digite o nome do novo vendedor:');
+  if (!novoVendedor) return;
+
+  const ids = checkboxes.map(cb => cb.dataset.id);
+  try {
+    const promises = ids.map(id => AppCasaRosa.updateDoc(AppCasaRosa.doc(AppCasaRosa.db, 'pedidos_enviados', id), { Vendedor: novoVendedor }));
+    await Promise.all(promises);
+    alert('Vendedor alterado com sucesso.');
+    if (Array.isArray(AppCasaRosa.enviadosList)) {
+      AppCasaRosa.enviadosList = AppCasaRosa.enviadosList.map(p =>
+        ids.includes(p.id) ? { ...p, Vendedor: novoVendedor } : p
+      );
+    }
+    if (typeof AppCasaRosa.carregarEnviadosFirebase === 'function') {
+      AppCasaRosa.carregarEnviadosFirebase();
+    }
+  } catch (e) {
+    alert('Erro ao alterar vendedor: ' + (e.message || e));
+  }
+}
+AppCasaRosa.alterarVendedorEnviadosSelecionados = alterarVendedorEnviadosSelecionados;
 // 2) Exporta os pedidos cancelados para CSV usando os campos do Firestore
 function exportarCanceladosCSV() {
   const dados = AppCasaRosa.canceladosList || [];
