@@ -2016,14 +2016,15 @@ async function importarPlanilhaMercadoLivre() {
     return;
   }
 
-  const [pendentesSnap, enviadosSnap, canceladosSnap] = await Promise.all([
+  const [pendentesSnap, enviadosSnap, canceladosSnap, reclamacoesSnap] = await Promise.all([
     AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_pendentes')),
     AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_enviados')),
     AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_cancelados')),
+        AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, 'pedidos_reclamacoes')),
   ]);
 
   const idsExistentes = new Set();
-  [...pendentesSnap.docs, ...enviadosSnap.docs, ...canceladosSnap.docs].forEach(doc => {
+  [...pendentesSnap.docs, ...enviadosSnap.docs, ...canceladosSnap.docs, ...reclamacoesSnap.docs].forEach(doc => {
     const id = (doc.data().pedidoId || doc.data().Pedido || '').toString().trim().toUpperCase();
     idsExistentes.add(id);
   });
