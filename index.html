@@ -1993,6 +1993,17 @@ async function importarPlanilhaMercadoLivre() {
          const lojaML = normalizarCampo(linha, ['Canal de venda']).trim() || 'ML';
         const pagObj = parseDataPortugues(linha['Data da venda']);
         const dataPagamento = pagObj ? pagObj.toISOString() : new Date().toISOString();
+        const estadosReclamacao = [
+          'Reclamação encerrada com reembolso para o comprador',
+          'Reclamação aberta para resolver até sexta-feira',
+          'Reclamação encerrada com reembolso parcial',
+          'Devolução em preparação',
+          'Reclamação aberta para resolver hoje',
+          'Reclamação aberta',
+          'Reclamação encerrada'
+        ];
+        const reclamacao = estadosReclamacao.some(e => estado.toLowerCase().includes(e.toLowerCase())) ? estado : '';
+
 
         const base = {
           pedidoId,
@@ -2002,7 +2013,8 @@ async function importarPlanilhaMercadoLivre() {
         FormaEntrega: formaEntrega,
           dataPagamento,
           Vendedor: "Fabrica ML",
-          status: 'novo'
+           status: 'novo',
+          Reclamacao: reclamacao
         };
 
         try {
