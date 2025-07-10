@@ -1,4 +1,4 @@
-const importar = require('../mlImporter');
+const importar = require('./mlImporter');
 
 test('adds complaint orders to pedidos_reclamacoes', async () => {
   const addDoc = jest.fn(async () => {});
@@ -28,4 +28,19 @@ test('does not add non-complaint orders to pedidos_reclamacoes', async () => {
   await importar(rows, { addDoc });
   const calls = addDoc.mock.calls.filter(c => c[0] === 'pedidos_reclamacoes');
   expect(calls.length).toBe(0);
+});
+
+test('deletes pending order when complaint already exists in pendentes', async () => {
+  const addDoc = jest.fn(async () => {});
+  const deleteDoc = jest.fn(async () => {});
+  const pendentes = [{ id: 'p1', pedidoId: '125' }];
+  const rows = [
+    {
+      'N.º de venda': '125',
+      'Estado': 'Reclamação aberta',
+      'SKU': 'sku3'
+    }
+  ];
+  await importar(rows, { addDoc, deleteDoc, pendentes });
+  expect(deleteDoc).toHaveBeenCalledWith('pedidos_pendentes', 'p1');
 });
