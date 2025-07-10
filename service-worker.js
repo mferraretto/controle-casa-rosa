@@ -1,4 +1,4 @@
-const CACHE_NAME = "casa-rosa-cache-v2";
+const CACHE_NAME = "casa-rosa-cache-v3";
 
 self.addEventListener("install", function(event) {
   event.waitUntil(
