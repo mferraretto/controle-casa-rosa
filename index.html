@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Controle de Pedidos Casa Rosa</title>
 
-  <!-- Fonte Poppins -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+ <!-- Fonte Poppins -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 
   <!-- Ícones Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
   <!-- Select2 para filtros -->
   <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -21,576 +21,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-  <style>
-    :root {
-      --primary: #d81b60;
-      --primary-light: #ff5c8d;
-      --primary-dark: #a00037;
-      --secondary: #2e7d32;
-      --secondary-light: #60ad5e;
-      --secondary-dark: #005005;
-      --accent: #EF5DA8;
-      --background: #f8f9fa;
-      --surface: #ffffff;
-      --error: #d32f2f;
-      --warning: #ffa000;
-      --success: #388e3c;
-      --info: #1976d2;
-      --text-primary: #212121;
-      --text-secondary: #757575;
-      --text-on-primary: #ffffff;
-      --text-on-secondary: #ffffff;
-      --border: #e0e0e0;
-      --divider: #e0e0e0;
-    }
-
-    body.dark-mode {
-      --primary: #ff5c8d;
-      --primary-light: #ff8ebd;
-      --primary-dark: #c2185b;
-      --secondary: #81c784;
-      --secondary-light: #b2fab4;
-      --secondary-dark: #519657;
-      --accent: #ff80ab;
-      --background: #121212;
-      --surface: #1e1e1e;
-      --error: #f44336;
-      --warning: #ffb74d;
-      --success: #81c784;
-      --info: #64b5f6;
-      --text-primary: #e0e0e0;
-      --text-secondary: #b0b0b0;
-      --text-on-primary: #ffffff;
-      --text-on-secondary: #000000;
-      --border: #424242;
-      --divider: #424242;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: var(--background);
-      color: var(--text-primary);
-      line-height: 1.6;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .app-container {
-      display: flex;
-      flex: 1;
-    }
-
-    /* Sidebar */
-    nav#sidebar {
-      width: 260px;
-      background-color: var(--surface);
-      box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s;
-      position: sticky;
-      top: 0;
-      height: 100vh;
-      overflow-y: auto;
-      z-index: 100;
-    }
-
-    .sidebar-header {
-      padding: 1.5rem 1rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    .sidebar-header h3 {
-      color: var(--primary);
-      font-weight: 700;
-      font-size: 1.25rem;
-      margin: 0;
-    }
-
-    .tabs {
-      padding: 1rem 0;
-      list-style: none;
-    }
-
-    .tab {
-      padding: 0.75rem 1.5rem;
-      color: var(--text-primary);
-      font-weight: 500;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      transition: all 0.2s;
-      border-left: 4px solid transparent;
-    }
-
-    .tab i {
-      width: 24px;
-      text-align: center;
-    }
-
-    .tab:hover {
-      background-color: rgba(var(--primary), 0.1);
-      color: var(--primary);
-    }
-
-    .tab.active {
-      background-color: rgba(var(--primary), 0.15);
-      color: var(--primary);
-      border-left-color: var(--primary);
-      font-weight: 600;
-    }
-
-    details.dropdown summary {
-      list-style: none;
-      outline: none;
-      cursor: pointer;
-    }
-
-    details.dropdown summary::-webkit-details-marker {
-      display: none;
-    }
-
-    details.dropdown[open] summary {
-      background-color: rgba(var(--primary), 0.15);
-      color: var(--primary);
-    }
-
-    .submenu {
-      padding-left: 2.5rem;
-      list-style: none;
-    }
-
-    /* Main Content */
-    #content {
-      flex: 1;
-      padding: 1.5rem;
-      background-color: var(--background);
-      transition: all 0.3s;
-    }
-
-    /* Top Bar */
-    header#topBar {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1rem 1.5rem;
-      background-color: var(--surface);
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      position: sticky;
-      top: 0;
-      z-index: 90;
-      margin-bottom: 1.5rem;
-    }
-
-    header#topBar h2 {
-      margin: 0;
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .header-actions {
-      display: flex;
-      gap: 0.75rem;
-    }
-
-    /* Cards */
-    .card {
-      background-color: var(--surface);
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 1rem;
-      padding-bottom: 0.75rem;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .card-header h3 {
-      font-size: 1.25rem;
-      font-weight: 600;
-      color: var(--primary);
-      margin: 0;
-    }
-
-    /* Buttons */
-    .btn {
-      padding: 0.5rem 1rem;
-      border-radius: 0.5rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: all 0.2s;
-      border: none;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    .btn-primary {
-      background-color: var(--primary);
-      color: var(--text-on-primary);
-    }
-
-    .btn-primary:hover {
-      background-color: var(--primary-dark);
-    }
-
-    .btn-secondary {
-      background-color: var(--secondary);
-      color: var(--text-on-secondary);
-    }
-
-    .btn-secondary:hover {
-      background-color: var(--secondary-dark);
-    }
-
-    .btn-outline {
-      background-color: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-primary);
-    }
-
-    .btn-outline:hover {
-      background-color: rgba(var(--primary), 0.05);
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-
-    .btn-danger {
-      background-color: var(--error);
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background-color: #c62828;
-    }
-
-    .btn-warning {
-      background-color: var(--warning);
-      color: #000;
-    }
-
-    .btn-warning:hover {
-      background-color: #ff8f00;
-    }
-
-    .btn-sm {
-      padding: 0.35rem 0.75rem;
-      font-size: 0.85rem;
-    }
-
-    .btn-icon {
-      width: 36px;
-      height: 36px;
-      padding: 0;
-      justify-content: center;
-      border-radius: 50%;
-    }
-
-    /* Forms */
-    .form-group {
-      margin-bottom: 1rem;
-    }
-
-    .form-label {
-      display: block;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      color: var(--text-primary);
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 0.75rem;
-      border: 1px solid var(--border);
-      border-radius: 0.5rem;
-      background-color: var(--surface);
-      color: var(--text-primary);
-      font-family: inherit;
-      font-size: 1rem;
-      transition: border-color 0.2s;
-    }
-
-    .form-control:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(var(--primary), 0.2);
-    }
-
-    /* Tables */
-    .table-container {
-      overflow-x: auto;
-      margin-bottom: 1.5rem;
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      background-color: var(--surface);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    th, td {
-      padding: 1rem;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-    }
-
-    th {
-      background-color: var(--primary);
-      color: var(--text-on-primary);
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-    }
-
-    tr:nth-child(even) {
-      background-color: rgba(var(--primary), 0.05);
-    }
-
-    tr:hover {
-      background-color: rgba(var(--primary), 0.1);
-    }
-
-    /* Status Cards */
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .status-card {
-      padding: 1.5rem;
-      border-radius: 0.75rem;
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-      background-color: var(--surface);
-      border-left: 6px solid;
-    }
-
-    .status-card i {
-      font-size: 2rem;
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 50%;
-      background-color: rgba(var(--primary), 0.1);
-      color: var(--primary);
-    }
-
-    .status-card-content {
-      flex: 1;
-    }
-
-    .status-card-title {
-      font-size: 0.9rem;
-      color: var(--text-secondary);
-      margin-bottom: 0.25rem;
-    }
-
-    .status-card-value {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-primary);
-    }
-
-    /* Login */
-    .login-container {
-      max-width: 400px;
-      margin: 5rem auto;
-      padding: 2rem;
-      background-color: var(--surface);
-      border-radius: 0.75rem;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-
-    .login-title {
-      text-align: center;
-      margin-bottom: 1.5rem;
-      color: var(--primary);
-    }
-
-    .login-error {
-      color: var(--error);
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-    }
-
-    /* Tabs */
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    /* Filters */
-    .filters-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-    }
-
-    .filter-item {
-      flex: 1;
-      min-width: 200px;
-    }
-
-    /* Responsive */
-    @media (max-width: 992px) {
-      nav#sidebar {
-        width: 220px;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .app-container {
-        flex-direction: column;
-      }
-
-      nav#sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-      }
-
-      #content {
-        margin-left: 0;
-        padding: 1rem;
-      }
-
-      .cards-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .filters-container {
-        flex-direction: column;
-      }
-
-      .filter-item {
-        min-width: 100%;
-      }
-
-      .table-container {
-        overflow-x: auto;
-      }
-    }
-
-    /* Dark mode toggle */
-    .theme-toggle {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      cursor: pointer;
-    }
-
-    .theme-toggle i {
-      transition: transform 0.3s;
-    }
-
-    body.dark-mode .theme-toggle i.fa-sun {
-      display: none;
-    }
-
-    body.dark-mode .theme-toggle i.fa-moon {
-      display: inline-block;
-    }
-
-    body:not(.dark-mode) .theme-toggle i.fa-sun {
-      display: inline-block;
-    }
-
-    body:not(.dark-mode) .theme-toggle i.fa-moon {
-      display: none;
-    }
-
-    /* Product cards */
-    .products-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1rem;
-      margin-top: 1rem;
-    }
-
-    .product-card {
-      background-color: var(--surface);
-      border-radius: 0.75rem;
-      padding: 1rem;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-      text-align: center;
-    }
-
-    .product-name {
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-    }
-
-    .product-quantity {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 0.25rem;
-    }
-
-    .product-label {
-      font-size: 0.8rem;
-      color: var(--text-secondary);
-    }
-
-    /* Action buttons */
-    .action-buttons {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1rem;
-    }
-
-    /* Custom scrollbar */
-    ::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
-    }
-
-    ::-webkit-scrollbar-track {
-      background: var(--background);
-    }
-
-    ::-webkit-scrollbar-thumb {
-      background: var(--primary);
-      border-radius: 4px;
-    }
-
-    ::-webkit-scrollbar-thumb:hover {
-      background: var(--primary-dark);
-    }
-  </style>
-    <!-- Objeto global antes de tudo -->
+  <!-- Objeto global antes de tudo -->
   <script>window.AppCasaRosa = window.AppCasaRosa || {};</script>
 
   <!-- Firebase App + Firestore + Auth (modular) -->
@@ -665,8 +96,7 @@
         window.AppCasaRosa.listarSkusEquivalentes();
       }
     });
-    
-    // Observador de SKUs equivalentes usados apenas em relatórios do admin
+ // Observador de SKUs equivalentes usados apenas em relatórios do admin
     window.AppCasaRosa.skusEquivalentesAdmin = {};
     onSnapshot(collection(db, "skus_equivalentes_admin"), snap => {
       const equivalentes = {};
@@ -682,7 +112,6 @@
         window.AppCasaRosa.listarSkusEquivalentesAdmin();
       }
     });
-    
     // Função de login
     window.AppCasaRosa.fazerLogin = function () {
       const email = document.getElementById("emailLogin")?.value.trim();
@@ -716,11 +145,11 @@
           loginTela.style.display = "none";
           sistemaTela.style.display = "block";
           AppCasaRosa.carregarSkusEquivalentes && AppCasaRosa.carregarSkusEquivalentes();
-          AppCasaRosa.carregarSkusEquivalentesAdmin && AppCasaRosa.carregarSkusEquivalentesAdmin();
+            AppCasaRosa.carregarSkusEquivalentesAdmin && AppCasaRosa.carregarSkusEquivalentesAdmin();
           AppCasaRosa.carregarLojasRegistradas && AppCasaRosa.carregarLojasRegistradas();
           if (AppCasaRosa.carregarEnviadosFirebase) AppCasaRosa.carregarEnviadosFirebase();
-          AppCasaRosa.carregarPendentesFirebase && AppCasaRosa.carregarPendentesFirebase();
-          AppCasaRosa.carregarReclamacoesFirebase && AppCasaRosa.carregarReclamacoesFirebase();
+                    AppCasaRosa.carregarPendentesFirebase && AppCasaRosa.carregarPendentesFirebase();
+                    AppCasaRosa.carregarReclamacoesFirebase && AppCasaRosa.carregarReclamacoesFirebase();
           if (AppCasaRosa.atualizarTabelaEnviados) AppCasaRosa.atualizarTabelaEnviados();
         } else {
           loginTela.style.display = "flex";
@@ -728,121 +157,1039 @@
         }
       });
     });
+window.AppCasaRosa.deslogarUsuario = function () {
+  signOut(auth).then(() => location.reload());
+};
+  // Remover pendentes que já estão como enviados
+async function removerPendentesJaEnviados() {
+  try {
+    const pendentesSnap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes"));
+    const enviadosSnap  = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados"));
 
-    window.AppCasaRosa.deslogarUsuario = function () {
-      signOut(auth).then(() => location.reload());
-    };
+    const enviadosIds = new Set();
+    enviadosSnap.forEach(doc => {
+      const id = AppCasaRosa.normalizarId(doc.data().pedidoId || doc.data().Pedido || "");
+      enviadosIds.add(id);
+    });
 
-    // Remover pendentes que já estão como enviados
-    async function removerPendentesJaEnviados() {
-      try {
-        const pendentesSnap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes"));
-        const enviadosSnap  = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_enviados"));
-
-        const enviadosIds = new Set();
-        enviadosSnap.forEach(doc => {
-          const id = AppCasaRosa.normalizarId(doc.data().pedidoId || doc.data().Pedido || "");
-          enviadosIds.add(id);
-        });
-
-        const promises = [];
-        pendentesSnap.forEach(doc => {
-          const id = AppCasaRosa.normalizarId(doc.data().pedidoId || doc.data().Pedido || "");
-          if (enviadosIds.has(id)) {
-            promises.push(AppCasaRosa.deleteDoc(doc.ref));
-          }
-        });
-
-        await Promise.all(promises);
-        alert("✅ Pedidos duplicados removidos da aba 'Novos a Enviar'.");
-        location.reload();
-      } catch (e) {
-        alert("Erro ao remover pendentes: " + (e.message || e));
+    const promises = [];
+    pendentesSnap.forEach(doc => {
+      const id = AppCasaRosa.normalizarId(doc.data().pedidoId || doc.data().Pedido || "");
+      if (enviadosIds.has(id)) {
+        promises.push(AppCasaRosa.deleteDoc(doc.ref));
       }
+    });
+
+    await Promise.all(promises);
+    alert("✅ Pedidos duplicados removidos da aba 'Novos a Enviar'.");
+    location.reload();
+  } catch (e) {
+    alert("Erro ao remover pendentes: " + (e.message || e));
+  }
+}
+
+window.AppCasaRosa = window.AppCasaRosa || {};
+window.AppCasaRosa.removerPendentesJaEnviados = removerPendentesJaEnviados;
+window.AppCasaRosa.db = db;
+window.AppCasaRosa.collection = collection;
+window.AppCasaRosa.addDoc = addDoc;
+window.AppCasaRosa.onSnapshot = onSnapshot;
+window.AppCasaRosa.doc = doc;
+window.AppCasaRosa.updateDoc = updateDoc;
+window.AppCasaRosa.deleteDoc = deleteDoc;
+window.AppCasaRosa.getDoc = getDoc;
+window.AppCasaRosa.getDocs = getDocs;
+
+window.AppCasaRosa.importadosList = [];
+window.AppCasaRosa.enviadosList = [];
+window.AppCasaRosa.canceladosList = [];
+ window.AppCasaRosa.reclamacoesList = [];
+window.AppCasaRosa.pdfsList = [];
+window.AppCasaRosa.historicoList = [];
+window.AppCasaRosa.produtosMap = {};
+
+// Listener "Pedidos Enviados"
+  onSnapshot(collection(db, "pedidos_enviados"), (snapshot) => {
+    window.AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (window.AppCasaRosa.atualizarTabelaEnviados) {
+      window.AppCasaRosa.atualizarTabelaEnviados();
+    }
+    if (window.AppCasaRosa.preencherFiltroLojaRelatorio) {
+      window.AppCasaRosa.preencherFiltroLojaRelatorio();
+    }
+    if (window.AppCasaRosa.preencherFiltroVendedorRelatorio) {
+      window.AppCasaRosa.preencherFiltroVendedorRelatorio();
+    }
+  });
+    // Listener "Pedidos Cancelados" - popula canceladosList em tempo real
+onSnapshot(collection(db, "pedidos_cancelados"), (snapshot) => {
+  window.AppCasaRosa.canceladosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (window.AppCasaRosa.atualizarTabelas) {
+    window.AppCasaRosa.atualizarTabelas();
+  } else if (typeof atualizarTabelas === "function") {
+    atualizarTabelas();
+  }
+});
+    // Listener "Pedidos Reclamacoes" - popula reclamacoesList em tempo real
+onSnapshot(collection(db, "pedidos_reclamacoes"), (snapshot) => {
+  window.AppCasaRosa.reclamacoesList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  if (window.AppCasaRosa.atualizarTabelas) {
+    window.AppCasaRosa.atualizarTabelas();
+  } else if (typeof atualizarTabelas === "function") {
+    atualizarTabelas();
+  }
+});
+// Função de escape HTML
+window.AppCasaRosa.escapeHTML = function(str) {
+  return (str || "").replace(/[&<>"']/g, function (c) {
+    return ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[c];
+  });
+};
+    // Disponibiliza a função também no escopo global
+window.escapeHTML = window.AppCasaRosa.escapeHTML;
+  // Atualizar pedido específico
+  window.AppCasaRosa.atualizarPedido = async function(id, dados) {
+  try {
+   const ref = AppCasaRosa.doc(AppCasaRosa.db, "pedidos_pendentes", id);
+    await AppCasaRosa.updateDoc(ref, dados);
+  } catch (e) {
+    alert("Erro ao atualizar pedido: " + (e.message || e));
+  }
+};
+
+// Sincronizar pendentes automaticamente com enviados
+
+
+// Renderizar tabela de enviados
+
+  
+</script>
+
+<script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
+ window.AppCasaRosa.normalizarId = function(id) {
+  return (id || '').toString().trim().toLowerCase().replace(/^0+/, '');
+};
+  // Utilitário para calcular dias úteis entre datas
+  function calcularDiasUteis(dataInicial, dataFinal) {
+    let d1 = new Date(dataInicial);
+    let d2 = new Date(dataFinal);
+    d1.setHours(0, 0, 0, 0);
+    d2.setHours(0, 0, 0, 0);
+    if (d1 > d2) return 0;
+    let count = 0;
+    while (d1 <= d2) {
+      const dia = d1.getDay();
+      if (dia !== 0 && dia !== 6) count++;
+      d1.setDate(d1.getDate() + 1);
+    }
+    return Math.max(0, count - 1);
+  }
+  window.AppCasaRosa.calcularDiasUteis = calcularDiasUteis;
+  // Função genérica de renderização de tabela
+window.AppCasaRosa.renderTabela = function(id, lista) {
+  // Exemplo: redireciona para a função de tabela pendentes, se for esse o caso
+  if (id === "tabelaPendentes" && typeof AppCasaRosa.renderizarTabelaPendentes === "function") {
+    AppCasaRosa.renderizarTabelaPendentes(lista);
+  }
+   else if (id === "tabela-reclamacoes" && typeof AppCasaRosa.renderizarTabelaReclamacoes === "function") {
+    AppCasaRosa.renderizarTabelaReclamacoes(lista);
+  }
+  // Adicione outros casos conforme necessário
+};
+ window.AppCasaRosa.carregarPendentesFirebase = async function() {
+  try {
+    const snapshot = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "pedidos_pendentes"));
+    const pendentes = [];
+    snapshot.forEach(doc => {
+      pendentes.push({ id: doc.id, ...doc.data() });
+    });
+
+    // Atualize esta parte abaixo
+    const enviados = AppCasaRosa.enviadosList || [];
+    const idsEnviados = new Set(
+      enviados.map(e =>
+        (e.Pedido || e.pedidoId || "").toString().trim()
+      )
+    );
+    const pendentesFiltrados = pendentes.filter(p =>
+      !idsEnviados.has((p.Pedido || p.pedidoId || "").toString().trim())
+    );
+// Mantém a lista em memória para outras funcionalidades
+    AppCasaRosa.importadosList = pendentesFiltrados;
+    if (typeof AppCasaRosa.renderTabela === "function") {
+      AppCasaRosa.renderTabela("tabelaPendentes", pendentesFiltrados);
+    } else if (typeof renderTabela === "function") {
+      renderTabela("tabelaPendentes", pendentesFiltrados);
     }
 
-    window.AppCasaRosa.removerPendentesJaEnviados = removerPendentesJaEnviados;
-    window.AppCasaRosa.db = db;
-    window.AppCasaRosa.collection = collection;
-    window.AppCasaRosa.addDoc = addDoc;
-    window.AppCasaRosa.onSnapshot = onSnapshot;
-    window.AppCasaRosa.doc = doc;
-    window.AppCasaRosa.updateDoc = updateDoc;
-    window.AppCasaRosa.deleteDoc = deleteDoc;
-    window.AppCasaRosa.getDoc = getDoc;
-    window.AppCasaRosa.getDocs = getDocs;
+    const contador = document.getElementById("contadorPedidosPendentes");
+    if (contador) {
+      contador.textContent = pendentesFiltrados.length;
+    }
+    // Atualiza os cards de resumo se a função existir
+    if (typeof AppCasaRosa.atualizarDashboardPendentes === "function") {
+      AppCasaRosa.atualizarDashboardPendentes();
+    }
+  } catch (e) {
+    alert("Erro ao carregar pedidos pendentes: " + (e.message || e));
+  }
+};
 
-    window.AppCasaRosa.importadosList = [];
-    window.AppCasaRosa.enviadosList = [];
-    window.AppCasaRosa.canceladosList = [];
-    window.AppCasaRosa.reclamacoesList = [];
-    window.AppCasaRosa.pdfsList = [];
-    window.AppCasaRosa.historicoList = [];
-    window.AppCasaRosa.produtosMap = {};
+  // 🔄 Carrega lista de lojas cadastradas no Firestore
+window.AppCasaRosa.carregarLojasRegistradas = async function() {
+  try {
+    const snap = await AppCasaRosa.getDocs(AppCasaRosa.collection(AppCasaRosa.db, "lojas"));
+    AppCasaRosa.lojasRegistradas = snap.docs.map(doc => doc.id);
+  } catch (e) {
+    alert("Erro ao carregar lojas registradas: " + (e.message || e));
+  }
+};
+window.AppCasaRosa.identificarLoja = function(texto) {
+  const linhas = texto.split('\n');
+  const indexRemetente = linhas.findIndex(l => l.trim().toUpperCase() === "REMETENTE");
 
-    // Listener "Pedidos Enviados"
-    onSnapshot(collection(db, "pedidos_enviados"), (snapshot) => {
-      window.AppCasaRosa.enviadosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (window.AppCasaRosa.atualizarTabelaEnviados) {
-        window.AppCasaRosa.atualizarTabelaEnviados();
-      }
-      if (window.AppCasaRosa.preencherFiltroLojaRelatorio) {
-        window.AppCasaRosa.preencherFiltroLojaRelatorio();
-      }
-      if (window.AppCasaRosa.preencherFiltroVendedorRelatorio) {
-        window.AppCasaRosa.preencherFiltroVendedorRelatorio();
-      }
-    });
-    
-    // Listener "Pedidos Cancelados" - popula canceladosList em tempo real
-    onSnapshot(collection(db, "pedidos_cancelados"), (snapshot) => {
-      window.AppCasaRosa.canceladosList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (window.AppCasaRosa.atualizarTabelas) {
-        window.AppCasaRosa.atualizarTabelas();
-      } else if (typeof atualizarTabelas === "function") {
-        atualizarTabelas();
-      }
-    });
-    
-    // Listener "Pedidos Reclamacoes" - popula reclamacoesList em tempo real
-    onSnapshot(collection(db, "pedidos_reclamacoes"), (snapshot) => {
-      window.AppCasaRosa.reclamacoesList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      if (window.AppCasaRosa.atualizarTabelas) {
-        window.AppCasaRosa.atualizarTabelas();
-      } else if (typeof atualizarTabelas === "function") {
-        atualizarTabelas();
-      }
-    });
-    
-    // Função de escape HTML
-    window.AppCasaRosa.escapeHTML = function(str) {
-      return (str || "").replace(/[&<>"']/g, function (c) {
-        return ({
-          '&': '&amp;',
-          '<': '&lt;',
-          '>': '&gt;',
-          '"': '&quot;',
-          "'": '&#39;'
-        })[c];
-      });
-    };
-    
-    // Disponibiliza a função também no escopo global
-    window.escapeHTML = window.AppCasaRosa.escapeHTML;
-    
-    // Atualizar pedido específico
-    window.AppCasaRosa.atualizarPedido = async function(id, dados) {
-      try {
-        const ref = AppCasaRosa.doc(AppCasaRosa.db, "pedidos_pendentes", id);
-        await AppCasaRosa.updateDoc(ref, dados);
-      } catch (e) {
-        alert("Erro ao atualizar pedido: " + (e.message || e));
-      }
-    };
-  </script>
+  if (indexRemetente >= 0) {
+    for (let i = indexRemetente + 1; i < linhas.length; i++) {
+      const linha = linhas[i].trim();
 
-  <!-- Restante do seu código JavaScript permanece aqui -->
-  <!-- [Todo o restante do seu código JavaScript existente] -->
+      // Ignora linhas irrelevantes
+      if (
+        linha === "" ||
+        linha.toUpperCase().startsWith("CEP") ||
+        /^\d{5}-?\d{3}$/.test(linha) ||         // CEP
+        /^\d{1,6}$/.test(linha) ||              // Número
+        /^[\d,.:\/\-]+$/.test(linha) ||         // Endereços numéricos
+        linha.toLowerCase().includes("avenida") ||
+        linha.toLowerCase().includes("rua") ||
+        linha.toLowerCase().includes("bairro") ||
+        linha.toLowerCase().includes("bloco")
+      ) continue;
+
+      // Provável nome da loja
+      if (
+        linha.length > 3 &&
+        !linha.match(/^\d/) && // não começa com número
+        !linha.includes("@")   // ignora emails
+      ) {
+        return linha;
+      }
+    }
+  }
+
+  // 🔍 Tentativa baseada em Firestore
+  if (AppCasaRosa.lojasRegistradas && Array.isArray(AppCasaRosa.lojasRegistradas)) {
+    for (const loja of AppCasaRosa.lojasRegistradas) {
+      if (texto.toLowerCase().includes(loja.toLowerCase())) {
+        return loja;
+      }
+    }
+  }
+
+  // Fallback manual
+  const match = texto.match(/(Casa Rosa Decorações|Collore Na Web|DAC Store)/i);
+  return match ? match[1] : "Loja Desconhecida";
+};
+
+
+
+</script>
+
+
+<script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
+  // Renderização da tabela de “Novos a Enviar”
+ window.AppCasaRosa.renderizarTabelaPendentes = function(lista) {
+  const container = document.getElementById("tabelaPendentes");
+  if (!container) return;
+
+  let html = `
+    <div style="overflow-x:auto;"><table>
+      <thead>
+        <tr>
+         <th><input type="checkbox" id="selecionarPendentesTodos" onchange="AppCasaRosa.marcarTodosPendentes(this.checked)" /></th>
+          <th>Pedido</th>
+          <th>Loja</th>
+          <th>Produto</th>
+          <th>Pagamento</th>
+          <th>Rastreio</th>
+           <th>Forma</th>
+          <th>Vendedor</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  lista.forEach(p => {
+    const pedido   = p.Pedido || p.pedidoId || "";
+    const loja     = p.Loja || "";
+    const vendedor = p.Vendedor || "";
+    const produto  = p.SKU || "";
+    const pagamento = p.dataPagamento
+      ? new Date(p.dataPagamento).toLocaleString()
+      : "";
+    const rastreio = p.Rastreio || "";
+    const forma    = p.FormaEntrega || "";
+
+    html += `
+<tr>
+<td><input type="checkbox" class="selecionar-pendente" data-id="${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}" /></td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : escapeHTML(pedido)}</td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pagamento) : escapeHTML(pagamento)}</td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : escapeHTML(rastreio)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(forma) : escapeHTML(forma)}</td>
+  <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : escapeHTML(vendedor)}</td>
+ <td>
+    <button title="Editar" class="acao-btn" onclick="AppCasaRosa.editarPedido && AppCasaRosa.editarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')"><i class='fa fa-edit'></i></button>
+    <button title="Visualizar" class="acao-btn" onclick="AppCasaRosa.visualizarPedido && AppCasaRosa.visualizarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')"><i class='fa fa-eye'></i></button>
+    <button class="danger" title="Cancelar" onclick="AppCasaRosa.cancelarPedido ? AppCasaRosa.cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}') : cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')">❌</button>
+  </td>
+</tr>
+`;
+  });
+
+  html += "</tbody></table></div>";
+  container.innerHTML = html;
+
+  // Remova ou adapte a chamada para atualizarTabelas conforme sua necessidade:
+  // if (typeof AppCasaRosa.atualizarTabelas === "function") AppCasaRosa.atualizarTabelas();
+};
+// Exibe pendentes em formato de cards
+window.AppCasaRosa.renderizarCardsPendentes = function(lista) {
+  const container = document.getElementById("cardsPendentes");
+  if (!container) return;
+  container.innerHTML = "";
+  lista.forEach(p => {
+    const pedido   = p.Pedido || p.pedidoId || "";
+    const loja     = p.Loja || "";
+    const vendedor = p.Vendedor || "";
+    const produto  = p.SKU || "";
+    const pagamento = p.dataPagamento ? new Date(p.dataPagamento).toLocaleDateString() : "";
+    const rastreio = p.Rastreio || "";
+    const div = document.createElement("div");
+    div.className = "card-pendente";
+    div.innerHTML = `
+      <strong>Pedido:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : pedido}<br/>
+      <strong>Loja:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : loja}<br/>
+       <strong>Vendedor:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : vendedor}<br/>
+      <strong>Produto:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : produto}<br/>
+      <strong>Pagamento:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pagamento) : pagamento}<br/>
+      <strong>Rastreio:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : rastreio}<br/>
+            <strong>Forma:</strong> ${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(forma) : forma}<br/>
+      <button class="danger" onclick="AppCasaRosa.cancelarPedido('${p.id}')">❌ Cancelar</button>
+    `;
+    container.appendChild(div);
+  });
+};
+
+// Alterna entre tabela e cards
+window.AppCasaRosa.alternarVisualizacaoPedidos = function() {
+  const tabela = document.getElementById("tabelaPendentes");
+  const cards  = document.getElementById("cardsPendentes");
+  const btn    = document.getElementById("btnVisualizacaoPendentes");
+  if (!tabela || !cards || !btn) return;
+
+  if (tabela.style.display === "none") {
+    tabela.style.display = "";
+    cards.style.display = "none";
+    btn.textContent = "📦 Visualizar como Cards";
+  } else {
+    const enviadosSet = new Set((AppCasaRosa.enviadosList || []).map(e => (e.pedidoId || e.Pedido || "").toString().trim()));
+    const lista = (AppCasaRosa.importadosList || []).filter(p => !enviadosSet.has((p.pedidoId || p.Pedido || "").toString().trim()));
+    AppCasaRosa.renderizarCardsPendentes(lista);
+    tabela.style.display = "none";
+    cards.style.display = "grid";
+    btn.textContent = "📋 Visualizar como Tabela";
+  }
+};
+
+
+window.AppCasaRosa.renderizarTabelaMetas = function() {
+  const lojas = [...new Set((AppCasaRosa.enviadosList || []).map(p => p.Loja).filter(Boolean))];
+  const tbody = document.querySelector("#tabela-metas tbody");
+  tbody.innerHTML = "";
+
+  lojas.forEach(loja => {
+    const meta = (window.metasPorLoja && window.metasPorLoja[loja]) || "";
+    const linha = document.createElement("tr");
+    linha.innerHTML = `
+      <td style="padding:0.5rem;">${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>
+      <td style="padding:0.5rem;">
+        <input type="number" min="0" value="${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(meta) : escapeHTML(meta)}" data-loja="${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}" style="width:100px;" />
+      </td>
+      <td style="padding:0.5rem;">
+        <button onclick="AppCasaRosa.removerMeta('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}')">❌ Remover</button>
+      </td>
+    `;
+    tbody.appendChild(linha);
+  });
+};
+function salvarMetas() {
+  const inputs = document.querySelectorAll("#tabela-metas input[data-loja]");
+  inputs.forEach(input => {
+    const loja = input.dataset.loja;
+    const valor = parseInt(input.value);
+    if (!isNaN(valor)) {
+      metasPorLoja[loja] = valor;
+    }
+  });
+  localStorage.setItem("metasPorLoja", JSON.stringify(metasPorLoja));
+  alert("🎯 Metas salvas com sucesso!");
+}
+
+window.AppCasaRosa.removerMeta = function(loja) {
+  delete metasPorLoja[loja];
+  localStorage.setItem("metasPorLoja", JSON.stringify(metasPorLoja));
+  if (typeof AppCasaRosa.renderizarTabelaMetas === "function") {
+    AppCasaRosa.renderizarTabelaMetas();
+  } else if (typeof renderizarTabelaMetas === "function") {
+    renderizarTabelaMetas();
+  }
+};
+
+
+</script>
+
+
+<script>
+  window.AppCasaRosa = window.AppCasaRosa || {};
+ window.AppCasaRosa.renderizarTabelaEnviados = function(lista) {
+  const container = document.getElementById("tabela-enviados");
+  if (!container) return;
+
+  let html = `
+    <div style="overflow-x:auto;"><table>
+      <thead>
+        <tr>
+       <th><input type="checkbox" id="selecionarEnviadosTodos" onchange="AppCasaRosa.marcarTodosEnviados(this.checked)" /></th>
+          <th>Pedido</th>
+          <th>Loja</th>           
+          <th>Produto</th>
+          <th>Rastreio</th>
+            <th>Forma</th>
+          <th>Pagamento</th>
+          <th>Data Envio</th>
+          <th>Vendedor</th>
+          <th>Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  lista.forEach(p => {
+    const pedido   = p.pedidoId || "-";
+    const loja     = p.Loja || "-";
+    const vendedor = p.Vendedor || "-";
+    const produto  = p.SKU || "-";
+    const rastreio = p.Rastreio || "-";
+        const forma    = p.FormaEntrega || "-";
+    const pag      = p.dataPagamento ? new Date(p.dataPagamento).toLocaleDateString() : "-";
+    const envio    = p.dataEnvio ? new Date(p.dataEnvio).toLocaleDateString() : "-";
+
+    html += `
+  <tr>
+  <td><input type="checkbox" class="selecionar-enviado" data-id="${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}" /></td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pedido) : escapeHTML(pedido)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(loja) : escapeHTML(loja)}</td>   
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(produto) : escapeHTML(produto)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(rastreio) : escapeHTML(rastreio)}</td>
+        <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(forma) : escapeHTML(forma)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(pag) : escapeHTML(pag)}</td>
+    <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(envio) : escapeHTML(envio)}</td>
+     <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(vendedor) : escapeHTML(vendedor)}</td>
+    <td>
+<button title="Editar" class="acao-btn" onclick="AppCasaRosa.editarPedido && AppCasaRosa.editarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')"><i class='fa fa-edit'></i></button>
+      <button title="Visualizar" class="acao-btn" onclick="AppCasaRosa.visualizarPedido && AppCasaRosa.visualizarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')"><i class='fa fa-eye'></i></button>
+      <button class="danger" title="Cancelar" onclick="AppCasaRosa.cancelarPedido ? AppCasaRosa.cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}') : cancelarPedido('${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.id) : escapeHTML(p.id)}')">❌</button>    </td>
+  </tr>
+`;
+  });
+
+  html += `</tbody></table></div>`;
+  container.innerHTML = html;
+};
+
+window.AppCasaRosa.atualizarTabelaEnviados = function() {
+  const lista = AppCasaRosa.enviadosList || [];
+    const hojeStr = new Date().toISOString().split('T')[0];
+  const lojaFiltro = (document.getElementById('filtroLojaRelatorio')?.value || '').trim().toLowerCase();
+  const vendedorFiltro = (document.getElementById('filtroVendedorRelatorio')?.value || '').trim().toLowerCase();
+  const filtroElem = document.getElementById('filtroDataEnviados');
+  const datasSel = filtroElem && filtroElem._flatpickr ? filtroElem._flatpickr.selectedDates : [];
+  const filtrados = lista.filter(p => {
+    const loja = (p.Loja || '').trim().toLowerCase();
+    const vendedor = (p.Vendedor || '').trim().toLowerCase();
+    if (lojaFiltro && loja !== lojaFiltro) return false;
+    if (vendedorFiltro && vendedor !== vendedorFiltro) return false;
+    const dataEnvio = p.dataEnvio?.split('T')[0];
+    if (!dataEnvio) return false;
+   if (!datasSel.length) {
+      if (dataEnvio !== hojeStr) return false;
+    } else {
+    const data = new Date(dataEnvio);
+      const inicio = datasSel[0];
+      const fim = datasSel[1] || datasSel[0];
+      if (data < inicio || data > fim) return false;
+    }
+    return true;
+  });
+  AppCasaRosa.renderizarTabelaEnviados(filtrados);
+};
+
+  // Renderização da tabela de “Cancelados”
+window.AppCasaRosa.renderizarTabelaCancelados = function(lista) {
+  const tbody = document.querySelector("#tabela-cancelados tbody");
+  tbody.innerHTML = "";
+  lista.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Loja || "") : escapeHTML(p.Loja || "")}</td>
+       <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Vendedor || "") : escapeHTML(p.Vendedor || "")}</td>
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.motivo || "") : escapeHTML(p.motivo || "")}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+};
+// Renderização da tabela de “Reclamações”
+window.AppCasaRosa.renderizarTabelaReclamacoes = function(lista) {
+  const tbody = document.querySelector("#tabela-reclamacoes tbody");
+  if (!tbody) return;
+  tbody.innerHTML = "";
+  lista.forEach(p => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Loja || "") : escapeHTML(p.Loja || "")}</td>
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Reclamacao || "") : escapeHTML(p.Reclamacao || "")}</td>
+      <td>${AppCasaRosa.escapeHTML ? AppCasaRosa.escapeHTML(p.Vendedor || "") : escapeHTML(p.Vendedor || "")}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+};
+
+// Marca um pedido como “enviado” no Firestore
+window.AppCasaRosa.marcarEnviado = function(id) {
+  if (typeof AppCasaRosa.atualizarPedido === "function") {
+    AppCasaRosa.atualizarPedido(id, {
+      status: "enviado",
+      dataEnvio: new Date().toISOString()
+    });
+  } else if (typeof atualizarPedido === "function") {
+    atualizarPedido(id, {
+      status: "enviado",
+      dataEnvio: new Date().toISOString()
+    });
+  }
+};
+
+// Cancela um pedido: atualiza status e registra em coleção “pedidos_cancelados”
+window.AppCasaRosa.cancelarPedido = async function(id) {
+  try {
+    const motivo = prompt("Digite o motivo do cancelamento:");
+    if (!motivo) return;
+   
+    // Obtem o documento atual
+     const ref = AppCasaRosa.doc(AppCasaRosa.db, "pedidos_pendentes", id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      alert("Pedido não encontrado.");
+      return;
+    }
+   const dadosPedido = snap.data();
+
+    // Remove dos pendentes
+   await AppCasaRosa.deleteDoc(ref);
+
+    // Registra o cancelamento em coleção própria
+   await AppCasaRosa.addDoc(collection(db, "pedidos_cancelados"), {
+      ...dadosPedido,
+      pedidoId: id,
+      motivo,
+      dataCancelamento: new Date().toISOString()
+    });
+
+    // Atualiza lista em memória e UI
+    if (Array.isArray(AppCasaRosa.importadosList)) {
+      AppCasaRosa.importadosList = AppCasaRosa.importadosList.filter(p => p.id !== id);
+    }
+    if (typeof AppCasaRosa.carregarPendentesFirebase === "function") {
+      AppCasaRosa.carregarPendentesFirebase();
+    }
+
+    alert("Pedido cancelado com sucesso.");
+  } catch (e) {
+    alert("Erro ao cancelar pedido: " + (e.message || e));
+  }
+};
+</script>
+
+  
+ <style>
+    :root {
+      --accent-magenta: #d81b60;
+    --accent-green: #2e7d32;
+    --accent-pink: #EF5DA8;
+          --accent-magenta-light: #ffd6e8;
+
+
+  }
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: #f3f4f6;
+    color: #212529;
+    padding: 0;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+  }
+
+  h1 {
+    text-align: center;
+    color: var(--accent-magenta);
+  }
+  header#topBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+   padding: 0.75rem 1rem;
+    background: #ffffff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+  }
+
+  header#topBar h2 {
+    margin: 0;
+   font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--accent-magenta);
+  }
+
+  header#topBar .header-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+  }
+
+  header#topBar button {
+    background: #ffffff;
+    color: var(--accent-magenta);
+    border: 1px solid #e5e5e5;
+    border-radius: 0.375rem;
+    padding: 0.4rem 0.75rem;
+  }
+  header#topBar button:hover {
+    background: var(--accent-magenta-light);
+  }
+
+   nav#sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 220px;
+    background: #ffffff;
+    box-shadow: 2px 0 4px rgba(0,0,0,0.05);
+    padding-top: 1rem;
+    z-index: 10;
+  }
+  nav#sidebar .tabs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin: 0;
+    padding-left: 0;
+    list-style: none;
+  }
+
+  .tab {
+   padding: 0.75rem 1rem;
+    background-color: #f3f4f6;
+    color: #212529;
+    font-weight: 500;
+    border-radius: 0 8px 8px 0;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+       gap: 0.75rem;
+    transition: background 0.2s ease, color 0.2s ease;
+    border-left: 4px solid transparent;
+    width: 100%;
+  }
+
+  .tab:hover {
+      background-color: var(--accent-magenta-light);
+  }
+
+  .tab.active {
+   background-color: var(--accent-pink);
+    color: #fff;
+    font-weight: 600;
+ border-left-color: var(--accent-pink);
+  }
+details.dropdown {
+    position: relative;
+  }
+  details.dropdown summary {
+    list-style: none;
+    outline: none;
+  }
+  details.dropdown summary::-webkit-details-marker {
+    display: none;
+  }
+  details.dropdown[open] summary {
+   background-color: var(--accent-pink);
+    color: white;
+  }
+  .submenu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+    list-style: none;
+     padding-left: 1rem;
+  }
+  #content {
+    margin-left: 220px;
+    padding: 1rem;
+  }
+  .tab-content {
+    display: none;
+    border: 1px solid #dee2e6;
+    padding: 1rem;
+    background: white;
+  }
+
+  .tab-content.active {
+    display: block;
+  }
+
+  input[type="file"],
+ input[type="date"],
+  .flatpickr-input {
+    margin: 0.5rem 0;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    border-radius: 6px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+  }
+
+  th,
+  td {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+    text-align: left;
+  }
+
+  th {
+     background: var(--accent-magenta);
+    color: white;
+  }
+
+  tr:nth-child(even) {
+   background-color: var(--accent-magenta-light);
+  }
+
+  tr:nth-child(odd) {
+    background-color: #FFFFFF;
+  }
+
+  tr:hover {
+    background-color: var(--accent-magenta-light);
+    transition: background 0.2s ease;
+  }
+
+  button {
+    margin: 0.5rem 0.25rem;
+    padding: 0.5rem 1rem;
+    background: var(--accent-green);
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+  }
+.acao-btn {
+    background: transparent;
+    color: var(--accent-pink);
+    border: none;
+    padding: 0.25rem 0.5rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+
+  .acao-btn:hover {
+    color: var(--accent-magenta);
+  }
+
+  .danger {
+    background: var(--accent-pink);
+  }
+
+  .dashboard-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .dashboard-header h2 {
+    font-size: 1.6rem;
+    color: #343a40;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .titulo-secao {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #212529;
+    letter-spacing: -0.5px;
+  }
+
+  .filtros-dashboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    margin-top: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .card-filtros {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+
+  .card-filtros select {
+    width: 180px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.9rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+
+  .btn-outline {
+    background: #ffffff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  .btn-outline:hover {
+    background: #f5f5f5;
+  }
+
+.card-filtros label {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 220px;
+  margin-bottom: 0.25rem;
+}
+
+
+  .filtros-dashboard label strong i {
+    background: #ffffff;
+  color: var(--accent-pink);
+    padding: 0.45rem;
+    border-radius: 50%;
+    margin-right: 0.5rem;
+    font-size: 0.75rem;
+    width: 1.7rem;
+    height: 1.7rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+  .filtros-dashboard select {
+    width: 250px;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background: white;
+    font-size: 0.95rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  }
+ .filter-card {
+    padding: 0.75rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background: #fff;
+  }
+
+  .filter-card input,
+  .filter-card select {
+    padding: 0.5rem 0.75rem;
+  }
+  .cards-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .card-status {
+      flex: 1 1 220px;
+    padding: 1rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+    border-left: 6px solid transparent;
+  }
+
+  .card-novos {
+    background-color: #fefce8;
+    border-left-color: #facc15;
+    color: #92400e;
+  }
+
+  .card-atraso {
+    background-color: #fef2f2;
+    border-left-color: #f87171;
+    color: #b91c1c;
+  }
+
+  .card-risco {
+    background-color: #fffbeb;
+    border-left-color: #f59e0b;
+    color: #92400e;
+  }
+
+  .card-enviados {
+    background-color: #ecfdf5;
+    border-left-color: #34d399;
+    color: #065f46;
+  }
+  .card-comatraso {
+    background-color: #fdf4ff;
+    border-left-color: #d946ef;
+    color: #9333ea;
+  }
+   .card-status i {
+    font-size: 1.8rem;
+  }
+
+
+  .card-status strong {
+   font-size: 1rem;
+    font-weight: 600;
+    display: block;
+  }
+
+  .card-status span {
+    font-size: 1.5rem;
+    font-weight: bold;
+    
+  }
+
+  .filtros-simples {
+    margin-bottom: 1.5rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .filtros-simples label {
+    font-weight: 500;
+    color: #343a40;
+  }
+@media (max-width: 768px) {
+  .card-filtros {
+    flex-direction: column;
+  }
+
+  .card-filtros select {
+    width: 100%;
+  }
+}
+
+.card-percentual-atraso {
+    background-color: #e2e3f3;
+    color: #383d65;
+  }
+
+  /* Visualização em cards para os pedidos */
+  .cards-pendentes {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  }
+
+  .card-pendente {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 0.75rem;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+body.dark-mode {
+  background-color: #121212;
+ color: #E0E0E0;
+}
+
+body.dark-mode .tab-content,
+body.dark-mode .card-status,
+body.dark-mode .filtros-dashboard,
+body.dark-mode #card-vendas-mensais,
+body.dark-mode .dashboard-header {
+  background-color: #1e1e1e;
+  border-color: #333;
+  color: #E0E0E0;
+}
+
+body.dark-mode button {
+  background-color: var(--accent-green);
+  color: #fff;
+}
+body.dark-mode header#topBar {
+  background: var(--accent-magenta);
+}
+
+body.dark-mode header#topBar h2 {
+  color: #fff;
+}
+
+body.dark-mode header#topBar button {
+  background: var(--accent-magenta);
+  color: #fff;
+  border-color: #fff;
+}
+  
+</style>
+
+
+
 
   <link rel="manifest" href="manifest.json">
   <script>
@@ -852,84 +1199,37 @@
         console.log("✅ Service Worker registrado com sucesso");
       });
     }
-
-    // Alternador de tema
-    window.AppCasaRosa.alternarTema = function() {
-      document.body.classList.toggle('dark-mode');
-      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-    };
-
-    // Verificar preferência de tema ao carregar
-    document.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark-mode');
-      }
-    });
   </script>
-</head>
-
-<body>
-  <div class="app-container">
-    <nav id="sidebar">
-      <div class="sidebar-header">
-        <h3><i class="fas fa-store-alt"></i> Casa Rosa</h3>
-      </div>
-      <ul class="tabs">
-        <li class="tab" onclick="abrirAba('dashboard')"><i class="fas fa-chart-bar"></i> Dashboard</li>
-        <li class="tab active" onclick="abrirAba('importados')"><i class="fas fa-file-import"></i> Importados</li>
-        <li>
-          <details class="dropdown">
-            <summary class="tab"><i class="fas fa-shopping-cart"></i> Pedidos</summary>
-            <ul class="submenu">
-              <li class="tab" onclick="abrirAba('cancelados')"><i class="fas fa-ban"></i> Cancelados</li>
-              <li class="tab" onclick="abrirAba('a_enviar')"><i class="fas fa-clock"></i> A Enviar</li>
-              <li class="tab" onclick="abrirAba('enviados')"><i class="fas fa-truck"></i> Enviados</li>
-              <li class="tab" onclick="abrirAba('reclamacoes')"><i class="fas fa-exclamation-circle"></i> Reclamações</li>
-            </ul>
-          </details>
-        </li>
-        <li>
-          <details class="dropdown">
-            <summary class="tab"><i class="fas fa-cog"></i> Gestão</summary>
-            <ul class="submenu">
-              <li class="tab" onclick="abrirAba('etiquetas_pdf')"><i class="fas fa-file-pdf"></i> Etiquetas</li>
-              <li class="tab" onclick="abrirAba('aba-logs'); AppCasaRosa.carregarLogs();"><i class="fas fa-clipboard-list"></i> Logs</li>
-              <li class="tab" onclick="abrirAba('aba-produtos'); AppCasaRosa.carregarProdutos();"><i class="fas fa-box"></i> Produtos</li>
-              <li class="tab" onclick="abrirAba('aba-skus-equivalentes'); AppCasaRosa.carregarSkusEquivalentes();"><i class="fas fa-code-branch"></i> SKUs Equivalentes</li>
-              <li class="tab" onclick="abrirAba('aba-metas'); AppCasaRosa.preencherLojasInputMeta(); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.renderizarMetasManuais();"><i class="fas fa-bullseye"></i> Metas Diárias</li>
-            </ul>
-          </details>
-        </li>
-        <li class="tab" onclick="abrirAba('aba-admin'); AppCasaRosa.preencherFiltroLojaMetas(); AppCasaRosa.atualizarRelatorioMetas(); AppCasaRosa.atualizarRelatorioSku(); AppCasaRosa.carregarProdutos(); AppCasaRosa.atualizarCardsMetas();"><i class="fas fa-user-shield"></i> Administrador</li>
-      </ul>
-    </nav>
-
-    <div id="content">
-      <header id="topBar">
-        <h2><i class="fas fa-chart-line"></i> Controle Pedidos Casa Rosa</h2>
-        <div class="header-actions">
-          <button class="btn btn-outline" onclick="AppCasaRosa.alternarTema()" id="btnTema">
-            <span class="theme-toggle">
-              <i class="fas fa-sun"></i>
-              <i class="fas fa-moon"></i>
-            </span>
-          </button>
-          <button class="btn btn-outline" onclick="AppCasaRosa.deslogarUsuario()"><i class="fas fa-sign-out-alt"></i> Sair</button>
-        </div>
-      </header>
-
-      <!-- Login -->
-      <div id="login" class="login-container">
-        <h2 class="login-title"><i class="fas fa-lock"></i> Login</h2>
-        <div class="form-group">
-          <input type="email" id="emailLogin" class="form-control" placeholder="Email">
-        </div>
-        <div class="form-group">
-          <input type="password" id="senhaLogin" class="form-control" placeholder="Senha">
-        </div>
-        <button class="btn btn-primary" onclick="AppCasaRosa.fazerLogin()" style="width: 100%;">Entrar</button>
-        <div id="erroLogin" class="login-error"></div>
-      </div>
+ <style>
+@media (max-width: 768px) {
+  input, select, button {
+    width: 100% !important;
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+  }
+  .card, .tabela-container {
+    width: 100% !important;
+  }
+  #menuLateral {
+    width: 100% !important;
+    position: relative;
+  }
+  .dashboard-card {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  #sidebar {
+    position: relative;
+    width: 100%;
+    flex-direction: row;
+    overflow-x: auto;
+    box-shadow: none;
+  }
+  #content {
+    margin-left: 0;
+  }
+}
+</style> 
 </head>
 <body>
     <nav id="sidebar">
